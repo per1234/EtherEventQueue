@@ -1,0 +1,12 @@
+EtherEventQueue	KEYWORD1
+begin	KEYWORD2
+availableEvent	KEYWORD2
+availablePayload	KEYWORD2
+readEvent	KEYWORD2
+readPayload	KEYWORD2
+flushReceiver	KEYWORD2
+queue	KEYWORD2
+queueHandler	KEYWORD2
+checkTimeout	KEYWORD2
+checkTimein	KEYWORD2
+checkTimeoutSelf	KEYWORD2
