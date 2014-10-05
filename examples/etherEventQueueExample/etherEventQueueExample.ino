@@ -17,7 +17,7 @@ void setup(){
   Ethernet.begin(mac, IPAddress(192, 168, 69, 104));  //leave off the IP parameter for DHCP
   ethernetServer.begin();  //begin the server that will be used to receive events
   EtherEvent.begin("password");  //set the EtherEvent password
-  EtherEventQueue.begin(4, 1024);  //set the deviceID
+  EtherEventQueue.begin(4, 1024);  //set the node ID and the EtherEvent TCP port
 }
 
 void loop(){

@@ -1,4 +1,4 @@
-// EtherEventQueue outgoing message queue for the EtherEvent authenticated network communication arduino library: http://github.com/per1234/EtherEvent
+// EtherEventQueue outgoing event queue for the EtherEvent authenticated network communication arduino library: http://github.com/per1234/EtherEvent
 #include "Arduino.h"
 #include "EtherEventQueue.h"  //http://github.com/per1234/EtherEventQueue
 #include <SPI.h>  //for the ethernet library
@@ -107,8 +107,8 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer){
     Serial.print(F("EtherEventQueue.availableEvent: ethernetReadMessageID="));
     Serial.println(receivedMessageID);
          
-    if(payloadLength>payloadLength+1){  //there is a true payload
-      for(byte count=0;count<payloadLength-messageIDlength;count++){
+    if(payloadLength>messageIDlength+1){  //there is a true payload
+      for(byte count=0; count < payloadLength - messageIDlength; count++){
         receivedPayload[count]=receivedPayloadRaw[count+messageIDlength];  //(TODO: just use receivedPayload for the buffer instead of having the raw buffer)    
       }
       Serial.print(F("EtherEventQueue.availableEvent: receivedPayload="));

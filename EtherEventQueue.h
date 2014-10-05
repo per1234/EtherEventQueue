@@ -8,8 +8,8 @@
   #include "EtherEvent.h"  //include the EtherEvent library so its functions can be accessed
 
   const byte queueSizeMax=30;  //max number of messages to queue up before discarding the oldest one
-  const byte eventLengthMax=3;  //max number of characters of the event
-  const byte payloadLengthMax=50;  //max number of characters of the payload
+  const byte eventLengthMax=15;  //max number of characters of the event
+  const byte payloadLengthMax=60;  //max number of characters of the payload
   const byte messageIDlength=2;  //number of characters of the message ID that is appended to the start of the raw payload, the message ID must be exactly this length
   const byte nodeCount=11;  //
   
