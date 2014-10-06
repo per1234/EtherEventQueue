@@ -17,21 +17,23 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 - pfodCHAP - a much more rigorous authentication library: http://forward.com.au/pfod/pfodParserLibraries
 
 #### Installation
-- Make sure you have the most recent version of the library: http://github.com/per1234/EtherEventQueue
 - 64k is the minimum recommended flash memory capacity of the MCU
-- Download EtherEventQueue - Download ZIP button(or Clone in Desktop if you have GitHub Desktop installed)
+- Download the most recent version of EtherEventQueue here http://github.com/per1234/EtherEventQueue  - Download ZIP button(or Clone in Desktop if you have GitHub Desktop installed)
 - Extract the EtherEventQueue-master folder from the downloaded zip file
 - Rename the folder EtherEventQueue
 - Move the folder to your arduino sketchbook\libraries folder
 - Repeat this process with the other required libraries
+- Modify the stock Arduino Ethernet library following these instructions: http://forum.arduino.cc/index.php?/topic,82416.0.html
+- uncomment #define SENDERIP_ENABLE in EtherEvent.cpp
 - EtherEventQueue library configuration parameters(EtherEventQueue.cpp):
   - there are several paramerters that can be configured in the library, they are documented there
 - Restart the Arduino IDE
 - File>Examples>etherEventQueueExample
-- Set the device IP address, this can be any available IP address on the network. DHCP not currently implemented.
-- Set the device MAC address. This can be any address not already used on the network
-- Set the EtherEvent password. The password must be the same on all connected devices.
-- Upload to device
+ - Set the device IP address, this can be any available IP address on the network. DHCP not currently implemented.
+ - Set the device MAC address. This can be any address not already used on the network
+ - Set the EtherEvent authentication password.
+ - Set the EtherEvent TCP port.
+- Upload example sketch to device
 - Repeat with other connected devices. The serial monitor will show details of the test communications.
 
 #### Usage

@@ -28,18 +28,18 @@ void setup(){
 
 void loop(){
   EtherEventQueue.queueHandler(ethernetClient);  //this will send events from the queue
-  if(byte length=EtherEvent.availableEvent(ethernetServer)){  //this checks for a new event and gets the length of the event including the null terminator
+  if(byte length=EtherEventQueue.availableEvent(ethernetServer)){  //this checks for a new event and gets the length of the event including the null terminator
     Serial.print(F("Received event length="));
     Serial.println(length);
     char event[length];  //create the event buffer of the correct size
-    EtherEvent.readEvent(event);  //read the event into the event buffer
+    EtherEventQueue.readEvent(event);  //read the event into the event buffer
     Serial.print(F("Received event: "));
     Serial.println(event);  //now the event is in your buffer
-    length=EtherEvent.availablePayload();  //receiving the payload works the same as the event
+    length=EtherEventQueue.availablePayload();  //receiving the payload works the same as the event
     Serial.print(F("Received payload length="));
     Serial.println(length);
     char payload[length];
-    EtherEvent.readPayload(payload);
+    EtherEventQueue.readPayload(payload);
     Serial.print(F("Received payload: "));
     Serial.println(payload);
     Serial.print(F("Received from IP: "));
