@@ -10,7 +10,7 @@
   const byte queueSizeMax=30;  //max number of messages to queue up before discarding the oldest one
   const byte eventLengthMax=15;  //max number of characters of the event
   const byte payloadLengthMax=60;  //max number of characters of the payload
-  const byte messageIDlength=2;  //number of characters of the message ID that is appended to the start of the raw payload, the message ID must be exactly this length
+  const byte eventIDlength=2;  //number of characters of the message ID that is appended to the start of the raw payload, the message ID must be exactly this length
   #define NODE_COUNT 11  //total number of nodes
   
   class EtherEventQueueClass{
@@ -25,13 +25,13 @@
       byte queue(byte targetNode, unsigned int port, const char event[], const char payload[], boolean resendFlag);
       void queueHandler(EthernetClient &ethernetClient);
       void flushQueue();
-      IPAddress checkTimeout();
-      IPAddress checkTimein();
-      boolean checkTimeoutSelf();
+      int checkTimeout();
+      int checkTimein();
+      boolean checkState(byte node);
     private:
-      byte messageIDfind();
-      void remove(byte queueStep);
       int getNode(const IPAddress IPvalue);
+      byte eventIDfind();
+      void remove(byte queueStep);
       
       byte nodeDevice;
       unsigned int port;
@@ -41,7 +41,7 @@
       IPAddress IPqueue[queueSizeMax];  //queue buffers
       unsigned int portQueue[queueSizeMax];
       char eventQueue[queueSizeMax][eventLengthMax+1];
-      byte messageIDqueue[queueSizeMax];  //unique identifier for the message
+      byte eventIDqueue[queueSizeMax];  //unique identifier for the message
       char payloadQueue[queueSizeMax][payloadLengthMax+1];
       boolean resendFlagQueue[queueSizeMax];
       
@@ -50,7 +50,7 @@
       byte queueStep;  //which message in the queue is it on
       unsigned long queueSendTimestamp;  //used for delayed resends of messages in the queue that failed the first time
       
-      boolean nodeState[NODE_COUNT];  //0=not timed out 1=timed out - state at the last check
+      byte nodeState[NODE_COUNT];  //0=not timed out 1=timed out - state at the last check
       unsigned long nodeTimestamp[NODE_COUNT];  //last received event time
   };
   extern EtherEventQueueClass EtherEventQueue;  //declare the class so it doesn't have to be done in the sketch

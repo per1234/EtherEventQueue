@@ -10,4 +10,4 @@ queueHandler	KEYWORD2
 flushQueue	KEYWORD2
 checkTimeout	KEYWORD2
 checkTimein	KEYWORD2
-checkTimeoutSelf	KEYWORD2
+nodeState	KEYWORD2

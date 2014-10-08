@@ -89,16 +89,16 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
    
 `EtherEventQueue.checkTimeout()` - check for newly timed out nodes
 - Parameter: none
--Returns: IP address of the tirst newly timed out node found
-  - Type: IPAddress
+-Returns: node number of the tirst newly timed out node found or -1 if no timed out node found
+  - Type: int
   
 `EtherEventQueue.checkTimein()` - check for newly timed in nodes
 - Parameter: none
--Returns: IP address of the tirst newly timed out node found
-  - Type: IPAddress
+-Returns: node number of the tirst newly timed out node found or -1 if no timed out node found
+  - Type: int
   
-`EtherEventQueue.checkTimeoutSelf()` - check if the device has not received any events in longer than the timeout duration
-- Parameter: none
+`EtherEventQueue.nodeState(node)` - check if the device has not received any events in longer than the timeout duration
+- Parameter: node - the node number of the node to be checked
 -Returns: 0 == not timed out, 1 == timed out
   - Type: boolean
   

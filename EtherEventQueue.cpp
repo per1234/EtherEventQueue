@@ -98,18 +98,18 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer){
     Serial.print(F("EtherEventQueue.availableEvent: rawPayload="));
     Serial.println(receivedPayloadRaw);
     
-    //break the payload down into parts and convert the messageID, code, and target address to byte, the true payload stays as a char array 
-    char receivedMessageID[messageIDlength+1];
-    for(byte count=0;count<messageIDlength;count++){
-      receivedMessageID[count]=receivedPayloadRaw[count];
+    //break the payload down into parts and convert the eventID, code, and target address to byte, the true payload stays as a char array 
+    char receivedeventID[eventIDlength+1];
+    for(byte count=0;count<eventIDlength;count++){
+      receivedeventID[count]=receivedPayloadRaw[count];
     }
-    receivedMessageID[messageIDlength]=0;  //add the null terminator because there is not one after the id in the string
-    Serial.print(F("EtherEventQueue.availableEvent: ethernetReadMessageID="));
-    Serial.println(receivedMessageID);
+    receivedeventID[eventIDlength]=0;  //add the null terminator because there is not one after the id in the string
+    Serial.print(F("EtherEventQueue.availableEvent: ethernetReadeventID="));
+    Serial.println(receivedeventID);
          
-    if(payloadLength>messageIDlength+1){  //there is a true payload
-      for(byte count=0; count < payloadLength - messageIDlength; count++){
-        receivedPayload[count]=receivedPayloadRaw[count+messageIDlength];  //(TODO: just use receivedPayload for the buffer instead of having the raw buffer)    
+    if(payloadLength>eventIDlength+1){  //there is a true payload
+      for(byte count=0; count < payloadLength - eventIDlength; count++){
+        receivedPayload[count]=receivedPayloadRaw[count+eventIDlength];  //(TODO: just use receivedPayload for the buffer instead of having the raw buffer)    
       }
       Serial.print(F("EtherEventQueue.availableEvent: receivedPayload="));
       Serial.println(receivedPayload);
@@ -118,9 +118,9 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer){
     if(strcmp(receivedEvent, eventAck)==0){  //ack handler
       Serial.println(F("EtherEventQueue.availableEvent: ack received"));
       byte receivedPayloadInt=atoi(receivedPayload);  //convert to a byte        
-      for(byte count=0;count<queueSize;count++){  //step through the currently occupied section of the messageIDqueue[]
-        if(receivedPayloadInt==messageIDqueue[count]){  //this is the message the ack is for
-          Serial.println(F("EtherEventQueue.availableEvent: ack messageID match"));
+      for(byte count=0;count<queueSize;count++){  //step through the currently occupied section of the eventIDqueue[]
+        if(receivedPayloadInt==eventIDqueue[count]){  //this is the message the ack is for
+          Serial.println(F("EtherEventQueue.availableEvent: ack eventID match"));
           remove(count);  //remove the message from the queue
         }
       }
@@ -129,7 +129,7 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer){
     }
 
     Serial.println(F("EtherEventQueue.availableEvent: send ack"));
-    queue(senderIP, port, eventAck, receivedMessageID, 0);  //send the ack - the messageID of the received message is the payload
+    queue(senderIP, port, eventAck, receivedeventID, 0);  //send the ack - the eventID of the received message is the payload
 
     return availableBytesEvent;  //there is a new event, return the number of bytes
   }
@@ -192,7 +192,7 @@ byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPo
   }
   else{
     success=1;  //indicate event successfully queued in return
-    byte messageID=messageIDfind();  //get a message ID
+    byte eventID=eventIDfind();  //get a message ID
     queueSize++;
     if(queueSize>queueSizeMax){  //queue overflowed
       queueSize=queueSizeMax;  //had to bump the first item in the queue because there's no room for it
@@ -202,7 +202,7 @@ byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPo
         IPqueue[count]=IPqueue[count+1];
         portQueue[count]=portQueue[count+1];
         strcpy(eventQueue[count],eventQueue[count+1]);    
-        messageIDqueue[count]=messageIDqueue[count+1];
+        eventIDqueue[count]=eventIDqueue[count+1];
         strcpy(payloadQueue[count],payloadQueue[count+1]);
         resendFlagQueue[count]=resendFlagQueue[count+1];        
       }
@@ -213,8 +213,8 @@ byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPo
     //add the new message to the queue
     IPqueue[queueSize-1]=targetIP;  //put the new code in the array after the most recent entry
     portQueue[queueSize-1]=targetPort;
-    strcpy(eventQueue[queueSize-1], event);  //set the messageID for the message in the queue
-    messageIDqueue[queueSize-1]=messageID;
+    strcpy(eventQueue[queueSize-1], event);  //set the eventID for the message in the queue
+    eventIDqueue[queueSize-1]=eventID;
     strcpy(payloadQueue[queueSize-1],payload);  //put the new payload in the queue
     queueNewCount++;  //this is a new one so send immediately
     Serial.print(F("EtherEventQueue.queue: done, queueNewCount="));
@@ -267,10 +267,10 @@ void EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient){  //ethe
       }
 
       //set up the raw payload
-      char messageID[3];
-      itoa(messageIDqueue[queueStepSend],messageID,10);  //put the message ID on the start of the payload
-      char payload[strlen(payloadQueue[queueStepSend])+messageIDlength+1];
-      strcpy(payload,messageID);
+      char eventID[3];
+      itoa(eventIDqueue[queueStepSend],eventID,10);  //put the message ID on the start of the payload
+      char payload[strlen(payloadQueue[queueStepSend])+eventIDlength+1];
+      strcpy(payload,eventID);
       strcat(payload,payloadQueue[queueStepSend]);  //add the true payload to the payload string
 
       Serial.print(F("EtherEventQueue.queueHandler: targetIP="));
@@ -300,88 +300,46 @@ void EtherEventQueueClass::flushQueue(){
 }
 
 
-IPAddress EtherEventQueueClass::checkTimeout(){  //checks all the nodes until it finds a _NEWLY_ timed out IP and returns it or none and returns 0.0.0.0.  Note that this works differently than checkTimeoutSelf
+int EtherEventQueueClass::checkTimeout(){  //checks all the nodes until it finds a _NEWLY_ timed out node and returns it or none and returns -1.  Note that this works differently than checkTimeoutSelf
   for(byte node=0; node<sizeof(nodeIP)/sizeof(IPAddress); node++){
-    if(node!=nodeDevice && nodeState[node]==0 && millis() - nodeTimestamp[node] > nodeTimeout){  //node is not this device, not already timed out, and is timed out
+    if(nodeState[node]==0 && millis() - nodeTimestamp[node] > nodeTimeout){  //node is not this device, not already timed out, and is timed out
       Serial.print(F("EtherEventQueue.checkTimeout: timed out node="));
       Serial.println(node);
       nodeState[node]=1;  //1 indicates the node is timed out
-      return nodeIP[node];
+      return node;
     }
   }
-  return IPAddress(0,0,0,0);
+  return -1;
 }
 
 
-IPAddress EtherEventQueueClass::checkTimein(){  //checks all the authorized IPs until it finds a _NEWLY_ timed out IP and returns it or none and returns 0.0.0.0.  Note that this works differently than checkTimeoutSelf
+int EtherEventQueueClass::checkTimein(){  //checks all the authorized IPs until it finds a _NEWLY_ timed out node and returns it or none and returns -1.  Note that this works differently than checkTimeoutSelf
   for(byte node=0;node<sizeof(nodeIP)/sizeof(IPAddress);node++){
-    if(node!=nodeDevice && nodeState[node]==1 && millis() - nodeTimestamp[node] < nodeTimeout){  //node is not this device, not already timed out, and is timed out
+    if(nodeState[node]==1 && millis() - nodeTimestamp[node] < nodeTimeout){  //node is newly timed out(since the last time the function was run)
       Serial.print(F("EtherEventQueue.checkTimein: timed out node="));
       Serial.println(node);
       nodeState[node]=0;  //1 indicates the node is timed out
-      return nodeIP[node];
+      return node;
     }
   }
-  return IPAddress(0,0,0,0);
+  return -1;
 }
 
 
-boolean EtherEventQueueClass::checkTimeoutSelf(){  //returns 1 if the device has not received any ethernet communication in longer than the timeout value. Note that this works differently than checkTimeout and checkTimein
-  if(millis() - nodeTimestamp[nodeDevice] > nodeTimeoutSelf){  //timed out
-    Serial.print(F("EtherEventQueue.checkTimeoutSelf: timed out"));
-    nodeState[nodeDevice]=1;  //1 indicates the node is timed out
+boolean EtherEventQueueClass::checkState(byte node){  //checks if the given node is timed out. Note that this doesn't update the nodeState.
+  Serial.print(F("EtherEventQueue.checkTimeoutNode: nodeState for node "));
+  Serial.print(node);
+  Serial.print(F("="));
+  if(nodeTimestamp[node] > nodeTimeout){  //node is not this device, not already timed out, and is timed out
+    Serial.println(F("timed out"));
     return 1;
   }
-  Serial.println(F("EtherEventQueue.checkTimeoutSelf: not timed out"));
+  Serial.println(F("not timed out")); 
   return 0;
 }
 
 
 //----------------private functions------------------------------
-
-byte EtherEventQueueClass::messageIDfind(){  //find a free messageID - this is similar to the messageID check in the ack received code so maybe make a function  
-  Serial.println(F("EtherEventQueue.messageIDfind: start"));
-  if(queueSize==0){  //the queue is empty
-    Serial.println(F("EtherEventQueue.messageIDfind: messageID=10"));
-    return 10;  //default value if there are no other messages
-  }
-  if(queueSize>0){
-    for(byte messageID=10;messageID<queueSizeMax+10;messageID++){  //step through all possible messageIDs. They start at 10 so they will always be 2 digit
-      byte messageIDduplicate=0;
-      for(byte count=0;count<queueSize;count++){  //step through the currently occupied section of the messageIDqueue[]
-        if(messageID==messageIDqueue[count]){  //the messageID is already being used
-          messageIDduplicate=1;
-        }
-      }
-      if(messageIDduplicate==0){  //the messageID was unique
-        Serial.print(F("EtherEventQueue.messageIDfind: messageID="));
-        Serial.println(messageID);
-        return messageID;  //skip the rest of the for loop
-      }
-    }
-  }
-  return 0;  //this should never happen but it causes a compiler warning without
-} 
-
-
-void EtherEventQueueClass::remove(byte queueStep){
-  if(queueSize>0){
-    queueSize--;
-  }
-  Serial.print(F("EtherEventQueue.remove: new queue size="));
-  Serial.println(queueSize);
-  if(queueSize>0){  //if this is the only message in the queue being removed then it doesn't need to adjust the queue
-    for(byte count=queueStep;count<queueSize;count++){  //move all the messages above the one to remove up in the queue
-      IPqueue[count]=IPqueue[count+1];  //set the target for the message in the queue
-      portQueue[count]=portQueue[count+1];      
-      strcpy(eventQueue[count],eventQueue[count+1]);    
-      messageIDqueue[count]=messageIDqueue[count+1];
-      strcpy(payloadQueue[count],payloadQueue[count+1]);
-      resendFlagQueue[count]=resendFlagQueue[count+1];
-    }
-  }
-}
-
 
 int EtherEventQueueClass::getNode(const IPAddress IPvalue){
   Serial.println(F("EtherEventQueue.getNode: start"));
@@ -400,6 +358,50 @@ int EtherEventQueueClass::getNode(const IPAddress IPvalue){
   }
   Serial.println(F("EtherEventQueue.getNode: node not found"));
   return -1;  //no match
+}
+
+
+byte EtherEventQueueClass::eventIDfind(){  //find a free eventID - this is similar to the eventID check in the ack received code so maybe make a function  
+  Serial.println(F("EtherEventQueue.eventIDfind: start"));
+  if(queueSize==0){  //the queue is empty
+    Serial.println(F("EtherEventQueue.eventIDfind: eventID=10"));
+    return 10;  //default value if there are no other messages
+  }
+  if(queueSize>0){
+    for(byte eventID=10;eventID<queueSizeMax+10;eventID++){  //step through all possible eventIDs. They start at 10 so they will always be 2 digit
+      byte eventIDduplicate=0;
+      for(byte count=0;count<queueSize;count++){  //step through the currently occupied section of the eventIDqueue[]
+        if(eventID==eventIDqueue[count]){  //the eventID is already being used
+          eventIDduplicate=1;
+        }
+      }
+      if(eventIDduplicate==0){  //the eventID was unique
+        Serial.print(F("EtherEventQueue.eventIDfind: eventID="));
+        Serial.println(eventID);
+        return eventID;  //skip the rest of the for loop
+      }
+    }
+  }
+  return 0;  //this should never happen but it causes a compiler warning without
+} 
+
+
+void EtherEventQueueClass::remove(byte queueStep){  //remove the given item from the queue(this is not the eventID
+  if(queueSize>0){
+    queueSize--;
+  }
+  Serial.print(F("EtherEventQueue.remove: new queue size="));
+  Serial.println(queueSize);
+  if(queueSize>0){  //if this is the only message in the queue being removed then it doesn't need to adjust the queue
+    for(byte count=queueStep;count<queueSize;count++){  //move all the messages above the one to remove up in the queue
+      IPqueue[count]=IPqueue[count+1];  //set the target for the message in the queue
+      portQueue[count]=portQueue[count+1];      
+      strcpy(eventQueue[count],eventQueue[count+1]);    
+      eventIDqueue[count]=eventIDqueue[count+1];
+      strcpy(payloadQueue[count],payloadQueue[count+1]);
+      resendFlagQueue[count]=resendFlagQueue[count+1];
+    }
+  }
 }
 
 
