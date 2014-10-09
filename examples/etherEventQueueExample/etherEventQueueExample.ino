@@ -1,8 +1,8 @@
 //example script for the EtherEventQueue library
-#include <MD5.h>  //these libraries are required by EtherEvent
-#include <SPI.h>
+#include <SPI.h>  //these libraries are required by EtherEvent
 #include <Ethernet.h>
-#include <Entropy.h>
+#include "MD5.h"
+//#include <Entropy.h>  //uncomment this line if you have the Entropy library installed
 #include "EtherEvent.h"  //include the EtherEvent library so its functions can be accessed
 #include "EtherEventQueue.h"  //include the EtherEventQueue library so its functions can be accessed
 

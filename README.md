@@ -8,13 +8,12 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 
 #### Required Libraries
 - EtherEvent http://github.com/per1234/EtherEvent
-- Modified Ethernet library: instructions here: http://forum.arduino.cc/index.php?/topic,82416.0.html
+- Ethernet library modification instructions: http://forum.arduino.cc/index.php?/topic,82416.0.html
 
 #### Related Programs
 - UIPEthernet library for ENC28J60 ethernet chip: http://github.com/ntruchsess/arduino_uip
-- EventGhost is a free open source automation tool for Windows http://eventghost.com
-- TCP Events EventGhost plugin by miljbee: http://www.eventghost.org/forum/viewtopic.php?p=16803 - Improved network event sender/receiver allows sending events to multiple IP addresses
-- pfodCHAP - a much more rigorous authentication library: http://forward.com.au/pfod/pfodParserLibraries
+- EventGhost free open source automation tool for Windows http://eventghost.com
+- TCP Events EventGhost plugin: http://www.eventghost.org/forum/viewtopic.php?p=16803 - Improved network event sender/receiver allows sending events to multiple IP addresses
 
 #### Installation
 - 64k is the minimum recommended flash memory capacity of the MCU
@@ -50,27 +49,32 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 - Returns: Number of chars in the event including the null terminator at the end of the string.
   - Type: byte
 
-`EtherEventQueue.availablePayload()` - Returns the number of chars of payload including null terminator available to read
+`EtherEventQueue.availablePayload()` - Returns the number of chars of payload including null terminator available to read. availableEvent() must be called first.
 - Parameter: none
 - Returns: Number of chars in the payload including the null terminator at the end of the string.
   - Type: byte
 
-`EtherEventQueue.readEvent(char eventBuffer[])` - Puts the event in the passed array
+`EtherEventQueue.readEvent(char eventBuffer[])` - Puts the event in the passed array. availableEvent() must be called first.
 - Parameter: eventBuffer - size a char array according to the result of availableEvent () and pass it to the readEvent  function. After that it will contain the event.
   - Type: char
 - Returns: none
 
-`EtherEventQueue.readPayload(char payloadBuffer[])` - Puts the payload string in the passed array
+`EtherEventQueue.readPayload(char payloadBuffer[])` - Puts the payload string in the passed array. availableEvent() must be called first.
 - Parameter: payloadBuffer - size a char array according to the result of availablePayload () and pass it to the readPayload  function. After that it will contain the payload.
   - Type: char
-- Returns: none   
+- Returns: none
+
+`EtherEventQueue.senderIP()` - get the IP Address of the sender of the most recent event. availableEvent() must be called first.
+- Parameter: none
+- Returns: IP Address of the sender of the most recent event
+  - Type: IPAddress
 
 `EtherEventQueue.flushReceiver()` - clear any buffered event and payload data so a new event can be received
 - Parameter:none
 - Returns:none
 
-`EtherEventQueue.queue(targetIP, port, event, payload, resendFlag)` - Send an event and payload
-- Parameter: targetIP - IP address to send the event to
+`EtherEventQueue.queue(target, port, event, payload, resendFlag)` - Send an event and payload
+- Parameter: target - takes either the IP address or node number of the target device
   - Type: IPAddress
 - Parameter: port: - port to send the event to
   - Type: unsigned int
@@ -80,13 +84,17 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
   - Type: const char
 - Parameter: resendFlag - (0 == no resend, 1 == resend) If this is set to 1 then the queue will resend a message until the ack is received or the target IP times out
   - Type: boolean
-- Returns: 1 for success, 0 for failure, -1 == success w/ queue overflow
+- Returns: 0 for failure, 1 for success, , 2 for success w/ queue overflow
   - Type: byte
   
- `EtherEventQueue.queueHandler(ethernetClient)` - send queued events
- - Parameter: ethernetClient - the EthernetClient object created during the Ethernet library initialization
-   - Type: EthernetClient
+`EtherEventQueue.queueHandler(ethernetClient)` - send queued events
+- Parameter: ethernetClient - the EthernetClient object created during the Ethernet library initialization
+  - Type: EthernetClient
+  - Returns: none
    
+ `EtherEventQueue.flushQueue()` - remove all events from the queue
+ - Returns: none
+
 `EtherEventQueue.checkTimeout()` - check for newly timed out nodes
 - Parameter: none
 -Returns: node number of the tirst newly timed out node found or -1 if no timed out node found
@@ -97,7 +105,7 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 -Returns: node number of the tirst newly timed out node found or -1 if no timed out node found
   - Type: int
   
-`EtherEventQueue.nodeState(node)` - check if the device has not received any events in longer than the timeout duration
+`EtherEventQueue.checkState(node)` - check if the device has not received any events in longer than the timeout duration
 - Parameter: node - the node number of the node to be checked
 -Returns: 0 == not timed out, 1 == timed out
   - Type: boolean
@@ -105,11 +113,16 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
  
  #### Process
 - queue event
- - only send to nodes that aren't timed out
+ - non-ping events addressed to timed out nodes(other than self) are not queued
+ - events addressed to non-nodes are always queued unless non-node sending is disabled
 - send event from queue
- - new events are sent first
- - events to timed out nodes are discarded
+ - newly queued events(haven't been sent yet) are sent first FIFO
+ - if there are no newly queued events then the sent events in the queue that have not been acked yet are resent FIFO
+ - events other than pings to timed out nodes are discarded
  - event sent
  - remove events from the queue that have the resendFlag parameter == 0
- - listen for incoming events
- - if incoming event is an ack then remove the message the ack refers to from the queue
+ - incoming events
+  - check the queue for internal events(addressed to self)
+  - check for external events(from network)
+    - if the event is from a node then the timestamp is updated
+    - if incoming event is an ack then remove the message the ack refers to from the queue

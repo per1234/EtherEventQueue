@@ -1,11 +1,12 @@
-//example script for the EtherEventQueue library - demonstrates advanced features
-#include <MD5.h>  //these libraries are required by EtherEvent
-#include <SPI.h>
+//Example script for the EtherEventQueue library. Demonstrates advanced features
+#include <SPI.h>  //these libraries are required by EtherEvent
 #include <Ethernet.h>
-#include <Entropy.h>
+#include "MD5.h"
+//#include "Entropy.h"  //uncomment this line if you have the Entropy library installed
 #include "EtherEvent.h"  //include the EtherEvent library so its functions can be accessed
 #include "EtherEventQueue.h"  //include the EtherEvent library so its functions can be accessed
-#include <utility/w5100.h>  //for setting the ethernet send connect timeout
+//#include <utility/w5100.h>  //Uncomment this line if you are using the W5100 ethernet chip. Used for setting the ethernet send connect timeout
+
 
 const unsigned int port=1024;  //EtherEvent TCP port
 
@@ -22,8 +23,10 @@ void setup(){
   EtherEvent.begin("password");  //initialize EtherEvent and set the authentication password
   EtherEvent.setTimeout(500,1000);  //(200, 400)set timeout values
   EtherEventQueue.begin(4, port);  //set the node ID and the EtherEvent TCP port
-  W5100.setRetransmissionTime(0x07D0);  //(0xFA)used to set the timeout for the w5100 module this will not work if you are using ENC28J60 instead of W5100
-  W5100.setRetransmissionCount(1);  //Retransmission Count 1 is the minimum value
+  #ifdef ethernet_h
+    W5100.setRetransmissionTime(0x07D0);  //(0xFA)used to set the timeout for the w5100 module this will not work if you are using ENC28J60 instead of W5100
+    W5100.setRetransmissionCount(1);  //Retransmission Count 1 is the minimum value
+  #endif
 }
 
 void loop(){
