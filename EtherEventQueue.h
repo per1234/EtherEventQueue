@@ -28,12 +28,12 @@
       int checkTimeout();
       int checkTimein();
       boolean checkState(byte node);
-    private:
       int getNode(const IPAddress IPvalue);
+    private:
       byte eventIDfind();
       void remove(byte queueStep);
       
-      byte nodeDevice;
+      byte EtherEventQueue_nodeDevice;
       unsigned int port;
       char receivedEvent[EtherEventQueue_eventLengthMax+1];  //buffers to hold the available event
       char receivedPayload[EtherEventQueue_payloadLengthMax+1];

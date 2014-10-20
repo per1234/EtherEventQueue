@@ -46,7 +46,7 @@ IPAddress receivedIP;
 IPAddress IPqueue[EtherEventQueue_queueSizeMax];  //queue buffers
 
 void EtherEventQueueClass::begin(byte nodeDeviceValue, unsigned int portValue){
-  nodeDevice=nodeDeviceValue;
+  EtherEventQueue_nodeDevice=nodeDeviceValue;
   port=portValue;
   //TODO:size the node related buffers= sizeof(nodeIP)/sizeof(IPAddress)
 }
@@ -62,16 +62,16 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer){
   }
   
   for(int queueStepCount=queueSize-1; queueStepCount>=0; queueStepCount--){  //internal event system: step through the queue from the newest to oldest
-    if(getNode(IPqueue[queueStepCount])==nodeDevice){  //internal event
+    if(getNode(IPqueue[queueStepCount])==EtherEventQueue_nodeDevice){  //internal event
       Serial.print(F("EtherEventQueue.availableEvent: internal event="));
       strcpy(receivedEvent, eventQueue[queueStepCount]);
       Serial.println(receivedEvent);
       strcpy(receivedPayload, payloadQueue[queueStepCount]);
       Serial.print(F("EtherEventQueue.availableEvent: internal event payload="));
       Serial.println(receivedPayload);
-      Serial.print(F("EtherEventQueue.availableEvent: nodeIP[nodeDevice]="));
-      Serial.println(nodeIP[nodeDevice]);
-      receivedIP=nodeIP[nodeDevice];
+      Serial.print(F("EtherEventQueue.availableEvent: nodeIP[EtherEventQueue_nodeDevice]="));
+      Serial.println(nodeIP[EtherEventQueue_nodeDevice]);
+      receivedIP=nodeIP[EtherEventQueue_nodeDevice];
       remove(queueStepCount);  //remove the event from the queue
       queueNewCount--;
       return strlen(receivedEvent);
@@ -86,7 +86,7 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer){
     Serial.print(F("EtherEventQueue.availableEvent: remoteIP="));
     Serial.println(receivedIP);
 
-    nodeTimestamp[nodeDevice]=millis();  //set the general ping timestamp(using the nodeDevice because that part of the array is never used otherwise)
+    nodeTimestamp[EtherEventQueue_nodeDevice]=millis();  //set the general ping timestamp(using the EtherEventQueue_nodeDevice because that part of the array is never used otherwise)
     //update timed out status of the event sender
     byte senderNode=getNode(receivedIP);  //get the node of the senderIP
     if(senderNode>=0){  //receivedIP is a node(-1 indicates no node match)
@@ -180,7 +180,7 @@ void EtherEventQueueClass::readPayload(char payloadBuffer[]){
 }
 
 
-IPAddress senderIP(){
+IPAddress EtherEventQueueClass::senderIP(){
   return receivedIP;
 }
 
@@ -206,10 +206,10 @@ byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPo
       Serial.println(F("EtherEventQueue.queue: not a node"));
       return 0;
   }
-  if(targetNode==nodeDevice){  //send events to self regardless of timeout state
+  if(targetNode==EtherEventQueue_nodeDevice){  //send events to self regardless of timeout state
     Serial.println(F("EtherEventQueue.queue: self send"));
   }
-  else if(targetNode!=nodeDevice && targetNode>=0 && millis() - nodeTimestamp[targetNode] > nodeTimeout){  //not self, is a node and is timed out
+  else if(targetNode!=EtherEventQueue_nodeDevice && targetNode>=0 && millis() - nodeTimestamp[targetNode] > nodeTimeout){  //not self, is a node and is timed out
     Serial.println(F("EtherEventQueue.queue: timed out node"));
     return 0;  //don't queue events to timed out nodes
   }
@@ -290,7 +290,7 @@ void EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient){  //ethe
         int targetNode=getNode(IPqueue[queueStepSend]);  //get the node of the target IP
         Serial.print(F("EtherEventQueue.queueHandler: targetNode="));
         Serial.println(targetNode);
-        if(targetNode==nodeDevice){  //ignore internal events
+        if(targetNode==EtherEventQueue_nodeDevice){  //ignore internal events
           continue;  //move on to the next queue step
         }
         if(targetNode<0){  //-1 indicates no node match

@@ -5,7 +5,7 @@
 //#include "Entropy.h"  //uncomment this line if you have the Entropy library installed
 #include "EtherEvent.h"  //include the EtherEvent library so its functions can be accessed
 #include "EtherEventQueue.h"  //include the EtherEvent library so its functions can be accessed
-//#include <utility/w5100.h>  //Uncomment this line if you are using the W5100 ethernet chip. Used for setting the ethernet send connect timeout
+#include <utility/w5100.h>  //Used for setting the ethernet send connect timeout
 
 
 const unsigned int port=1024;  //EtherEvent TCP port
@@ -46,7 +46,7 @@ void loop(){
     Serial.print(F("Received payload: "));
     Serial.println(payload);
     Serial.print(F("Received from IP: "));
-    Serial.println(EtherEvent.senderIP());  //this will return 0.0.0.0 if you don't have the modified ethernet library and the flag set in EtherEvent.cpp
+    Serial.println(EtherEventQueue.senderIP());  //this will return 0.0.0.0 if you don't have the modified ethernet library and the flag set in EtherEvent.cpp
   }
 
   if(millis() - sendTimeStamp > 4000){  //periodically send event
