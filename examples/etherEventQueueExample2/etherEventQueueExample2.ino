@@ -52,7 +52,7 @@ void loop() {
   if (millis() - sendTimeStamp > 4000) { //periodically send event
     sendTimeStamp = millis(); //reset the timestamp for the next event send
     Serial.println(F("Attempting event send"));
-    if (EtherEventQueue.queue(IPAddress(192, 168, 69, 100), port, "123", "test payload", 1)) { //queue an event to be sent to target IP address, port, event, payload, resendFlag(0 == no resend, 1 == resend)
+    if (EtherEventQueue.queue(IPAddress(192, 168, 69, 100), port, "123", "test payload", 2)) { //queue an event to be sent to target IP address, port, event, payload, resendFlag
       Serial.println(F("Event send successful"));
     }
     else {

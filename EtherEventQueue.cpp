@@ -8,7 +8,7 @@
 #include "EtherEvent.h"  //http://github.com/per1234/EtherEvent
 
 
-//this will disable the compiler warning for F()
+//this will fix the Arduino 1.0.x compiler warning for F()
 #ifdef PROGMEM
 #undef PROGMEM
 #define PROGMEM __attribute__((section(".progmem.data")))
@@ -448,8 +448,8 @@ void EtherEventQueueClass::remove(byte queueStep) { //remove the given item from
   }
   Serial.print(F("EtherEventQueue.remove: new queue size="));
   Serial.println(queueSize);
-  if (queueSize > 0) { //if this is the only message in the queue being removed then it doesn't need to adjust the queue
-    for (byte count = queueStep; count < queueSize - 1; count++) { //move all the messages above the one to remove up in the queue
+  if (queueSize > 0) { //if the only message in the queue is being removed then it doesn't need to adjust the queue
+    for (byte count = queueStep; count < queueSize; count++) { //move all the messages above the one to remove up in the queue
       IPqueue[count] = IPqueue[count + 1]; //set the target for the message in the queue
       portQueue[count] = portQueue[count + 1];
       strcpy(eventQueue[count], eventQueue[count + 1]);
