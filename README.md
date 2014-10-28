@@ -112,17 +112,18 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
   
  
  #### Process
-- queue event
- - non-ping events addressed to timed out nodes(other than self) are not queued
- - events addressed to non-nodes are always queued unless non-node sending is disabled
-- send event from queue
- - newly queued events(haven't been sent yet) are sent first FIFO
- - if there are no newly queued events then the sent events in the queue that have not been acked yet are resent FIFO
- - events other than pings to timed out nodes are discarded
- - event sent
- - remove events from the queue that have the resendFlag parameter == 0
- - incoming events
+- queue() - put event in the queue
+  - non-keepalive events addressed to timed out nodes(other than self) are not queued
+  - events addressed to non-nodes are always queued unless non-node sending is disabled
+- queueHandler() - send event from queue
+  - newly queued events(haven't attempted to send yet) are sent first FIFO
+  - if there are no newly queued events then the sent events in the queue that have not been acked yet are resent FIFO
+  - events other than keepalive to timed out nodes are discarded
+  - send event
+  - if the send is successful then remove events from the queue that have the resendFlag parameter == 0 or 1
+  - if the send is not successful then remove events from the queue that have the resendFlag parameter == 0
+- availableEvent() - check for incoming events
   - check the queue for internal events(addressed to self)
   - check for external events(from network)
-    - if the event is from a node then the timestamp is updated
-    - if incoming event is an ack then remove the message the ack refers to from the queue
+  - if the event is from a node then the device and node timestamps are updated
+  - if incoming event is an ack then remove the message the ack refers to from the queue

@@ -38,7 +38,7 @@ const IPAddress nodeIP[] = { //IP addresses on the network, this can be used to 
 const unsigned long nodeTimeout = 270000; //(ms)the node is timed out if it has been longer than this duration since the last event was received from it
 const unsigned long nodeTimeoutSelf = 200000; //(ms)the device is timed out if it has been longer than this duration since any event was received
 
-const char eventPing[] = "100"; //the library handles these special events differently
+const char eventKeepalive[] = "100"; //the library handles these special events differently
 const char eventAck[] = "101";
 const unsigned int resendDelay = 30000; //(ms)delay between resends of messages
 //-----------------------End user configuration parameters-----------------------------
@@ -93,7 +93,7 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
     //update timed out status of the event sender
     byte senderNode = getNode(receivedIP); //get the node of the senderIP
     if (senderNode >= 0) { //receivedIP is a node(-1 indicates no node match)
-      nodeTimestamp[senderNode] = millis(); //set the individual timestamp, any communication is considered to be a ping
+      nodeTimestamp[senderNode] = millis(); //set the individual timestamp, any communication is considered to be a keepalive
     }
     else if (receiveNodesOnly == 1) { //receive events from node IPs only
       Serial.println(F("EtherEventQueue.availableEvent: unauthorized IP"));
@@ -105,11 +105,11 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
     Serial.print(F("EtherEventQueue.availableEvent: ethernetReadEvent="));
     Serial.println(receivedEvent);
 
-    if (strcmp(receivedEvent, eventPing) == 0) { //ping received
-      Serial.println(F("EtherEventQueue.availableEvent: ping received"));
+    if (strcmp(receivedEvent, eventKeepalive) == 0) { //Keepalive received
+      Serial.println(F("EtherEventQueue.availableEvent: keepalive received"));
       EtherEvent.flushReceiver();  //the payload has not been read yet so EtherEvent has to be flushed
       flushReceiver();  //the event has been read so EtherEventQueue has to be flushed
-      return 0;  //receive ping silently
+      return 0;  //receive keepalive silently
     }
 
     byte payloadLength = EtherEvent.availablePayload();
@@ -305,7 +305,7 @@ void EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) { //ethe
           break;  //non-nodes never timeout
         }
 
-        if (millis() - nodeTimestamp[targetNode] < nodeTimeout || strcmp(eventQueue[queueStepSend], eventPing) == 0) { //non-timed out node or ping
+        if (millis() - nodeTimestamp[targetNode] < nodeTimeout || strcmp(eventQueue[queueStepSend], eventKeepalive) == 0) { //non-timed out node or keepalive
           break;  //continue with the message send
         }
         Serial.print(F("EtherEventQueue.queueHandler: targetNode timed out for queue#="));
