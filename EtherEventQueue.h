@@ -49,7 +49,7 @@ class EtherEventQueueClass {
     byte queueStep;  //which message in the queue is it on
     unsigned long queueSendTimestamp;  //used for delayed resends of messages in the queue that failed the first time
 
-    byte nodeState[EtherEventQueue_nodeCount];  //0=not timed out 1=timed out - state at the last check
+    byte nodeState[EtherEventQueue_nodeCount];  //1=not timed out 0=timed out - state at the last check
     unsigned long nodeTimestamp[EtherEventQueue_nodeCount];  //last received event time
 };
 extern EtherEventQueueClass EtherEventQueue;  //declare the class so it doesn't have to be done in the sketch

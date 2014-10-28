@@ -14,7 +14,7 @@
 #define PROGMEM __attribute__((section(".progmem.data")))
 #endif
 
-//configuration:
+//-----------------User configuration parameters--------------
 #define DEBUG 0 // (0==serial debug output off, 1==serial debug output on)The serial debug output will greatly increase communication time
 #define Serial if(DEBUG)Serial
 
@@ -41,6 +41,8 @@ const unsigned long nodeTimeoutSelf = 200000; //(ms)the device is timed out if i
 const char eventPing[] = "100"; //the library handles these special events differently
 const char eventAck[] = "101";
 const unsigned int resendDelay = 30000; //(ms)delay between resends of messages
+//-----------------------End user configuration parameters-----------------------------
+
 
 IPAddress receivedIP;
 IPAddress IPqueue[EtherEventQueue_queueSizeMax];  //queue buffers
@@ -186,7 +188,7 @@ IPAddress EtherEventQueueClass::senderIP() {
 
 
 void EtherEventQueueClass::flushReceiver() { //dump the last message received so another one can be received
-  Serial.println(F("EtherEventQueue.flushReceiver: start"));
+  //Serial.println(F("EtherEventQueue.flushReceiver: start"));
   receivedEvent[0] = 0; //reset the event buffer
   receivedPayload[0] = 0; //reset the payload buffer
 }
@@ -217,7 +219,9 @@ byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPo
   success = 1; //indicate event successfully queued in return
   byte eventID = eventIDfind(); //get an event ID
   queueSize++;
-  Serial.println(F("EtherEventQueue.queue: new size="));
+
+  Serial.print(F("EtherEventQueue.queue: queueSize="));
+  Serial.println(queueSize);
   if (queueSize > EtherEventQueue_queueSizeMax) { //queue overflowed
     queueSize = EtherEventQueue_queueSizeMax; //had to bump the first item in the queue because there's no room for it
     Serial.println(F("EtherEventQueue.queue: Queue Overflowed"));  //I don't really want to send another message into the queue because that will recursive loop
@@ -230,7 +234,7 @@ byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPo
       strcpy(payloadQueue[count], payloadQueue[count + 1]);
       resendFlagQueue[count] = resendFlagQueue[count + 1];
     }
-    Serial.print(F("EtherEventQueue.queue: new size="));
+    Serial.print(F("EtherEventQueue.queue: post overflow queueSize="));
     Serial.println(queueSize);
   }
 
@@ -255,6 +259,8 @@ byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPo
   Serial.println(portQueue[queueSize - 1]);
   Serial.print(F("EtherEventQueue.queue: event="));
   Serial.println(eventQueue[queueSize - 1]);
+  Serial.print(F("EtherEventQueue.queue: payload="));
+  Serial.println(payloadQueue[queueSize - 1]);
   Serial.print(F("EtherEventQueue.queue: eventID="));
   Serial.println(eventIDqueue[queueSize - 1]);
   Serial.print(F("EtherEventQueue.queue: resendFlag="));
@@ -346,10 +352,10 @@ void EtherEventQueueClass::flushQueue() {
 
 int EtherEventQueueClass::checkTimeout() { //checks all the nodes until it finds a _NEWLY_ timed out node and returns it or none and returns -1.  Note that this works differently than checkTimeoutSelf
   for (byte node = 0; node < sizeof(nodeIP) / sizeof(IPAddress); node++) {
-    if (nodeState[node] == 0 && millis() - nodeTimestamp[node] > nodeTimeout) { //node is not this device, not already timed out, and is timed out
+    if (nodeState[node] == 1 && millis() - nodeTimestamp[node] > nodeTimeout) { //previous state not timed out, and is currently timed out
       Serial.print(F("EtherEventQueue.checkTimeout: timed out node="));
       Serial.println(node);
-      nodeState[node] = 1; //1 indicates the node is timed out
+      nodeState[node] = 0; //0 indicates the node is timed out
       return node;
     }
   }
@@ -357,12 +363,12 @@ int EtherEventQueueClass::checkTimeout() { //checks all the nodes until it finds
 }
 
 
-int EtherEventQueueClass::checkTimein() { //checks all the authorized IPs until it finds a _NEWLY_ timed out node and returns it or none and returns -1.  Note that this works differently than checkTimeoutSelf
+int EtherEventQueueClass::checkTimein() { //checks all the authorized IPs until it finds a _NEWLY_ timed out node and returns it or if there are none it returns -1.  Note that this works differently than checkTimeoutSelf
   for (byte node = 0; node < sizeof(nodeIP) / sizeof(IPAddress); node++) {
-    if (nodeState[node] == 1 && millis() - nodeTimestamp[node] < nodeTimeout) { //node is newly timed out(since the last time the function was run)
+    if (nodeState[node] == 0 && millis() - nodeTimestamp[node] < nodeTimeout) { //node is newly timed out(since the last time the function was run)
       Serial.print(F("EtherEventQueue.checkTimein: timed out node="));
       Serial.println(node);
-      nodeState[node] = 0; //1 indicates the node is timed out
+      nodeState[node] = 1; //1 indicates the node is not timed out
       return node;
     }
   }
@@ -376,17 +382,17 @@ boolean EtherEventQueueClass::checkState(byte node) { //checks if the given node
   Serial.print(F("="));
   if (nodeTimestamp[node] > nodeTimeout) { //node is not this device, not already timed out, and is timed out
     Serial.println(F("timed out"));
-    return 1;
+    return 0;
   }
   Serial.println(F("not timed out"));
-  return 0;
+  return 1;
 }
 
 
 //----------------private functions------------------------------
 
 int EtherEventQueueClass::getNode(const IPAddress IPvalue) {
-  Serial.println(F("EtherEventQueue.getNode: start"));
+  //Serial.println(F("EtherEventQueue.getNode: start"));
   for (byte node = 0; node < sizeof(nodeIP) / sizeof(IPAddress); node++) { //step through all the nodes
     byte octet;
     for (octet = 0; octet < 4; octet++) {
@@ -396,12 +402,13 @@ int EtherEventQueueClass::getNode(const IPAddress IPvalue) {
       }
     }
     if (octet == 4) { //match
-      Serial.print(F("EtherEventQueue.getNode: node found="));
-      Serial.println(node);
+      //Serial.print(F("EtherEventQueue.getNode: node found="));
+      //Serial.println(node);
       return node;
     }
   }
-  Serial.println(F("EtherEventQueue.getNode: node not found"));
+  Serial.print(F("EtherEventQueue.getNode: node not found, IP="));
+  Serial.println(IPvalue);
   return -1;  //no match
 }
 
