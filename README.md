@@ -8,7 +8,7 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 
 #### Required Libraries
 - EtherEvent http://github.com/per1234/EtherEvent
-- Ethernet library modification instructions: http://forum.arduino.cc/index.php?/topic,82416.0.html
+- Ethernet library modification instructions: http://forum.arduino.cc/index.php?topic=82416.0
 
 #### Related Programs
 - UIPEthernet library for ENC28J60 ethernet chip: http://github.com/ntruchsess/arduino_uip
@@ -22,7 +22,7 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 - Rename the folder EtherEventQueue
 - Move the folder to your arduino sketchbook\libraries folder
 - Repeat this process with the other required libraries
-- Modify the stock Arduino Ethernet library following these instructions: http://forum.arduino.cc/index.php?/topic,82416.0.html
+- Modify the stock Arduino Ethernet library following these instructions: http://forum.arduino.cc/index.php?topic=82416.0
 - uncomment #define SENDERIP_ENABLE in EtherEvent.cpp
 - EtherEventQueue library configuration parameters(EtherEventQueue.cpp):
   - there are several paramerters that can be configured in the library, they are documented there
