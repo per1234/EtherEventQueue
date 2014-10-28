@@ -21,8 +21,8 @@ class EtherEventQueueClass {
     void readPayload(char payloadBuffer[]);
     IPAddress senderIP();
     void flushReceiver();
-    byte queue(const IPAddress targetIP, unsigned int port, const char event[], const char payload[], boolean resendFlag);
-    byte queue(byte targetNode, unsigned int port, const char event[], const char payload[], boolean resendFlag);
+    byte queue(const IPAddress targetIP, unsigned int port, const char event[], const char payload[], byte resendFlag);
+    byte queue(byte targetNode, unsigned int port, const char event[], const char payload[], byte resendFlag);
     void queueHandler(EthernetClient &ethernetClient);
     void flushQueue();
     int checkTimeout();

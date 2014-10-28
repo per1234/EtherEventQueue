@@ -82,7 +82,7 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
   - Type: const char
 - Parameter: payload:- payload to send with the event(char array). If you don't want a payload then just use "" for this parameter
   - Type: const char
-- Parameter: resendFlag - (0 == no resend, 1 == resend) If this is set to 1 then the queue will resend a message until the ack is received or the target IP times out
+- Parameter: resendFlag - (0 == no resend, 1 == resend until successful send, 2 == resend until ack) If this is set to 2 then the queue will resend a message until the ack is received or the target IP times out
   - Type: boolean
 - Returns: 0 for failure, 1 for success, , 2 for success w/ queue overflow
   - Type: byte

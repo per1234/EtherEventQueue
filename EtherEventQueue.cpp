@@ -49,6 +49,7 @@ IPAddress IPqueue[EtherEventQueue_queueSizeMax];  //queue buffers
 
 void EtherEventQueueClass::begin(byte nodeDeviceValue, unsigned int portValue) {
   EtherEventQueue_nodeDevice = nodeDeviceValue;
+  nodeState[EtherEventQueue_nodeDevice]=1;  //start the device as timed in
   port = portValue;
   //TODO:size the node related buffers= sizeof(nodeIP)/sizeof(IPAddress)
 }
@@ -88,7 +89,7 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
     Serial.print(F("EtherEventQueue.availableEvent: remoteIP="));
     Serial.println(receivedIP);
 
-    nodeTimestamp[EtherEventQueue_nodeDevice] = millis(); //set the general ping timestamp(using the EtherEventQueue_nodeDevice because that part of the array is never used otherwise)
+    nodeTimestamp[EtherEventQueue_nodeDevice] = millis(); //set the device timestamp(using the EtherEventQueue_nodeDevice because that part of the array is never used otherwise)
     //update timed out status of the event sender
     byte senderNode = getNode(receivedIP); //get the node of the senderIP
     if (senderNode >= 0) { //receivedIP is a node(-1 indicates no node match)
@@ -194,12 +195,12 @@ void EtherEventQueueClass::flushReceiver() { //dump the last message received so
 }
 
 
-byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, const char event[], const char payload[], boolean resendFlag) { //add the relayed outgoing message to the send queue. Returns: 0==fail, 1==success, 2==success w/ queue overflow - this version takes node number and converts to IP
+byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, const char event[], const char payload[], byte resendFlag) { //add the relayed outgoing message to the send queue. Returns: 0==fail, 1==success, 2==success w/ queue overflow - this version takes node number and converts to IP
   Serial.println(F("EtherEventQueue.queue(node version): start"));
   return queue(nodeIP[targetNode], targetPort, event, payload, resendFlag);
 }
 
-byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPort, const char event[], const char payload[], boolean resendFlag) { //add the relayed outgoing message to the send queue. Returns: 0==fail, 1==success, 2==success w/ queue overflow
+byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPort, const char event[], const char payload[], byte resendFlag) { //add the relayed outgoing message to the send queue. Returns: 0==fail, 1==success, 2==success w/ queue overflow
   Serial.println(F("---------------------------"));
   Serial.println(F("EtherEventQueue.queue(IP version): start"));
   byte success = 0;
@@ -331,13 +332,16 @@ void EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) { //ethe
 
       if (EtherEvent.send(ethernetClient, IPqueue[queueStepSend], portQueue[queueStepSend], eventQueue[queueStepSend], payload) > 0) {
         Serial.println(F("EtherEventQueue.queueHandler: send successful"));
-        if (resendFlagQueue[queueStepSend] == 0) {
+        if (resendFlagQueue[queueStepSend] < 2) {  //the flag indicates not to wait for an ack
           Serial.println(F("EtherEventQueue.queueHandler: resendFlag==0, event removed from queue"));
           remove(queueStepSend);  //remove the message from the queue immediately
         }
         return;
       }
       Serial.println(F("EtherEventQueue.queueHandler: send failed"));
+      if (resendFlagQueue[queueStepSend] == 0) {  //the flag indicates not to resend even after failure
+        remove(queueStepSend);  //remove keepalives even when send was not successful. This is because the keepalives are sent even to timed out nodes so they shouldn't be queued.
+      }
     }
   }
 }
@@ -366,7 +370,7 @@ int EtherEventQueueClass::checkTimeout() { //checks all the nodes until it finds
 int EtherEventQueueClass::checkTimein() { //checks all the authorized IPs until it finds a _NEWLY_ timed out node and returns it or if there are none it returns -1.  Note that this works differently than checkTimeoutSelf
   for (byte node = 0; node < sizeof(nodeIP) / sizeof(IPAddress); node++) {
     if (nodeState[node] == 0 && millis() - nodeTimestamp[node] < nodeTimeout) { //node is newly timed out(since the last time the function was run)
-      Serial.print(F("EtherEventQueue.checkTimein: timed out node="));
+      Serial.print(F("EtherEventQueue.checkTimein: timed in node="));
       Serial.println(node);
       nodeState[node] = 1; //1 indicates the node is not timed out
       return node;
