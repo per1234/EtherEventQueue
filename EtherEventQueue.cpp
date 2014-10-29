@@ -49,7 +49,7 @@ IPAddress IPqueue[EtherEventQueue_queueSizeMax];  //queue buffers
 
 void EtherEventQueueClass::begin(byte nodeDeviceValue, unsigned int portValue) {
   EtherEventQueue_nodeDevice = nodeDeviceValue;
-  nodeState[EtherEventQueue_nodeDevice]=1;  //start the device as timed in
+  nodeState[EtherEventQueue_nodeDevice] = 1; //start the device as timed in
   port = portValue;
   //TODO:size the node related buffers= sizeof(nodeIP)/sizeof(IPAddress)
 }
@@ -141,7 +141,7 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
       Serial.println(F("EtherEventQueue.availableEvent: ack received"));
       byte receivedPayloadInt = atoi(receivedPayload); //convert to a byte
       for (byte count = 0; count < queueSize; count++) { //step through the currently occupied section of the eventIDqueue[]
-        if (receivedPayloadInt == eventIDqueue[count]) { //this is the message the ack is for
+        if (receivedPayloadInt == eventIDqueue[count] && resendFlagQueue[count] == 2) { //the ack is for the eventID of this item in the queue and the resend flag indicates it is expecting an ack(non-ack events are not removed because obviously they haven't been sent yet if they're still in the queue so the ack can't possibly be for them)
           Serial.println(F("EtherEventQueue.availableEvent: ack eventID match"));
           remove(count);  //remove the message from the queue
         }
@@ -274,6 +274,9 @@ byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPo
 void EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) { //ethernetQueueHandler - sends out the messages in the queue-------------
   if (queueSize > 0) { //there are messages in the queue
     if (queueNewCount > 0 || millis() - queueSendTimestamp > resendDelay) { //it is time
+      if (queueNewCount > queueSize) { //if the acks get messed up this can happen
+        queueNewCount = queueSize;
+      }
       Serial.print(F("EtherEventQueue.queueHandler: queueSize="));
       Serial.println(queueSize);
       Serial.print(F("EtherEventQueue.queueHandler: queueNewCount="));
@@ -288,7 +291,7 @@ void EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) { //ethe
           }
           queueStepSend = queueStep;
         }
-        else if (queueNewCount > 0) { //send the new items in the queue immediately
+        else { //send new items in the queue immediately
           queueStepSend = queueSize - queueNewCount; //send the oldest new one first
           queueNewCount--;
         }
