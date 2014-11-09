@@ -6,9 +6,9 @@
 #include "MD5.h"  //for etherEvent authentication
 #include "EtherEvent.h"  //include the EtherEvent library so its functions can be accessed
 
-const byte EtherEventQueue_queueSizeMax = 30; //max number of messages to queue up before discarding the oldest one
-const byte EtherEventQueue_eventLengthMax = 15; //max number of characters of the event
-const byte EtherEventQueue_payloadLengthMax = 60; //max number of characters of the payload
+const byte EtherEventQueue_queueSizeMax = 25; //max number of messages to queue up before discarding the oldest one
+const byte EtherEventQueue_eventLengthMax = 6; //max number of characters of the event
+const byte EtherEventQueue_payloadLengthMax = 110; //max number of characters of the payload
 const byte EtherEventQueue_eventIDlength = 2; //number of characters of the message ID that is appended to the start of the raw payload, the message ID must be exactly this length
 const byte EtherEventQueue_nodeCount = 11; //total number of nodes
 

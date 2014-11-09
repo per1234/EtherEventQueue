@@ -40,7 +40,7 @@ const unsigned long nodeTimeoutSelf = 200000; //(ms)the device is timed out if i
 
 const char eventKeepalive[] = "100"; //the library handles these special events differently
 const char eventAck[] = "101";
-const unsigned int resendDelay = 30000; //(ms)delay between resends of messages
+const unsigned int resendDelay = 45000; //(ms)delay between resends of messages
 //-----------------------End user configuration parameters-----------------------------
 
 
