@@ -14,6 +14,7 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 - UIPEthernet library for ENC28J60 ethernet chip: http://github.com/ntruchsess/arduino_uip
 - EventGhost free open source automation tool for Windows http://eventghost.com
 - TCP Events EventGhost plugin: http://www.eventghost.org/forum/viewtopic.php?p=16803 - Improved network event sender/receiver allows sending events to multiple IP addresses
+- Flash library to allow passing payload strings stored in flash memory without a string length argument: http://github.com/rkhamilton/Flash 
 
 #### Installation
 - 64k is the minimum recommended flash memory capacity of the MCU
@@ -24,7 +25,8 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 - Repeat this process with the other required libraries
 - Modify the stock Arduino Ethernet library following these instructions: http://forum.arduino.cc/index.php?topic=82416.0
 - uncomment #define SENDERIP_ENABLE in EtherEvent.cpp
-- EtherEventQueue library configuration parameters(EtherEventQueue.cpp):
+- If you are using the Flash library then uncomment #include "Flash.h" in EtherEventQueue.cpp and EtherEventQueue.h
+- EtherEventQueue library configuration parameters
   - there are several paramerters that can be configured in the library, they are documented there
 - Restart the Arduino IDE
 - File>Examples>etherEventQueueExample
@@ -64,7 +66,7 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
   - Type: char
 - Returns: none
 
-`EtherEventQueue.senderIP()` - get the IP Address of the sender of the most recent event. availableEvent() must be called first.
+`EtherEventQueue.senderIP()` - get the IP Address of the sender of the most recently received event.
 - Parameter: none
 - Returns: IP Address of the sender of the most recent event
   - Type: IPAddress
@@ -75,43 +77,106 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 
 `EtherEventQueue.queue(target, port, event, payload, resendFlag)` - Send an event and payload
 - Parameter: target - takes either the IP address or node number of the target device
-  - Type: IPAddress
+  - Type: IPAddress/byte
 - Parameter: port: - port to send the event to
   - Type: unsigned int
-- Parameter: event: - string to send as the event(char array).
-  - Type: const char
-- Parameter: payload:- payload to send with the event(char array). If you don't want a payload then just use "" for this parameter
-  - Type: const char
+- Parameter: event: - string to send as the event
+  - Type: char/int
+- Parameter: payload:- payload to send with the event. If you don't want a payload then just use 0 for this parameter
+  - Type: char/int8_t/byte/int/unsigned int/long/unsigned long/_FLASH_STRING
 - Parameter: resendFlag - (0 == no resend, 1 == resend until successful send, 2 == resend until ack) If this is set to 2 then the queue will resend a message until the ack is received or the target IP times out
-  - Type: boolean
+  - Type: byte
+- Returns: 0 for failure, 1 for success, , 2 for success w/ queue overflow
+  - Type: byte
+  
+`EtherEventQueue.queue(target, port, event, F(payload), payloadLength, resendFlag)` - Send an event and payload - this version of the function accepts payload strings placed in flash memory via the F() macro.
+- Parameter: target - takes either the IP address or node number of the target device
+  - Type: IPAddress/byte
+- Parameter: port: - port to send the event to
+  - Type: unsigned int
+- Parameter: event: - string to send as the event
+  - Type: char/int
+- Parameter: payload:- payload to send with the event.
+  - Type: F()/__FlashStringHelper
+- Parameter: payloadLength:- length of the payload
+  - Type: byte
+- Parameter: resendFlag - (0 == no resend, 1 == resend until successful send, 2 == resend until ack) If this is set to 2 then the queue will resend a message until the ack is received or the target IP times out
+  - Type: byte
+- Returns: 0 for failure, 1 for success, , 2 for success w/ queue overflow
+  - Type: byte
+  
+`EtherEventQueue.queue(target, port, F(event), eventLength, payload, resendFlag)` - Send an event and payload - this version of the function accepts event strings placed in flash memory via the F() macro.
+- Parameter: target - takes either the IP address or node number of the target device
+  - Type: IPAddress/byte
+- Parameter: port: - port to send the event to
+  - Type: unsigned int
+- Parameter: event: - string to send as the event
+  - Type: F()/__FlashStringHelper
+- Parameter: eventLength:- length of the event
+  - Type: byte
+- Parameter: payload:- payload to send with the event. If you don't want a payload then just use 0 for this parameter
+  - Type: char/int8_t/byte/int/unsigned int/long/unsigned long/_FLASH_STRING
+- Parameter: resendFlag - (0 == no resend, 1 == resend until successful send, 2 == resend until ack) If this is set to 2 then the queue will resend a message until the ack is received or the target IP times out
+  - Type: byte
+- Returns: 0 for failure, 1 for success, , 2 for success w/ queue overflow
+  - Type: byte
+  
+`EtherEventQueue.queue(target, port, F(event), eventLength, F(payload), payloadLength, resendFlag)` - Send an event and payload - this version of the function accepts event and payload strings placed in flash memory via the F() macro.
+- Parameter: target - takes either the IP address or node number of the target device
+  - Type: IPAddress/byte
+- Parameter: port: - port to send the event to
+  - Type: unsigned int
+- Parameter: event: - string to send as the event
+  - Type: F()/__FlashStringHelper
+- Parameter: eventLength:- length of the event
+  - Type: byte
+- Parameter: payload:- payload to send with the event.
+  - Type: F()/__FlashStringHelper
+- Parameter: payloadLength:- length of the payload
+  - Type: byte
+- Parameter: resendFlag - (0 == no resend, 1 == resend until successful send, 2 == resend until ack) If this is set to 2 then the queue will resend a message until the ack is received or the target IP times out
+  - Type: byte
 - Returns: 0 for failure, 1 for success, , 2 for success w/ queue overflow
   - Type: byte
   
 `EtherEventQueue.queueHandler(ethernetClient)` - send queued events
 - Parameter: ethernetClient - the EthernetClient object created during the Ethernet library initialization
   - Type: EthernetClient
-  - Returns: none
+- Returns: none
    
  `EtherEventQueue.flushQueue()` - remove all events from the queue
  - Returns: none
 
 `EtherEventQueue.checkTimeout()` - check for newly timed out nodes
 - Parameter: none
--Returns: node number of the tirst newly timed out node found or -1 if no timed out node found
-  - Type: int
+- Returns: node number of the tirst newly timed out node found or -1 if no timed out node found
+  - Type: int8_t
   
 `EtherEventQueue.checkTimein()` - check for newly timed in nodes
 - Parameter: none
--Returns: node number of the tirst newly timed out node found or -1 if no timed out node found
-  - Type: int
+- Returns: node number of the tirst newly timed out node found or -1 if no timed out node found
+  - Type: int8_t
   
 `EtherEventQueue.checkState(node)` - check if the device has not received any events in longer than the timeout duration
 - Parameter: node - the node number of the node to be checked
--Returns: 0 == not timed out, 1 == timed out
+  - Type: byte
+- Returns: 0 == not timed out, 1 == timed out
+  - Type: boolean
+
+`EtherEventQueue.checkQueueOverflow()` - Check if the event queue has overflowed since the last time checkQueueOverflow() was called.
+- Parameter: none
+- Returns: 0 == queue has not overflowed since the last check, 1 == queue has overflowed since the last check
   - Type: boolean
   
- 
+`EtherEventQueue.getNode(IP)` - check if the device has not received any events in longer than the timeout duration
+- Parameter: IP - the IP address to determine the node number of
+  - Type: IPAddress
+- Returns: 0 == not timed out, 1 == timed out
+  - Type: int8_t
+
+
  #### Process
+An overview of the event queue process:
 - queue() - put event in the queue
   - non-keepalive events addressed to timed out nodes(other than self) are not queued
   - events addressed to non-nodes are always queued unless non-node sending is disabled

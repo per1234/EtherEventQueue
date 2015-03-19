@@ -11,4 +11,7 @@ queueHandler	KEYWORD2
 flushQueue	KEYWORD2
 checkTimeout	KEYWORD2
 checkTimein	KEYWORD2
-nodeState	KEYWORD2
+checkState	KEYWORD2
+getNode	KEYWORD2
+eventIDfind	KEYWORD2
+remove	KEYWORD2

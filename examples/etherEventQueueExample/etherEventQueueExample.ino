@@ -5,6 +5,7 @@
 //#include <Entropy.h>  //uncomment this line if you have the Entropy library installed
 #include "EtherEvent.h"  //include the EtherEvent library so its functions can be accessed
 #include "EtherEventQueue.h"  //include the EtherEventQueue library so its functions can be accessed
+//#include "Flash.h"  //uncomment this line if you have the Flash library installed
 
 EthernetServer ethernetServer(1024);  //TCP port to receive on
 EthernetClient ethernetClient;  //create the client object for ethernet communication

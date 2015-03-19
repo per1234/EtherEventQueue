@@ -6,7 +6,7 @@
 #include "EtherEvent.h"  //include the EtherEvent library so its functions can be accessed
 #include "EtherEventQueue.h"  //include the EtherEvent library so its functions can be accessed
 #include <utility/w5100.h>  //Used for setting the ethernet send connect timeout
-
+//#include "Flash.h"  //uncomment this line if you have the Flash library installed
 
 const unsigned int port = 1024; //EtherEvent TCP port
 
@@ -51,12 +51,12 @@ void loop() {
 
   if (millis() - sendTimeStamp > 4000) { //periodically send event
     sendTimeStamp = millis(); //reset the timestamp for the next event send
-    Serial.println(F("Attempting event send"));
-    if (EtherEventQueue.queue(IPAddress(192, 168, 69, 100), port, "123", "test payload", 2)) { //queue an event to be sent to target IP address, port, event, payload, resendFlag
-      Serial.println(F("Event send successful"));
+    Serial.println(F("Attempting event queue"));
+    if (EtherEventQueue.queue(IPAddress(192, 168, 69, 100), port, F("123"), 3, F("test payload"), 12, 2)) { //queue an event to be sent to the target IP address and port
+      Serial.println(F("Event queue successful"));
     }
     else {
-      Serial.println(F("Event send failed"));
+      Serial.println(F("Event queue failed"));
     }
   }
 }

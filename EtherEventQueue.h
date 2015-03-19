@@ -1,11 +1,11 @@
+//EtherEventQueue outgoing event queue for the EtherEvent authenticated network communication arduino library: http://github.com/per1234/EtherEvent
 #ifndef EtherEventQueue_h
 #define EtherEventQueue_h
-#include <Arduino.h>
 #include <SPI.h>  //for the ethernet library
-#include <Ethernet.h>  //
-#include "MD5.h"  //for etherEvent authentication
-#include "EtherEvent.h"  //include the EtherEvent library so its functions can be accessed
+#include <Ethernet.h>
+#include "Flash.h"  //https://github.com/rkhamilton/Flash - uncomment this line if you have the Flash library installed
 
+//user configuration parameters
 const byte EtherEventQueue_queueSizeMax = 25; //max number of messages to queue up before discarding the oldest one
 const byte EtherEventQueue_eventLengthMax = 6; //max number of characters of the event
 const byte EtherEventQueue_payloadLengthMax = 110; //max number of characters of the payload
@@ -21,14 +21,57 @@ class EtherEventQueueClass {
     void readPayload(char payloadBuffer[]);
     IPAddress senderIP();
     void flushReceiver();
-    byte queue(const IPAddress targetIP, unsigned int port, const char event[], const char payload[], byte resendFlag);
     byte queue(byte targetNode, unsigned int port, const char event[], const char payload[], byte resendFlag);
+    byte queue(byte targetNode, unsigned int port, const char event[], const __FlashStringHelper* payload, byte payloadLength, byte resendFlag);
+    byte queue(byte targetNode, unsigned int port, const char event[], int payloadInt, byte resendFlag);
+    byte queue(byte targetNode, unsigned int port, const char event[], unsigned int payloadUint, byte resendFlag);
+    byte queue(byte targetNode, unsigned int port, const char event[], long payloadLong, byte resendFlag);
+    byte queue(byte targetNode, unsigned int port, const char event[], unsigned long payloadUlong, byte resendFlag);
+    byte queue(const IPAddress targetIP, unsigned int port, const char event[], const __FlashStringHelper* payload, byte payloadLength, byte resendFlag);
+    byte queue(const IPAddress targetIP, unsigned int port, const char event[], int payloadInt, byte resendFlag);
+    byte queue(const IPAddress targetIP, unsigned int port, const char event[], unsigned int payloadUint, byte resendFlag);
+    byte queue(const IPAddress targetIP, unsigned int port, const char event[], long payloadLong, byte resendFlag);
+    byte queue(const IPAddress targetIP, unsigned int port, const char event[], unsigned long payloadUlong, byte resendFlag);
+    byte queue(const IPAddress targetIP, unsigned int port, const char event[], const char payload[], byte resendFlag);
+    byte queue(byte targetNode, unsigned int port, int event, const char payload[], byte resendFlag);
+    byte queue(byte targetNode, unsigned int port, int event, const __FlashStringHelper* payload, byte payloadLength, byte resendFlag);
+    byte queue(byte targetNode, unsigned int port, int event, int payloadInt, byte resendFlag);
+    byte queue(byte targetNode, unsigned int port, int event, unsigned int payloadUint, byte resendFlag);
+    byte queue(byte targetNode, unsigned int port, int event, long payloadLong, byte resendFlag);
+    byte queue(byte targetNode, unsigned int port, int event, unsigned long payloadUlong, byte resendFlag);
+    byte queue(const IPAddress targetIP, unsigned int port, int event, const __FlashStringHelper* payload, byte payloadLength, byte resendFlag);
+    byte queue(const IPAddress targetIP, unsigned int port, int event, int payloadInt, byte resendFlag);
+    byte queue(const IPAddress targetIP, unsigned int port, int event, unsigned int payloadUint, byte resendFlag);
+    byte queue(const IPAddress targetIP, unsigned int port, int event, long payloadLong, byte resendFlag);
+    byte queue(const IPAddress targetIP, unsigned int port, int event, unsigned long payloadUlong, byte resendFlag);
+    byte queue(const IPAddress targetIP, unsigned int port, int event, const char payload[], byte resendFlag);
+    byte queue(byte targetNode, unsigned int port, const __FlashStringHelper* event, byte eventLength, const char payload[], byte resendFlag);
+    byte queue(byte targetNode, unsigned int port, const __FlashStringHelper* event, byte eventLength, const __FlashStringHelper* payload, byte payloadLength, byte resendFlag);
+    byte queue(byte targetNode, unsigned int port, const __FlashStringHelper* event, byte eventLength, int payloadInt, byte resendFlag);
+    byte queue(byte targetNode, unsigned int port, const __FlashStringHelper* event, byte eventLength, unsigned int payloadUint, byte resendFlag);
+    byte queue(byte targetNode, unsigned int port, const __FlashStringHelper* event, byte eventLength, long payloadLong, byte resendFlag);
+    byte queue(byte targetNode, unsigned int port, const __FlashStringHelper* event, byte eventLength, unsigned long payloadUlong, byte resendFlag);
+    byte queue(const IPAddress targetIP, unsigned int port, const __FlashStringHelper* event, byte eventLength, const __FlashStringHelper* payload, byte payloadLength, byte resendFlag);
+    byte queue(const IPAddress targetIP, unsigned int port, const __FlashStringHelper* event, byte eventLength, int payloadInt, byte resendFlag);
+    byte queue(const IPAddress targetIP, unsigned int port, const __FlashStringHelper* event, byte eventLength, unsigned int payloadUint, byte resendFlag);
+    byte queue(const IPAddress targetIP, unsigned int port, const __FlashStringHelper* event, byte eventLength, long payloadLong, byte resendFlag);
+    byte queue(const IPAddress targetIP, unsigned int port, const __FlashStringHelper* event, byte eventLength, unsigned long payloadUlong, byte resendFlag);
+    byte queue(const IPAddress targetIP, unsigned int port, const __FlashStringHelper* event, byte eventLength, const char payload[], byte resendFlag);
+#ifdef __FLASH_H__
+    byte queue(byte targetNode, unsigned int port, const char event[], _FLASH_STRING payloadFlashString, byte resendFlag);
+    byte queue(const IPAddress targetIP, unsigned int port, const char event[], _FLASH_STRING payloadFlashString, byte resendFlag);
+    byte queue(byte targetNode, unsigned int port, const __FlashStringHelper* event, byte eventLength, _FLASH_STRING payloadFlashString, byte resendFlag);
+    byte queue(const IPAddress targetIP, unsigned int port, const __FlashStringHelper* event, byte eventLength, _FLASH_STRING payloadFlashString, byte resendFlag);
+    byte queue(byte targetNode, unsigned int port, int event, _FLASH_STRING payloadFlashString, byte resendFlag);
+    byte queue(const IPAddress targetIP, unsigned int port, int event, _FLASH_STRING payloadFlashString, byte resendFlag);
+#endif
     void queueHandler(EthernetClient &ethernetClient);
     void flushQueue();
-    int checkTimeout();
-    int checkTimein();
+    int8_t checkTimeout();
+    int8_t checkTimein();
     boolean checkState(byte node);
-    int getNode(const IPAddress IPvalue);
+    int8_t getNode(const IPAddress IPvalue);
+    boolean checkQueueOverflow();
   private:
     byte eventIDfind();
     void remove(byte queueStep);
@@ -51,6 +94,10 @@ class EtherEventQueueClass {
 
     byte nodeState[EtherEventQueue_nodeCount];  //1=not timed out 0=timed out - state at the last check
     unsigned long nodeTimestamp[EtherEventQueue_nodeCount];  //last received event time
+    byte queueOverflowFlag;
+    IPAddress receivedIP;
+    IPAddress IPqueue[EtherEventQueue_queueSizeMax];  //queue buffers
+
 };
 extern EtherEventQueueClass EtherEventQueue;  //declare the class so it doesn't have to be done in the sketch
 #endif
