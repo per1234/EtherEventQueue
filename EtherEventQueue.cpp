@@ -7,12 +7,6 @@
 #include "Numlen.h"  //For finding the length of numbers. Included with the EtherEventQueue library or the latest version available here: http://github.com/per1234/Numlen
 //#include "Flash.h"  //https://github.com/rkhamilton/Flash - uncomment this line if you have the Flash library installed
 
-//this will fix the compiler warning for F()
-#ifdef PROGMEM
-#undef PROGMEM
-#define PROGMEM __attribute__((section(".progmem.data")))
-#endif
-
 //-----------------------------------------------------------------------------------------------------------
 //user configuration parameters
 //-----------------------------------------------------------------------------------------------------------
