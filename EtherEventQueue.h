@@ -95,6 +95,7 @@ class EtherEventQueueClass {
     byte nodeState[EtherEventQueue_nodeCount];  //1=not timed out 0=timed out - state at the last check
     unsigned long nodeTimestamp[EtherEventQueue_nodeCount];  //last received event time
     byte queueOverflowFlag;
+    byte localEventQueueCount;
     IPAddress receivedIP;
     IPAddress IPqueue[EtherEventQueue_queueSizeMax];  //queue buffers
 

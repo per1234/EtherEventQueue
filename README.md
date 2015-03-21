@@ -168,10 +168,10 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 - Returns: 0 == queue has not overflowed since the last check, 1 == queue has overflowed since the last check
   - Type: boolean
   
-`EtherEventQueue.getNode(IP)` - check if the device has not received any events in longer than the timeout duration
+`EtherEventQueue.getNode(IP)` - get the node number of an IP address
 - Parameter: IP - the IP address to determine the node number of
   - Type: IPAddress
-- Returns: 0 == not timed out, 1 == timed out
+- Returns: node number, -1 == no match
   - Type: int8_t
 
 

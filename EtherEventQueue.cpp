@@ -5,7 +5,7 @@
 #include <Ethernet.h>
 #include "EtherEvent.h"  //http://github.com/per1234/EtherEvent
 #include "Numlen.h"  //For finding the length of numbers. Included with the EtherEventQueue library or the latest version available here: http://github.com/per1234/Numlen
-//#include "Flash.h"  //https://github.com/rkhamilton/Flash - uncomment this line if you have the Flash library installed
+#include "Flash.h"  //https://github.com/rkhamilton/Flash - uncomment this line if you have the Flash library installed
 
 //-----------------------------------------------------------------------------------------------------------
 //user configuration parameters
@@ -61,20 +61,23 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
     return 0;
   }
 
-  for (int queueStepCount = queueSize - 1; queueStepCount >= 0; queueStepCount--) { //internal event system: step through the queue from the newest to oldest
-    if (getNode(IPqueue[queueStepCount]) == EtherEventQueue_nodeDevice) { //internal event
-      Serial.print(F("EtherEventQueue.availableEvent: internal event="));
-      strcpy(receivedEvent, eventQueue[queueStepCount]);
-      Serial.println(receivedEvent);
-      strcpy(receivedPayload, payloadQueue[queueStepCount]);
-      Serial.print(F("EtherEventQueue.availableEvent: internal event payload="));
-      Serial.println(receivedPayload);
-      Serial.print(F("EtherEventQueue.availableEvent: nodeIP[EtherEventQueue_nodeDevice]="));
-      Serial.println(nodeIP[EtherEventQueue_nodeDevice]);
-      receivedIP = nodeIP[EtherEventQueue_nodeDevice];
-      remove(queueStepCount);  //remove the event from the queue
-      queueNewCount--;
-      return strlen(receivedEvent);
+  if (localEventQueueCount > 0) {
+    for (int queueStepCount = queueSize - 1; queueStepCount >= 0; queueStepCount--) { //internal event system: step through the queue from the newest to oldest
+      if (getNode(IPqueue[queueStepCount]) == EtherEventQueue_nodeDevice) { //internal event
+        Serial.print(F("EtherEventQueue.availableEvent: internal event="));
+        strcpy(receivedEvent, eventQueue[queueStepCount]);
+        Serial.println(receivedEvent);
+        strcpy(receivedPayload, payloadQueue[queueStepCount]);
+        Serial.print(F("EtherEventQueue.availableEvent: internal event payload="));
+        Serial.println(receivedPayload);
+        Serial.print(F("EtherEventQueue.availableEvent: nodeIP[EtherEventQueue_nodeDevice]="));
+        Serial.println(nodeIP[EtherEventQueue_nodeDevice]);
+        receivedIP = nodeIP[EtherEventQueue_nodeDevice];
+        remove(queueStepCount);  //remove the event from the queue
+        queueNewCount--;
+        localEventQueueCount--;
+        return strlen(receivedEvent);
+      }
     }
   }
 
@@ -686,6 +689,7 @@ byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPo
   }
   if (targetNode == EtherEventQueue_nodeDevice) { //send events to self regardless of timeout state
     Serial.println(F("EtherEventQueue.queue: self send"));
+    localEventQueueCount++;
   }
   else if (targetNode != EtherEventQueue_nodeDevice && targetNode >= 0 && millis() - nodeTimestamp[targetNode] > nodeTimeout) { //not self, is a node and is timed out
     Serial.println(F("EtherEventQueue.queue: timed out node"));
@@ -700,9 +704,12 @@ byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPo
   Serial.println(queueSize);
   if (queueSize > EtherEventQueue_queueSizeMax) { //queue overflowed
     queueSize = EtherEventQueue_queueSizeMax; //had to bump the first item in the queue because there's no room for it
-    Serial.println(F("EtherEventQueue.queue: Queue Overflowed"));  //I don't really want to send another message into the queue because that will recursive loop
+    Serial.println(F("EtherEventQueue.queue: Queue Overflowed"));
     success = 2; //indicate overflow in the return
     queueOverflowFlag = 1;
+    if (getNode(IPqueue[queueSize - 1]) == EtherEventQueue_nodeDevice) { //the overflowed queue item is a local event
+      localEventQueueCount--;
+    }
     for (byte count = 0; count < queueSize - 1; count++) { //shift all messages up the queue and add new item to queue. This is kind of similar to the ack received part where I removed the message from the queue so maybe it could be a function
       IPqueue[count] = IPqueue[count + 1];
       portQueue[count] = portQueue[count + 1];
@@ -836,6 +843,7 @@ void EtherEventQueueClass::flushQueue() {
   Serial.println(F("EtherEventQueue.flushQueue: start"));
   queueSize = 0;
   queueNewCount = 0;
+  localEventQueueCount = 0;
 }
 
 
@@ -911,6 +919,10 @@ int8_t EtherEventQueueClass::getNode(const IPAddress IPvalue) {
   return -1;  //no match
 }
 
+
+//-----------------------------------------------------------------------------------------------------------
+//checkQueueOverflow
+//-----------------------------------------------------------------------------------------------------------
 boolean EtherEventQueueClass::checkQueueOverflow() {
   return queueOverflowFlag;
   queueOverflowFlag = 0;
