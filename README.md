@@ -45,7 +45,7 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
   - Type: unsigned int
 - Returns: none
 
-`EtherEventQueue.availableEvent(ethernetServer)` - Returns the number of chars of event including null terminator available to read.
+`EtherEventQueue.availableEvent(ethernetServer)` - Returns the number of chars of event including null terminator available to read. availableEvent() will not receive a new event until the last event has been read(via readEvent()) or flushed(via flushReceiver()).
 - Parameter: ethernetServer - the EthernetServer object created in the Ethernet setup of the user's sketch
   - Type: EthernetServer
 - Returns: Number of chars in the event including the null terminator at the end of the string.
@@ -144,7 +144,7 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
   - Type: EthernetClient
 - Returns: none
    
- `EtherEventQueue.flushQueue()` - remove all events from the queue
+ `EtherEventQueue.()` - remove all events from the queue
  - Returns: none
 
 `EtherEventQueue.checkTimeout()` - check for newly timed out nodes

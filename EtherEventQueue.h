@@ -6,9 +6,9 @@
 #include "Flash.h"  //https://github.com/rkhamilton/Flash - uncomment this line if you have the Flash library installed
 
 //user configuration parameters
-const byte EtherEventQueue_queueSizeMax = 25; //max number of messages to queue up before discarding the oldest one
-const byte EtherEventQueue_eventLengthMax = 6; //max number of characters of the event
-const byte EtherEventQueue_payloadLengthMax = 110; //max number of characters of the payload
+const byte EtherEventQueue_queueSizeMax = 15; //max number of messages to queue up before discarding the oldest one
+const byte EtherEventQueue_eventLengthMax = 15; //max number of characters of the event
+const byte EtherEventQueue_payloadLengthMax = 100; //max number of characters of the payload
 const byte EtherEventQueue_eventIDlength = 2; //number of characters of the message ID that is appended to the start of the raw payload, the message ID must be exactly this length
 const byte EtherEventQueue_nodeCount = 11; //total number of nodes
 
@@ -81,6 +81,7 @@ class EtherEventQueueClass {
     char receivedEvent[EtherEventQueue_eventLengthMax + 1]; //buffers to hold the available event
     char receivedPayload[EtherEventQueue_payloadLengthMax + 1];
 
+    IPAddress IPqueue[EtherEventQueue_queueSizeMax];  //queue buffers
     unsigned int portQueue[EtherEventQueue_queueSizeMax];
     char eventQueue[EtherEventQueue_queueSizeMax][EtherEventQueue_eventLengthMax + 1];
     byte eventIDqueue[EtherEventQueue_queueSizeMax];  //unique identifier for the message
@@ -97,8 +98,7 @@ class EtherEventQueueClass {
     byte queueOverflowFlag;
     byte localEventQueueCount;
     IPAddress receivedIP;
-    IPAddress IPqueue[EtherEventQueue_queueSizeMax];  //queue buffers
-
+    byte receivedEventLength;
 };
 extern EtherEventQueueClass EtherEventQueue;  //declare the class so it doesn't have to be done in the sketch
 #endif

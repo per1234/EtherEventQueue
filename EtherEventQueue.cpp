@@ -57,9 +57,6 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
     Serial.println(F("EtherEventQueue.availableEvent: previously received event"));
     return length + 1; //number of bytes including the null terminator remaining to be read of the event
   }
-  if (availablePayload() > 0) { //don't get another event until the last is fully read or flushed
-    return 0;
-  }
 
   if (localEventQueueCount > 0) {
     for (int queueStepCount = queueSize - 1; queueStepCount >= 0; queueStepCount--) { //internal event system: step through the queue from the newest to oldest
