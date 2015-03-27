@@ -10,7 +10,7 @@
 //-----------------------------------------------------------------------------------------------------------
 //user configuration parameters
 //-----------------------------------------------------------------------------------------------------------
-#define DEBUG 0 // (0==serial debug output off, 1==serial debug output on)The serial debug output will greatly increase communication time
+#define DEBUG false  // (false == serial debug output off,  true == serial debug output on)The serial debug output will greatly increase communication time.
 #define Serial if(DEBUG)Serial
 
 const boolean receiveNodesOnly = 0; //restrict event receiving to nodes only
@@ -53,106 +53,102 @@ void EtherEventQueueClass::begin(byte nodeDeviceValue, unsigned int portValue) {
 //availableEvent
 //-----------------------------------------------------------------------------------------------------------
 byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
-  if (byte length = strlen(receivedEvent)) { //there is already a previously received event buffered
-    Serial.println(F("EtherEventQueue.availableEvent: previously received event"));
-    return length + 1; //number of bytes including the null terminator remaining to be read of the event
-  }
-
-  if (localEventQueueCount > 0) {
-    for (int queueStepCount = queueSize - 1; queueStepCount >= 0; queueStepCount--) { //internal event system: step through the queue from the newest to oldest
-      if (getNode(IPqueue[queueStepCount]) == EtherEventQueue_nodeDevice) { //internal event
-        Serial.print(F("EtherEventQueue.availableEvent: internal event="));
-        strcpy(receivedEvent, eventQueue[queueStepCount]);
-        Serial.println(receivedEvent);
-        strcpy(receivedPayload, payloadQueue[queueStepCount]);
-        Serial.print(F("EtherEventQueue.availableEvent: internal event payload="));
-        Serial.println(receivedPayload);
-        Serial.print(F("EtherEventQueue.availableEvent: nodeIP[EtherEventQueue_nodeDevice]="));
-        Serial.println(nodeIP[EtherEventQueue_nodeDevice]);
-        receivedIP = nodeIP[EtherEventQueue_nodeDevice];
-        remove(queueStepCount);  //remove the event from the queue
-        queueNewCount--;
-        localEventQueueCount--;
-        return strlen(receivedEvent);
-      }
-    }
-  }
-
-  if (byte availableBytesEvent = EtherEvent.availableEvent(ethernetServer)) { //there is a new event
-    Serial.println(F("---------------------------"));
-    Serial.print(F("EtherEventQueue.availableEvent: EtherEvent.availableEvent()="));
-    Serial.println(availableBytesEvent);
-    receivedIP = EtherEvent.senderIP();
-    Serial.print(F("EtherEventQueue.availableEvent: remoteIP="));
-    Serial.println(receivedIP);
-
-    nodeTimestamp[EtherEventQueue_nodeDevice] = millis(); //set the device timestamp(using the EtherEventQueue_nodeDevice because that part of the array is never used otherwise)
-    //update timed out status of the event sender
-    byte senderNode = getNode(receivedIP); //get the node of the senderIP
-    if (senderNode >= 0) { //receivedIP is a node(-1 indicates no node match)
-      nodeTimestamp[senderNode] = millis(); //set the individual timestamp, any communication is considered to be a keepalive
-    }
-    else if (receiveNodesOnly == 1) { //receive events from node IPs only
-      Serial.println(F("EtherEventQueue.availableEvent: unauthorized IP"));
-      EtherEvent.flushReceiver();  //event and payload have not been read yet so only have to flush EtherEvent
-      return 0;
-    }
-
-    EtherEvent.readEvent(receivedEvent);  //put the event in the buffer
-    Serial.print(F("EtherEventQueue.availableEvent: ethernetReadEvent="));
-    Serial.println(receivedEvent);
-
-    if (strcmp(receivedEvent, eventKeepalive) == 0) { //Keepalive received
-      Serial.println(F("EtherEventQueue.availableEvent: keepalive received"));
-      EtherEvent.flushReceiver();  //the payload has not been read yet so EtherEvent has to be flushed
-      flushReceiver();  //the event has been read so EtherEventQueue has to be flushed
-      return 0;  //receive keepalive silently
-    }
-
-    byte payloadLength = EtherEvent.availablePayload();
-    Serial.print(F("EtherEventQueue.availableEvent: EtherEvent.availablePayload()="));
-    Serial.println(payloadLength);
-    char receivedPayloadRaw[payloadLength];  //(TODO: get rid of this, just use the regular payload buffer)initialize raw payload buffer
-    EtherEvent.readPayload(receivedPayloadRaw);  //read the payload to the buffer
-    Serial.print(F("EtherEventQueue.availableEvent: rawPayload="));
-    Serial.println(receivedPayloadRaw);
-
-    //break the payload down into parts and convert the eventID, code, and target address to byte, the true payload stays as a char array
-    char receivedeventID[EtherEventQueue_eventIDlength + 1];
-    for (byte count = 0; count < EtherEventQueue_eventIDlength; count++) {
-      receivedeventID[count] = receivedPayloadRaw[count];
-    }
-    receivedeventID[EtherEventQueue_eventIDlength] = 0; //add the null terminator because there is not one after the id in the string
-    Serial.print(F("EtherEventQueue.availableEvent: ethernetReadeventID="));
-    Serial.println(receivedeventID);
-
-    if (payloadLength > EtherEventQueue_eventIDlength + 1) { //there is a true payload
-      for (byte count = 0; count < payloadLength - EtherEventQueue_eventIDlength; count++) {
-        receivedPayload[count] = receivedPayloadRaw[count + EtherEventQueue_eventIDlength]; //(TODO: just use receivedPayload for the buffer instead of having the raw buffer)
-      }
-      Serial.print(F("EtherEventQueue.availableEvent: receivedPayload="));
-      Serial.println(receivedPayload);
-    }
-
-    if (strcmp(receivedEvent, eventAck) == 0) { //ack handler
-      Serial.println(F("EtherEventQueue.availableEvent: ack received"));
-      byte receivedPayloadInt = atoi(receivedPayload); //convert to a byte
-      for (byte count = 0; count < queueSize; count++) { //step through the currently occupied section of the eventIDqueue[]
-        if (receivedPayloadInt == eventIDqueue[count] && resendFlagQueue[count] == 2) { //the ack is for the eventID of this item in the queue and the resend flag indicates it is expecting an ack(non-ack events are not removed because obviously they haven't been sent yet if they're still in the queue so the ack can't possibly be for them)
-          Serial.println(F("EtherEventQueue.availableEvent: ack eventID match"));
-          remove(count);  //remove the message from the queue
+  if (receivedEventLength == 0) { //there is no event buffered
+    if (localEventQueueCount > 0) {
+      for (int queueStepCount = queueSize - 1; queueStepCount >= 0; queueStepCount--) { //internal event system: step through the queue from the newest to oldest
+        if (getNode(IPqueue[queueStepCount]) == EtherEventQueue_nodeDevice) { //internal event
+          strcpy(receivedEvent, eventQueue[queueStepCount]);
+          Serial.print(F("EtherEventQueue.availableEvent: internal event="));
+          Serial.println(receivedEvent);
+          strcpy(receivedPayload, payloadQueue[queueStepCount]);
+          Serial.print(F("EtherEventQueue.availableEvent: internal event payload="));
+          Serial.println(receivedPayload);
+          receivedIP = IPqueue[queueStepCount];
+          Serial.print(F("EtherEventQueue.availableEvent: receivedIP="));
+          Serial.println(receivedIP);
+          remove(queueStepCount);  //remove the event from the queue
+          queueNewCount--;
+          localEventQueueCount--;
+          return strlen(receivedEvent);
         }
       }
-      flushReceiver();  //event and payload have been read so only have to flush EtherEventQueue
-      return 0;  //receive ack silently
     }
 
-    Serial.println(F("EtherEventQueue.availableEvent: send ack"));
-    queue(receivedIP, port, eventAck, receivedeventID, 0);  //send the ack - the eventID of the received message is the payload
+    if (byte availableBytesEvent = EtherEvent.availableEvent(ethernetServer)) { //there is a new event
+      Serial.println(F("---------------------------"));
+      Serial.print(F("EtherEventQueue.availableEvent: EtherEvent.availableEvent()="));
+      Serial.println(availableBytesEvent);
+      receivedIP = EtherEvent.senderIP();
+      Serial.print(F("EtherEventQueue.availableEvent: remoteIP="));
+      Serial.println(receivedIP);
 
-    return availableBytesEvent;  //there is a new event, return the number of bytes
+      nodeTimestamp[EtherEventQueue_nodeDevice] = millis(); //set the device timestamp(using the EtherEventQueue_nodeDevice because that part of the array is never used otherwise)
+      //update timed out status of the event sender
+      byte senderNode = getNode(receivedIP); //get the node of the senderIP
+      if (senderNode >= 0) { //receivedIP is a node(-1 indicates no node match)
+        nodeTimestamp[senderNode] = nodeTimestamp[EtherEventQueue_nodeDevice]; //set the individual timestamp, any communication is considered to be a keepalive - the nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() twice for efficiency
+      }
+      else if (receiveNodesOnly == 1) { //the event was not received from a node and it is configured to receive events from node IPs only
+        Serial.println(F("EtherEventQueue.availableEvent: unauthorized IP"));
+        EtherEvent.flushReceiver();  //event has not been read yet so have to flush
+        return 0;
+      }
+
+      EtherEvent.readEvent(receivedEvent);  //put the event in the buffer
+      Serial.print(F("EtherEventQueue.availableEvent: ethernetReadEvent="));
+      Serial.println(receivedEvent);
+
+      if (strcmp(receivedEvent, eventKeepalive) == 0) { //keepalive received
+        Serial.println(F("EtherEventQueue.availableEvent: keepalive received"));
+        flushReceiver();  //the event has been read so EtherEventQueue has to be flushed
+        return 0;  //receive keepalive silently
+      }
+
+      byte payloadLength = EtherEvent.availablePayload();
+      Serial.print(F("EtherEventQueue.availableEvent: EtherEvent.availablePayload()="));
+      Serial.println(payloadLength);
+      char receivedPayloadRaw[payloadLength];  //(TODO: get rid of this, just use the regular payload buffer)initialize raw payload buffer
+      EtherEvent.readPayload(receivedPayloadRaw);  //read the payload to the buffer
+      Serial.print(F("EtherEventQueue.availableEvent: rawPayload="));
+      Serial.println(receivedPayloadRaw);
+
+      //break the payload down into parts and convert the eventID, code, and target address to byte, the true payload stays as a char array
+      char receivedeventID[EtherEventQueue_eventIDlength + 1];
+      for (byte count = 0; count < EtherEventQueue_eventIDlength; count++) {
+        receivedeventID[count] = receivedPayloadRaw[count];
+      }
+      receivedeventID[EtherEventQueue_eventIDlength] = 0; //add the null terminator because there is not one after the id in the string
+      Serial.print(F("EtherEventQueue.availableEvent: ethernetReadeventID="));
+      Serial.println(receivedeventID);
+
+      if (payloadLength > EtherEventQueue_eventIDlength + 1) { //there is a true payload
+        for (byte count = 0; count < payloadLength - EtherEventQueue_eventIDlength; count++) {
+          receivedPayload[count] = receivedPayloadRaw[count + EtherEventQueue_eventIDlength]; //(TODO: just use receivedPayload for the buffer instead of having the raw buffer)
+        }
+        Serial.print(F("EtherEventQueue.availableEvent: receivedPayload="));
+        Serial.println(receivedPayload);
+      }
+
+      if (strcmp(receivedEvent, eventAck) == 0) { //ack handler
+        Serial.println(F("EtherEventQueue.availableEvent: ack received"));
+        byte receivedPayloadInt = atoi(receivedPayload); //convert to a byte
+        for (byte count = 0; count < queueSize; count++) { //step through the currently occupied section of the eventIDqueue[]
+          if (receivedPayloadInt == eventIDqueue[count] && resendFlagQueue[count] == 2) { //the ack is for the eventID of this item in the queue and the resend flag indicates it is expecting an ack(non-ack events are not removed because obviously they haven't been sent yet if they're still in the queue so the ack can't possibly be for them)
+            Serial.println(F("EtherEventQueue.availableEvent: ack eventID match"));
+            remove(count);  //remove the message from the queue
+          }
+        }
+        flushReceiver();  //event and payload have been read so only have to flush EtherEventQueue
+        return 0;  //receive ack silently
+      }
+
+      Serial.println(F("EtherEventQueue.availableEvent: send ack"));
+      queue(receivedIP, port, eventAck, receivedeventID, 0);  //send the ack - the eventID of the received message is the payload
+
+      receivedEventLength = availableBytesEvent;  //there is a new event
+    }
   }
-  return 0;
+  return receivedEventLength;
 }
 
 
@@ -173,8 +169,7 @@ byte EtherEventQueueClass::availablePayload() { //returns the number of chars in
 void EtherEventQueueClass::readEvent(char eventBuffer[]) {
   Serial.println(F("EtherEventQueue.readEvent: start"));
   strcpy(eventBuffer, receivedEvent);
-  eventBuffer[strlen(receivedEvent)] = 0; //null terminator - is this needed?
-  receivedEvent[0] = 0; //reset the event buffer
+  receivedEventLength = 0; //enable availableEvent() to receive new events
 }
 
 
@@ -184,8 +179,6 @@ void EtherEventQueueClass::readEvent(char eventBuffer[]) {
 void EtherEventQueueClass::readPayload(char payloadBuffer[]) {
   Serial.println(F("EtherEventQueue.readPayload: start"));
   strcpy(payloadBuffer, receivedPayload);
-  payloadBuffer[strlen(receivedPayload)] = 0; //null terminator - is this needed?
-  receivedPayload[0] = 0; //reset the payload buffer
 }
 
 
@@ -201,9 +194,9 @@ IPAddress EtherEventQueueClass::senderIP() {
 //flushReceiver
 //-----------------------------------------------------------------------------------------------------------
 void EtherEventQueueClass::flushReceiver() { //dump the last message received so another one can be received
-  //Serial.println(F("EtherEventQueue.flushReceiver: start"));
   receivedEvent[0] = 0; //reset the event buffer
   receivedPayload[0] = 0; //reset the payload buffer
+  receivedEventLength = 0; //enable availableEvent() to receive new events
 }
 
 //-----------------------------------------------------------------------------------------------------------
