@@ -8,7 +8,7 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 
 #### Required Libraries
 - EtherEvent http://github.com/per1234/EtherEvent
-- Ethernet library modification instructions: http://forum.arduino.cc/index.php?topic=82416.0
+- Modified Ethernet library - allows the event sender's IP address to be recorded: http://github.com/per1234/Ethernet - make sure to choose the correct branch for your Arduino IDE version
 
 #### Related Programs
 - UIPEthernet library for ENC28J60 ethernet chip: http://github.com/ntruchsess/arduino_uip
@@ -23,11 +23,18 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 - Rename the folder EtherEventQueue
 - Move the folder to your arduino sketchbook\libraries folder
 - Repeat this process with the other required libraries
-- Modify the stock Arduino Ethernet library following these instructions: http://forum.arduino.cc/index.php?topic=82416.0
-- uncomment #define SENDERIP_ENABLE in EtherEvent.cpp
 - If you are using the Flash library then uncomment #include "Flash.h" in EtherEventQueue.cpp and EtherEventQueue.h
 - EtherEventQueue library configuration parameters
-  - there are several paramerters that can be configured in the library, they are documented there
+  - EtherEventQueueNodes.h - IP addresses of nodes can be defined here, then events can be queued for sending to a node using just the node number and the status of the node will be monitored.
+  - EtherEventQueue.cpp
+    - DEBUG - Set this to true to enable debug output via serial. This will increase the sketch size dramatically so only enable when needed.
+    - receiveNodesOnly - Set this to true to only allow events to be received from IP addresses defined in EtherEventQueueNodes.h
+    - sendNodesOnly - Set this to true to only allow events to be sent to IP addresses defined in EtherEventQueueNodes.h
+    - nodeTimeout - (ms)the node is timed out if it has been longer than this duration since the last event was received from it
+    - nodeTimeoutSelf  - (ms)the device is timed out if it has been longer than this duration since any event was received
+    - eventKeepalive - The event that can be periodically send to keep nodes from being considered timed out. The default value is "100". This event will not be passed on via availableEvent(). Any event will reset the timeout timer so this event only needs to be used if no other event has been sent within the timeout duration.
+    - eventAck - The event that is sent back to the sender's IP address to acknowledge that an event has been received. The default value is "101". The payload of the ack is the ID number of the received event. When an ack is received it will not be passed on via availableEvent(). It is used to remove events that were queued with the resendFlag=2.
+    - resendDelay - The delay between resends of messages queued with resendFlag=1 or resendFlag=2.
 - Restart the Arduino IDE
 - File>Examples>etherEventQueueExample
  - Set the device IP address, this can be any available IP address on the network. DHCP not currently implemented.
@@ -38,11 +45,23 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 - Repeat with other connected devices. The serial monitor will show details of the test communications.
 
 #### Usage
-`EtherEventQueue.begin(deviceID, port)` - Initialize EtherEventQueue
-- Parameter: deviceID - the node number of the device. The device IP address must be in the node array in EtherEventQueue.cpp
+`EtherEventQueue.begin(password, deviceID, port[, queueSizeMax, sendEventLengthMax, sendPayloadLengthMax, receiveEventLengthMax, receivePayloadEventMax])` - Initialize EtherEventQueue
+- Parameter: password - EtherEvent password. This must match the password set in EventGhost.
+  - Type: char array
+- Parameter: deviceID - The node number of the device. The device IP address must be in the node array in EtherEventQueue.cpp
   - Type: byte
-- Parameter: port - the port being used for events. This is used only for sending acks, queue() allows sending to any port, the device Ethernet port is configured with the EthernetServer initialization
+- Parameter: port - The port being used for events. This is used only for sending acks, queue() allows sending to any port, the device Ethernet port is configured with the EthernetServer initialization
   - Type: unsigned int
+- Parameter(optional): queueSizeMax - Maximum number of events to queue. Longer entries will be truncated to this length. If this parameter is not passed then the default will be used.
+  - Type: byte
+- Parameter(optional): sendEventLengthMax - Maximum event length to send. Longer entries will be truncated to this length. If this parameter is not passed then the default will be used.
+  - Type: byte
+- Parameter(optional): sendPayloadLengthMax - Maximum payload length to send. Longer entries will be truncated to this length. If this parameter is not passed then the default will be used.
+  - Type: byte
+- Parameter(optional): receiveEventLengthMax - Maximum event length to receive. Longer entries will be truncated to this length. If this parameter is not passed then the default will be used.
+  - Type: byte
+- Parameter(optional): receivePayloadEventMax - Maximum payload length to receive. Longer entries will be truncated to this length. If this parameter is not passed then the default will be used.
+  - Type: byte
 - Returns: none
 
 `EtherEventQueue.availableEvent(ethernetServer)` - Returns the number of chars of event including null terminator available to read. availableEvent() will not receive a new event until the last event has been read(via readEvent()) or flushed(via flushReceiver()).
@@ -56,12 +75,12 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 - Returns: Number of chars in the payload including the null terminator at the end of the string.
   - Type: byte
 
-`EtherEventQueue.readEvent(char eventBuffer[])` - Puts the event in the passed array. availableEvent() must be called first.
+`EtherEventQueue.readEvent(eventBuffer)` - Puts the event in the passed array. availableEvent() must be called first.
 - Parameter: eventBuffer - size a char array according to the result of availableEvent () and pass it to the readEvent  function. After that it will contain the event.
   - Type: char
 - Returns: none
 
-`EtherEventQueue.readPayload(char payloadBuffer[])` - Puts the payload string in the passed array. availableEvent() must be called first.
+`EtherEventQueue.readPayload(payloadBuffer)` - Puts the payload string in the passed array. availableEvent() must be called first.
 - Parameter: payloadBuffer - size a char array according to the result of availablePayload () and pass it to the readPayload  function. After that it will contain the payload.
   - Type: char
 - Returns: none
@@ -84,7 +103,7 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
   - Type: char/int
 - Parameter: payload:- payload to send with the event. If you don't want a payload then just use 0 for this parameter
   - Type: char/int8_t/byte/int/unsigned int/long/unsigned long/_FLASH_STRING
-- Parameter: resendFlag - (0 == no resend, 1 == resend until successful send, 2 == resend until ack) If this is set to 2 then the queue will resend a message until the ack is received or the target IP times out
+- Parameter: resendFlag - (0 == no resend, 1 == resend until successful send, 2 == resend until ack) If this is set to 2 then the queue will resend a message until the ack is received or the target IP times out or the queue exceeds the maximum queue size and the oldest queued events are removed.
   - Type: byte
 - Returns: 0 for failure, 1 for success, , 2 for success w/ queue overflow
   - Type: byte
@@ -168,9 +187,9 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 - Returns: 0 == queue has not overflowed since the last check, 1 == queue has overflowed since the last check
   - Type: boolean
   
-`EtherEventQueue.getNode(IP)` - get the node number of an IP address
+`EtherEventQueue.getNode(IP)` - Get the node number of an IP address. Nodes can be defined in EtherEventQueueNodes.h.
 - Parameter: IP - the IP address to determine the node number of
-  - Type: IPAddress
+  - Type: IPAddress or byte
 - Returns: node number, -1 == no match
   - Type: int8_t
 

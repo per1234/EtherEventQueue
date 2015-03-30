@@ -1,28 +1,27 @@
 //Example script for the EtherEventQueue library. Demonstrates advanced features
 #include <SPI.h>  //these libraries are required by EtherEvent
-#include <Ethernet.h>
+#include "Ethernet.h"
 #include "MD5.h"
 //#include "Entropy.h"  //uncomment this line if you have the Entropy library installed
 #include "EtherEvent.h"  //include the EtherEvent library so its functions can be accessed
 #include "EtherEventQueue.h"  //include the EtherEvent library so its functions can be accessed
 #include <utility/w5100.h>  //Used for setting the ethernet send connect timeout
-//#include "Flash.h"  //uncomment this line if you have the Flash library installed
+#include "Flash.h"  //uncomment this line if you have the Flash library installed
 
 const unsigned int port = 1024; //EtherEvent TCP port
 
 EthernetServer ethernetServer(port);  //TCP port to receive on
 EthernetClient ethernetClient;  //create the client object for ethernet communication
 
-unsigned long sendTimeStamp = 0; //used by the example to periodically send an event
+unsigned long sendTimeStamp; //used by the example to periodically send an event
 
 void setup() {
   Serial.begin(9600);  //the received event and other information will be displayed in your serial monitor while the sketch is running
   byte mac[] = {0, 1, 2, 3, 4, 4}; //this can be anything you like, but must be unique on your network
   Ethernet.begin(mac, IPAddress(192, 168, 69, 104));  //leave off the IP parameter for DHCP
   ethernetServer.begin();  //begin the server that will be used to receive events
-  EtherEvent.begin("password");  //initialize EtherEvent and set the authentication password
-  EtherEvent.setTimeout(500, 1000); //(200, 400)set timeout values
-  EtherEventQueue.begin(4, port);  //set the node ID and the EtherEvent TCP port
+  EtherEventQueue.begin("password", 4, port, 10, 8, 25, 8, 25);  //set the EtherEvent passoword, node ID,  EtherEvent TCP port, maximum queue size, maximum send event length, maximum send payload length, maximum receive event length, maximum receive payload length
+  EtherEvent.setTimeout(20); //set timeout duration
 #ifdef ethernet_h
   W5100.setRetransmissionTime(0x07D0);  //(0xFA)used to set the timeout for the w5100 module this will not work if you are using ENC28J60 instead of W5100
   W5100.setRetransmissionCount(1);  //Retransmission Count 1 is the minimum value

@@ -15,3 +15,4 @@ checkState	KEYWORD2
 getNode	KEYWORD2
 eventIDfind	KEYWORD2
 remove	KEYWORD2
+IPcopy	KEYWORD2

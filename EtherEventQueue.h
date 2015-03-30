@@ -2,19 +2,16 @@
 #ifndef EtherEventQueue_h
 #define EtherEventQueue_h
 #include <SPI.h>  //for the ethernet library
-#include <Ethernet.h>
+#include "Ethernet.h"
 #include "Flash.h"  //https://github.com/rkhamilton/Flash - uncomment this line if you have the Flash library installed
+#include "EtherEventQueueNodes.h"
 
 //user configuration parameters
-const byte EtherEventQueue_queueSizeMax = 15; //max number of messages to queue up before discarding the oldest one
-const byte EtherEventQueue_eventLengthMax = 15; //max number of characters of the event
-const byte EtherEventQueue_payloadLengthMax = 100; //max number of characters of the payload
-const byte EtherEventQueue_eventIDlength = 2; //number of characters of the message ID that is appended to the start of the raw payload, the message ID must be exactly this length
-const byte EtherEventQueue_nodeCount = 11; //total number of nodes
+const byte EtherEventQueue_nodeCount = 11;  //total number of nodes
 
 class EtherEventQueueClass {
   public:
-    void begin(byte nodeDeviceValue, unsigned int portValue);
+    void begin(char password[], byte nodeDeviceInput, unsigned int portInput, byte queueSizeMaxInput, byte sendEventLengthMaxInput, byte sendPayloadLengthMaxInput, byte receiveEventLengthMaxInput, byte receivePayloadLengthMaxInput);
     byte availableEvent(EthernetServer &ethernetServer);
     byte availablePayload();
     void readEvent(char eventBuffer[]);
@@ -70,23 +67,55 @@ class EtherEventQueueClass {
     int8_t checkTimeout();
     int8_t checkTimein();
     boolean checkState(byte node);
-    int8_t getNode(const IPAddress IPvalue);
+
+
+    //-----------------------------------------------------------------------------------------------------------
+    //getNode - template that can accept IPAddress or byte array type parameters - this function must be defined in the .h instead of the .cpp because it is a template
+    //-----------------------------------------------------------------------------------------------------------
+    template <typename IPtype>
+    int8_t getNode(const IPtype IPvalue) {
+      //Serial.println(F("EtherEventQueue.getNode: start"));
+      for (byte node = 0; node < sizeof(EtherEventQueueNodes::nodeIP) / sizeof(EtherEventQueueNodes::nodeIP[0]); node++) {  //step through all the nodes
+        byte octet;
+        for (octet = 0; octet < 4; octet++) {
+          if (EtherEventQueueNodes::nodeIP[node][octet] != IPvalue[octet]) {  //mismatch
+            octet = 0;
+            break;  //check the next node for a match
+          }
+        }
+        if (octet == 4) {  //node matched
+          //Serial.print(F("EtherEventQueue.getNode: node found="));
+          //Serial.println(node);
+          return node;
+        }
+      }
+      Serial.print(F("EtherEventQueue.getNode: node not found"));
+      return -1;  //no match
+    }
+
+
     boolean checkQueueOverflow();
   private:
     byte eventIDfind();
     void remove(byte queueStep);
+    void IPcopy(byte IPdestination[], const IPAddress IPsource);
 
     byte EtherEventQueue_nodeDevice;
     unsigned int port;
-    char receivedEvent[EtherEventQueue_eventLengthMax + 1]; //buffers to hold the available event
-    char receivedPayload[EtherEventQueue_payloadLengthMax + 1];
+    byte receivedEventLengthMax;
+    char* receivedEvent;  //buffer to hold the received event
+    byte receivedPayloadLengthMax;
+    char* receivedPayload;  //buffer to hold the received payload
 
-    IPAddress IPqueue[EtherEventQueue_queueSizeMax];  //queue buffers
-    unsigned int portQueue[EtherEventQueue_queueSizeMax];
-    char eventQueue[EtherEventQueue_queueSizeMax][EtherEventQueue_eventLengthMax + 1];
-    byte eventIDqueue[EtherEventQueue_queueSizeMax];  //unique identifier for the message
-    char payloadQueue[EtherEventQueue_queueSizeMax][EtherEventQueue_payloadLengthMax + 1];
-    boolean resendFlagQueue[EtherEventQueue_queueSizeMax];
+    byte queueSizeMax;
+    byte** IPqueue;  //queue buffers
+    unsigned int* portQueue;
+    byte sendEventLengthMax;
+    char** eventQueue;
+    byte* eventIDqueue;  //unique identifier for the message
+    byte sendPayloadLengthMax;
+    char** payloadQueue;
+    byte* resendFlagQueue;
 
     byte queueNewCount;  //number of new messages in the queue
     byte queueSize;  //how many messages are currently in the send queue

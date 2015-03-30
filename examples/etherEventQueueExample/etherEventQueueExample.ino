@@ -1,6 +1,6 @@
 //example script for the EtherEventQueue library
 #include <SPI.h>  //these libraries are required by EtherEvent
-#include <Ethernet.h>
+#include "Ethernet.h"
 #include "MD5.h"
 //#include <Entropy.h>  //uncomment this line if you have the Entropy library installed
 #include "EtherEvent.h"  //include the EtherEvent library so its functions can be accessed
@@ -10,15 +10,14 @@
 EthernetServer ethernetServer(1024);  //TCP port to receive on
 EthernetClient ethernetClient;  //create the client object for ethernet communication
 
-unsigned long sendTimeStamp = 0; //used by the example to periodically send an event
+unsigned long sendTimeStamp; //used by the example to periodically send an event
 
 void setup() {
   Serial.begin(9600);  //the received event and other information will be displayed in your serial monitor while the sketch is running
   byte mac[] = {0, 1, 2, 3, 4, 4}; //this can be anything you like, but must be unique on your network
   Ethernet.begin(mac, IPAddress(192, 168, 69, 104));  //leave off the IP parameter for DHCP
   ethernetServer.begin();  //begin the server that will be used to receive events
-  EtherEvent.begin("password");  //set the EtherEvent password
-  EtherEventQueue.begin(4, 1024);  //set the node ID and the EtherEvent TCP port
+  EtherEventQueue.begin("password", 4, 1024);  //set the node ID and the EtherEvent TCP port
 }
 
 void loop() {
