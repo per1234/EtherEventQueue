@@ -11,7 +11,7 @@
 //-----------------------------------------------------------------------------------------------------------
 //START user configuration parameters
 //-----------------------------------------------------------------------------------------------------------
-#define DEBUG false  // (false == serial debug output off,  true == serial debug output on)The serial debug output will greatly increase communication time.
+#define DEBUG false  //(false == serial debug output off,  true == serial debug output on)The serial debug output will greatly increase communication time.
 #define Serial if(DEBUG)Serial
 
 const boolean receiveNodesOnly = false;  //restrict event receiving to nodes only
@@ -65,7 +65,7 @@ void EtherEventQueueClass::begin(char password[], byte nodeDeviceInput, unsigned
   receivedEvent = (char*)malloc(receivedEventLengthMax + 1);
   receivedPayloadLengthMax = receivedPayloadLengthMaxInput;
   receivedPayload = (char*)malloc(receivedPayloadLengthMax + 1);
-  EtherEvent.begin(password, receivedEventLengthMax, receivedPayloadLengthMax);  //initialize EtherEvent
+  EtherEvent.begin(password, receivedEventLengthMax, eventIDlength + receivedPayloadLengthMax); //initialize EtherEvent
 }
 
 
