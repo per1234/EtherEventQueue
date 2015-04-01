@@ -36,7 +36,6 @@ void EtherEventQueueClass::begin(char password[], byte nodeDeviceInput, unsigned
   EtherEventQueue_nodeDevice = nodeDeviceInput;
   nodeState[EtherEventQueue_nodeDevice] = 1;  //start the device as timed in
   port = portInput;
-  //TODO:size the node related buffers= sizeof(EtherEventQueueNodes::nodeIP)/sizeof(EtherEventQueueNodes::nodeIP[0])
 
   //buffer sizing - these are dynamically allocated so that the sized can be set via the API
   //size send event queue buffers
@@ -722,7 +721,7 @@ byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPo
     }
     for (byte count = 0; count < queueSize - 1; count++) {  //shift all messages up the queue and add new item to queue. This is kind of similar to the ack received part where I removed the message from the queue so maybe it could be a function
       IPqueue[count] = IPqueue[count + 1];
-      portQueue[count * sizeof(unsigned int)] = portQueue[(count + 1) * sizeof(unsigned int)];
+      portQueue[count] = portQueue[(count + 1)];
       strcpy(eventQueue[count], eventQueue[count + 1]);
       eventIDqueue[count] = eventIDqueue[count + 1];
       strcpy(payloadQueue[count], payloadQueue[count + 1]);
@@ -734,7 +733,7 @@ byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPo
 
   //add the new message to the queue
   IPcopy(IPqueue[queueSize - 1], targetIP);
-  portQueue[(queueSize - 1)*sizeof(unsigned int)] = targetPort;
+  portQueue[queueSize - 1] = targetPort;
   strcpy(eventQueue[queueSize - 1], event);  //set the eventID for the message in the queue
   eventIDqueue[queueSize - 1] = eventID;
   strcpy(payloadQueue[queueSize - 1], payload);  //put the new payload in the queue
@@ -747,7 +746,7 @@ byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPo
   Serial.print(F("EtherEventQueue.queue: IP="));
   Serial.println(IPAddress(IPqueue[queueSize - 1]));
   Serial.print(F("EtherEventQueue.queue: port="));
-  Serial.println(portQueue[(queueSize - 1)*sizeof(unsigned int)]);
+  Serial.println(portQueue[queueSize - 1]);
   Serial.print(F("EtherEventQueue.queue: event="));
   Serial.println(eventQueue[queueSize - 1]);
   Serial.print(F("EtherEventQueue.queue: payload="));
@@ -825,7 +824,7 @@ void EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {  //eth
       Serial.print(F("EtherEventQueue.queueHandler: payload="));
       Serial.println(payload);
 
-      if (EtherEvent.send(ethernetClient, IPAddress(IPqueue[queueStepSend]), portQueue[queueStepSend * sizeof(unsigned int)], eventQueue[queueStepSend], payload) > 0) {
+      if (EtherEvent.send(ethernetClient, IPAddress(IPqueue[queueStepSend]), portQueue[queueStepSend], eventQueue[queueStepSend], payload) > 0) {
         Serial.println(F("EtherEventQueue.queueHandler: send successful"));
         if (resendFlagQueue[queueStepSend] < 2) {  //the flag indicates not to wait for an ack
           Serial.println(F("EtherEventQueue.queueHandler: resendFlag==0, event removed from queue"));
@@ -955,7 +954,7 @@ void EtherEventQueueClass::remove(byte queueStep) {  //remove the given item fro
   if (queueSize > 0) {  //if the only message in the queue is being removed then it doesn't need to adjust the queue
     for (byte count = queueStep; count < queueSize; count++) {  //move all the messages above the one to remove up in the queue
       IPqueue[count] = IPqueue[count + 1];  //set the target for the message in the queue
-      portQueue[count * sizeof(unsigned int)] = portQueue[(count + 1) * sizeof(unsigned int)];
+      portQueue[count] = portQueue[count + 1];
       strcpy(eventQueue[count], eventQueue[count + 1]);
       eventIDqueue[count] = eventIDqueue[count + 1];
       strcpy(payloadQueue[count], payloadQueue[count + 1]);
