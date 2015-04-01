@@ -20,7 +20,7 @@ void setup() {
   byte mac[] = {0, 1, 2, 3, 4, 4}; //this can be anything you like, but must be unique on your network
   Ethernet.begin(mac, IPAddress(192, 168, 69, 104));  //leave off the IP parameter for DHCP
   ethernetServer.begin();  //begin the server that will be used to receive events
-  EtherEventQueue.begin("password", 4, port, 10, 8, 25, 8, 25);  //set the EtherEvent passoword, node ID,  EtherEvent TCP port, maximum queue size, maximum send event length, maximum send payload length, maximum receive event length, maximum receive payload length
+  EtherEventQueue.begin("password", 4, port, 10, 8, 25, 8, 25);  //set the EtherEvent password, node ID,  EtherEvent TCP port, maximum queue size, maximum send event length, maximum send payload length, maximum receive event length, maximum receive payload length
   EtherEvent.setTimeout(20); //set timeout duration
 #ifdef ethernet_h
   W5100.setRetransmissionTime(0x07D0);  //(0xFA)used to set the timeout for the w5100 module this will not work if you are using ENC28J60 instead of W5100

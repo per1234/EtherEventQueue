@@ -11,7 +11,7 @@
 //-----------------------------------------------------------------------------------------------------------
 //START user configuration parameters
 //-----------------------------------------------------------------------------------------------------------
-#define DEBUG false  //(false == serial debug output off,  true == serial debug output on)The serial debug output will greatly increase communication time.
+#define DEBUG false  //(false == serial debug output off,  true == serial debug output on)The serial debug output will increase memory usage and communication latency so only enable when in use.
 #define Serial if(DEBUG)Serial
 
 const boolean receiveNodesOnly = false;  //restrict event receiving to nodes only
@@ -94,7 +94,7 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
       }
     }
 
-    if (byte availableBytesEvent = EtherEvent.availableEvent(ethernetServer)) {  //there is a new event
+    if (const byte availableBytesEvent = EtherEvent.availableEvent(ethernetServer)) {  //there is a new event
       Serial.println(F("---------------------------"));
       Serial.print(F("EtherEventQueue.availableEvent: EtherEvent.availableEvent()="));
       Serial.println(availableBytesEvent);
@@ -756,7 +756,6 @@ byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPo
   Serial.println(eventIDqueue[queueSize - 1]);
   Serial.print(F("EtherEventQueue.queue: resendFlag="));
   Serial.println(resendFlagQueue[queueSize - 1]);
-
   return success;
 }
 
@@ -767,7 +766,7 @@ byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPo
 void EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {  //ethernetQueueHandler - sends out the messages in the queue-------------
   if (queueSize > 0) {  //there are messages in the queue
     if (queueNewCount > 0 || millis() - queueSendTimestamp > resendDelay) {  //it is time
-      if (queueNewCount > queueSize) {  //if the acks get messed up this can happen
+      if (queueNewCount > queueSize) {  //sanity check - if the acks get messed up this can happen
         queueNewCount = queueSize;
       }
       Serial.print(F("EtherEventQueue.queueHandler: queueSize="));
@@ -793,7 +792,7 @@ void EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {  //eth
         int targetNode = getNode(IPqueue[queueStepSend]);  //get the node of the target IP
         Serial.print(F("EtherEventQueue.queueHandler: targetNode="));
         Serial.println(targetNode);
-        if (targetNode == EtherEventQueue_nodeDevice) {  //ignore internal events
+        if (targetNode == EtherEventQueue_nodeDevice) {  //ignore internal events, they are sent in availableEvent()
           continue;  //move on to the next queue step
         }
         if (targetNode < 0) {  //-1 indicates no node match
