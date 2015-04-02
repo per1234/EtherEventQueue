@@ -5,7 +5,6 @@
 #include <SPI.h>  //for the ethernet library
 #include "Ethernet.h"
 #include "EtherEvent.h"  //http://github.com/per1234/EtherEvent
-#include "Numlen.h"  //For finding the length of numbers. Included with the EtherEventQueue library or the latest version available here: http://github.com/per1234/Numlen
 #include "Flash.h"  //https://github.com/rkhamilton/Flash - uncomment this line if you have the Flash library installed
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -27,8 +26,14 @@ const unsigned int resendDelay = 45000;  //(ms)delay between resends of messages
 //END user configuration parameters
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-byte nodeCount = sizeof(EtherEventQueueNodes::nodeIP) / sizeof(EtherEventQueueNodes::nodeIP[0]);
+const byte nodeCount = sizeof(EtherEventQueueNodes::nodeIP) / sizeof(EtherEventQueueNodes::nodeIP[0]);
 const byte eventIDlength = 2;  //number of characters of the message ID that is appended to the start of the raw payload, the event ID must be exactly this length
+
+//type lengths - used for conversion of number to strings
+const byte uint16_tLengthMax=6;  //sign + 5 digits
+const byte int16_tLengthMax=5;  //5 digits
+const byte uint32_tLengthMax=11;  //sign + 10 digits
+const byte int32_tLengthMax=10;  //10 digits
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //begin
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -239,44 +244,44 @@ byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, const
 }
 
 
-byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, const char event[], int payloadInt, byte resendFlag) {
+byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, const char event[], int16_t payloadInt, byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(node, char event, int payload version): start"));
 
   //convert int to char
-  char payloadChar[Numlen.numlen(payloadInt) + 1];
+  char payloadChar[int16_tLengthMax+1];  //max length+terminator
   itoa(payloadInt, payloadChar, 10);
 
   return queue(EtherEventQueueNodes::nodeIP[targetNode], targetPort, event, payloadChar, resendFlag);
 }
 
 
-byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, const char event[], unsigned int payloadUint, byte resendFlag) {
+byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, const char event[], uint16_t payloadUint, byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(node, char event, unsigned int payload version): start"));
 
   //convert unsigned int to char
-  char payloadChar[Numlen.numlen(payloadUint) + 1];
+  char payloadChar[uint16_tLengthMax+1];  //max length+terminator
   sprintf_P(payloadChar, PSTR("%u"), payloadUint);
 
   return queue(EtherEventQueueNodes::nodeIP[targetNode], targetPort, event, payloadChar, resendFlag);
 }
 
 
-byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, const char event[], long payloadLong, byte resendFlag) {
+byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, const char event[], int32_t payloadLong, byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(node, char event, long payload version): start"));
 
   //convert long to char
-  char payloadChar[Numlen.numlen(payloadLong) + 1];
+  char payloadChar[int32_tLengthMax+1];  //max length+terminator
   ltoa(payloadLong, payloadChar, 10);
 
   return queue(EtherEventQueueNodes::nodeIP[targetNode], targetPort, event, payloadChar, resendFlag);
 }
 
 
-byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, const char event[], unsigned long payloadUlong, byte resendFlag) {
+byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, const char event[], uint32_t payloadUlong, byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(node, char event, unsigned long payload version): start"));
 
   //convert unsigned long to char
-  char payloadChar[Numlen.numlen(payloadUlong) + 1];
+  char payloadChar[uint32_tLengthMax + 1];  //max length+terminator
   ultoa(payloadUlong, payloadChar, 10);
 
   return queue(EtherEventQueueNodes::nodeIP[targetNode], targetPort, event, payloadChar, resendFlag);
@@ -288,7 +293,7 @@ byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, const
   Serial.println(F("EtherEventQueue.queue(node, char event, _FLASH_STRING payload version): start"));
 
   //convert the _FLASH_STRING to char
-  byte stringLength =  payloadFlashString.length();
+  byte stringLength = payloadFlashString.length();
   char payloadChar[stringLength + 1];
   payloadFlashString.copy(payloadChar, stringLength, 0);
   payloadChar[stringLength] = 0;
@@ -310,44 +315,44 @@ byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPo
 }
 
 
-byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPort, const char event[], int payloadInt, byte resendFlag) {
+byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPort, const char event[], int16_t payloadInt, byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(IP, char event, int payload version): start"));
 
   //convert int to char
-  char payloadChar[Numlen.numlen(payloadInt) + 1];
+  char payloadChar[int16_tLengthMax + 1];
   itoa(payloadInt, payloadChar, 10);
 
   return queue(targetIP, targetPort, event, payloadChar, resendFlag);
 }
 
 
-byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPort, const char event[], unsigned int payloadUint, byte resendFlag) {
+byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPort, const char event[], uint16_t payloadUint, byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(IP, char event, unsigned int payload version): start"));
 
   //convert unsigned int to char
-  char payloadChar[Numlen.numlen(payloadUint) + 1];
+  char payloadChar[uint16_tLengthMax + 1];
   sprintf_P(payloadChar, PSTR("%u"), payloadUint);
 
   return queue(targetIP, targetPort, event, payloadChar, resendFlag);
 }
 
 
-byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPort, const char event[], long payloadLong, byte resendFlag) {
+byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPort, const char event[], int32_t payloadLong, byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(IP, char event, long payload version): start"));
 
   //convert long to char
-  char payloadChar[Numlen.numlen(payloadLong) + 1];
+  char payloadChar[int32_tLengthMax + 1];
   ltoa(payloadLong, payloadChar, 10);
 
   return queue(targetIP, targetPort, event, payloadChar, resendFlag);
 }
 
 
-byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPort, const char event[], unsigned long payloadUlong, byte resendFlag) {
+byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPort, const char event[], uint32_t payloadUlong, byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(IP, char event, unsigned long payload version): start"));
 
   //convert unsigned long to char
-  char payloadChar[Numlen.numlen(payloadUlong) + 1];
+  char payloadChar[uint32_tLengthMax + 1];
   ultoa(payloadUlong, payloadChar, 10);
 
   return queue(targetIP, targetPort, event, payloadChar, resendFlag);
@@ -387,44 +392,44 @@ byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, int e
 }
 
 
-byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, int event, int payloadInt, byte resendFlag) {
+byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, int event, int16_t payloadInt, byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(node, int event, int payload version): start"));
 
   //convert int to char
-  char payloadChar[Numlen.numlen(payloadInt) + 1];
+  char payloadChar[int16_tLengthMax + 1];
   itoa(payloadInt, payloadChar, 10);
 
   return queue(EtherEventQueueNodes::nodeIP[targetNode], targetPort, event, payloadChar, resendFlag);
 }
 
 
-byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, int event, unsigned int payloadUint, byte resendFlag) {
+byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, int event, uint16_t payloadUint, byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(node, int event, unsigned int payload version): start"));
 
   //convert unsigned int to char
-  char payloadChar[Numlen.numlen(payloadUint) + 1];
+  char payloadChar[uint16_tLengthMax + 1];
   sprintf_P(payloadChar, PSTR("%u"), payloadUint);
 
   return queue(EtherEventQueueNodes::nodeIP[targetNode], targetPort, event, payloadChar, resendFlag);
 }
 
 
-byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, int event, long payloadLong, byte resendFlag) {
+byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, int event, int32_t payloadLong, byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(node, int event, long payload version): start"));
 
   //convert long to char
-  char payloadChar[Numlen.numlen(payloadLong) + 1];
+  char payloadChar[int32_tLengthMax + 1];
   ltoa(payloadLong, payloadChar, 10);
 
   return queue(EtherEventQueueNodes::nodeIP[targetNode], targetPort, event, payloadChar, resendFlag);
 }
 
 
-byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, int event, unsigned long payloadUlong, byte resendFlag) {
+byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, int event, uint32_t payloadUlong, byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(node, int event, unsigned long payload version): start"));
 
   //convert unsigned long to char
-  char payloadChar[Numlen.numlen(payloadUlong) + 1];
+  char payloadChar[uint32_tLengthMax + 1];
   ultoa(payloadUlong, payloadChar, 10);
 
   return queue(EtherEventQueueNodes::nodeIP[targetNode], targetPort, event, payloadChar, resendFlag);
@@ -446,11 +451,11 @@ byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, int e
 #endif
 
 
-byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPort, int event, const char payload[], byte resendFlag) {
+byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPort, int16_t event, const char payload[], byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(IP, int event, char payload version): start"));
 
   //convert event to char
-  char eventChar[Numlen.numlen(event) + 1];
+  char eventChar[int16_tLengthMax + 1];
   itoa(event, eventChar, 10);
 
   return queue(targetIP, targetPort, eventChar, payload, resendFlag);
@@ -469,44 +474,44 @@ byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPo
 }
 
 
-byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPort, int event, int payloadInt, byte resendFlag) {
+byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPort, int event, int16_t payloadInt, byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(IP, int event, int payload version): start"));
 
   //convert int to char
-  char payloadChar[Numlen.numlen(payloadInt) + 1];
+  char payloadChar[int16_tLengthMax + 1];
   itoa(payloadInt, payloadChar, 10);
 
   return queue(targetIP, targetPort, event, payloadChar, resendFlag);
 }
 
 
-byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPort, int event, unsigned int payloadUint, byte resendFlag) {
+byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPort, int event, uint16_t payloadUint, byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(IP, int event, unsigned int payload version): start"));
 
   //convert unsigned int to char
-  char payloadChar[Numlen.numlen(payloadUint) + 1];
+  char payloadChar[uint16_tLengthMax + 1];
   sprintf_P(payloadChar, PSTR("%u"), payloadUint);
 
   return queue(targetIP, targetPort, event, payloadChar, resendFlag);
 }
 
 
-byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPort, int event, long payloadLong, byte resendFlag) {
+byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPort, int event, int32_t payloadLong, byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(IP, int event, long payload version): start"));
 
   //convert long to char
-  char payloadChar[Numlen.numlen(payloadLong) + 1];
+  char payloadChar[int32_tLengthMax + 1];
   ltoa(payloadLong, payloadChar, 10);
 
   return queue(targetIP, targetPort, event, payloadChar, resendFlag);
 }
 
 
-byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPort, int event, unsigned long payloadUlong, byte resendFlag) {
+byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPort, int event, uint32_t payloadUlong, byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(IP, int event, unsigned long payload version): start"));
 
   //convert unsigned long to char
-  char payloadChar[Numlen.numlen(payloadUlong) + 1];
+  char payloadChar[uint32_tLengthMax + 1];
   ultoa(payloadUlong, payloadChar, 10);
 
   return queue(targetIP, targetPort, event, payloadChar, resendFlag);
@@ -518,7 +523,7 @@ byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPo
   Serial.println(F("EtherEventQueue.queue(node, int event, _FLASH_STRING payload version): start"));
 
   //convert the _FLASH_STRING to char
-  byte stringLength =  payloadFlashString.length();
+  byte stringLength = payloadFlashString.length();
   char payloadChar[stringLength + 1];
   payloadFlashString.copy(payloadChar, stringLength, 0);
   payloadChar[stringLength] = 0;
@@ -546,44 +551,44 @@ byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, const
 }
 
 
-byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, const __FlashStringHelper* event, byte eventLength, int payloadInt, byte resendFlag) {
+byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, const __FlashStringHelper* event, byte eventLength, int16_t payloadInt, byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(node, F() event, int payload version): start"));
 
   //convert int to char
-  char payloadChar[Numlen.numlen(payloadInt) + 1];
+  char payloadChar[int16_tLengthMax + 1];
   itoa(payloadInt, payloadChar, 10);
 
   return queue(EtherEventQueueNodes::nodeIP[targetNode], targetPort, event, eventLength, payloadChar, resendFlag);
 }
 
 
-byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, const __FlashStringHelper* event, byte eventLength, unsigned int payloadUint, byte resendFlag) {
+byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, const __FlashStringHelper* event, byte eventLength, uint16_t payloadUint, byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(node, F() event, unsigned int payload version): start"));
 
   //convert unsigned int to char
-  char payloadChar[Numlen.numlen(payloadUint) + 1];
+  char payloadChar[uint16_tLengthMax + 1];
   sprintf_P(payloadChar, PSTR("%u"), payloadUint);
 
   return queue(EtherEventQueueNodes::nodeIP[targetNode], targetPort, event, eventLength, payloadChar, resendFlag);
 }
 
 
-byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, const __FlashStringHelper* event, byte eventLength, long payloadLong, byte resendFlag) {
+byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, const __FlashStringHelper* event, byte eventLength, int32_t payloadLong, byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(node, F() event, long payload version): start"));
 
   //convert long to char
-  char payloadChar[Numlen.numlen(payloadLong) + 1];
+  char payloadChar[int32_tLengthMax + 1];
   ltoa(payloadLong, payloadChar, 10);
 
   return queue(EtherEventQueueNodes::nodeIP[targetNode], targetPort, event, eventLength, payloadChar, resendFlag);
 }
 
 
-byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, const __FlashStringHelper* event, byte eventLength, unsigned long payloadUlong, byte resendFlag) {
+byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, const __FlashStringHelper* event, byte eventLength, uint32_t payloadUlong, byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(node, F() event, unsigned long payload version): start"));
 
   //convert unsigned long to char
-  char payloadChar[Numlen.numlen(payloadUlong) + 1];
+  char payloadChar[uint32_tLengthMax + 1];
   ultoa(payloadUlong, payloadChar, 10);
 
   return queue(EtherEventQueueNodes::nodeIP[targetNode], targetPort, event, eventLength, payloadChar, resendFlag);
@@ -629,44 +634,44 @@ byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPo
 }
 
 
-byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPort, const __FlashStringHelper* event, byte eventLength, int payloadInt, byte resendFlag) {
+byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPort, const __FlashStringHelper* event, byte eventLength, int16_t payloadInt, byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(IP, F() event, int payload version): start"));
 
   //convert int to char
-  char payloadChar[Numlen.numlen(payloadInt) + 1];
+  char payloadChar[int16_tLengthMax + 1];
   itoa(payloadInt, payloadChar, 10);
 
   return queue(targetIP, targetPort, event, eventLength, payloadChar, resendFlag);
 }
 
 
-byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPort, const __FlashStringHelper* event, byte eventLength, unsigned int payloadUint, byte resendFlag) {
+byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPort, const __FlashStringHelper* event, byte eventLength, uint16_t payloadUint, byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(IP, F() event, unsigned int payload version): start"));
 
   //convert unsigned int to char
-  char payloadChar[Numlen.numlen(payloadUint) + 1];
+  char payloadChar[uint16_tLengthMax + 1];
   sprintf_P(payloadChar, PSTR("%u"), payloadUint);
 
   return queue(targetIP, targetPort, event, eventLength, payloadChar, resendFlag);
 }
 
 
-byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPort, const __FlashStringHelper* event, byte eventLength, long payloadLong, byte resendFlag) {
+byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPort, const __FlashStringHelper* event, byte eventLength, int32_t payloadLong, byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(IP, F() event, long payload version): start"));
 
   //convert long to char
-  char payloadChar[Numlen.numlen(payloadLong) + 1];
+  char payloadChar[int32_tLengthMax + 1];
   ltoa(payloadLong, payloadChar, 10);
 
   return queue(targetIP, targetPort, event, eventLength, payloadChar, resendFlag);
 }
 
 
-byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPort, const __FlashStringHelper* event, byte eventLength, unsigned long payloadUlong, byte resendFlag) {
+byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPort, const __FlashStringHelper* event, byte eventLength, uint32_t payloadUlong, byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(IP, F() event, unsigned long payload version): start"));
 
   //convert unsigned long to char
-  char payloadChar[Numlen.numlen(payloadUlong) + 1];
+  char payloadChar[uint32_tLengthMax + 1];
   ultoa(payloadUlong, payloadChar, 10);
 
   return queue(targetIP, targetPort, event, eventLength, payloadChar, resendFlag);

@@ -23,7 +23,7 @@ void setup() {
   EtherEventQueue.begin("password", 4, port, 10, 8, 25, 8, 25);  //set the EtherEvent password, node ID,  EtherEvent TCP port, maximum queue size, maximum send event length, maximum send payload length, maximum receive event length, maximum receive payload length
   EtherEvent.setTimeout(20); //set timeout duration
 #ifdef ethernet_h
-  W5100.setRetransmissionTime(0x07D0);  //(0xFA)used to set the timeout for the w5100 module this will not work if you are using ENC28J60 instead of W5100
+  W5100.setRetransmissionTime(400);  //(0.1ms)used to set the timeout for the w5100 module.
   W5100.setRetransmissionCount(1);  //Retransmission Count 1 is the minimum value
 #endif
 }
