@@ -6,9 +6,6 @@
 #include "Flash.h"  //https://github.com/rkhamilton/Flash - uncomment this line if you have the Flash library installed
 #include "EtherEventQueueNodes.h"
 
-//user configuration parameters
-const byte EtherEventQueue_nodeCount = 11;  //total number of nodes
-
 class EtherEventQueueClass {
   public:
     void begin(char password[], byte nodeDeviceInput, unsigned int portInput, byte queueSizeMaxInput, byte sendEventLengthMaxInput, byte sendPayloadLengthMaxInput, byte receiveEventLengthMaxInput, byte receivePayloadLengthMaxInput);
@@ -100,7 +97,7 @@ class EtherEventQueueClass {
     void remove(byte queueStep);
     void IPcopy(byte IPdestination[], const IPAddress IPsource);
 
-    byte EtherEventQueue_nodeDevice;
+    byte nodeDevice;
     unsigned int port;
     byte receivedEventLengthMax;
     char* receivedEvent;  //buffer to hold the received event
@@ -122,8 +119,8 @@ class EtherEventQueueClass {
     byte queueStep;  //which message in the queue is it on
     unsigned long queueSendTimestamp;  //used for delayed resends of messages in the queue that failed the first time
 
-    byte nodeState[EtherEventQueue_nodeCount];  //1=not timed out 0=timed out - state at the last check
-    unsigned long nodeTimestamp[EtherEventQueue_nodeCount];  //last received event time
+    byte nodeState[sizeof(EtherEventQueueNodes::nodeIP)/sizeof(EtherEventQueueNodes::nodeIP[0])];  //1=not timed out 0=timed out - state at the last check
+    unsigned long nodeTimestamp[sizeof(EtherEventQueueNodes::nodeIP)/sizeof(EtherEventQueueNodes::nodeIP[0])];  //last received event time
     byte queueOverflowFlag;
     byte localEventQueueCount;
     IPAddress receivedIP;

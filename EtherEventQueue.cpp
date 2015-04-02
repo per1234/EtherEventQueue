@@ -27,14 +27,14 @@ const unsigned int resendDelay = 45000;  //(ms)delay between resends of messages
 //END user configuration parameters
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-const byte eventIDlength = 2;  //number of characters of the message ID that is appended to the start of the raw payload, the message ID must be exactly this length
+byte nodeCount = sizeof(EtherEventQueueNodes::nodeIP) / sizeof(EtherEventQueueNodes::nodeIP[0]);
+const byte eventIDlength = 2;  //number of characters of the message ID that is appended to the start of the raw payload, the event ID must be exactly this length
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //begin
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EtherEventQueueClass::begin(char password[], byte nodeDeviceInput, unsigned int portInput, byte queueSizeMaxInput, byte sendEventLengthMaxInput, byte sendPayloadLengthMaxInput, byte receivedEventLengthMaxInput, byte receivedPayloadLengthMaxInput) {
-  EtherEventQueue_nodeDevice = nodeDeviceInput;
-  nodeState[EtherEventQueue_nodeDevice] = 1;  //start the device as timed in
+  nodeDevice = nodeDeviceInput;
+  nodeState[nodeDevice] = 1;  //start the device as timed in
   port = portInput;
 
   //buffer sizing - these are dynamically allocated so that the sized can be set via the API
@@ -75,7 +75,7 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
   if (receivedEventLength == 0) {  //there is no event buffered
     if (localEventQueueCount > 0) {
       for (int queueStepCount = queueSize - 1; queueStepCount >= 0; queueStepCount--) {  //internal event system: step through the queue from the newest to oldest
-        if (getNode(IPqueue[queueStepCount]) == EtherEventQueue_nodeDevice) {  //internal event
+        if (getNode(IPqueue[queueStepCount]) == nodeDevice) {  //internal event
           strcpy(receivedEvent, eventQueue[queueStepCount]);
           Serial.print(F("EtherEventQueue.availableEvent: internal event="));
           Serial.println(receivedEvent);
@@ -101,11 +101,11 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
       Serial.print(F("EtherEventQueue.availableEvent: remoteIP="));
       Serial.println(receivedIP);
 
-      nodeTimestamp[EtherEventQueue_nodeDevice] = millis();  //set the device timestamp(using the EtherEventQueue_nodeDevice because that part of the array is never used otherwise)
+      nodeTimestamp[nodeDevice] = millis();  //set the device timestamp(using the nodeDevice because that part of the array is never used otherwise)
       //update timed out status of the event sender
       byte senderNode = getNode(receivedIP);  //get the node of the senderIP
       if (senderNode >= 0) {  //receivedIP is a node(-1 indicates no node match)
-        nodeTimestamp[senderNode] = nodeTimestamp[EtherEventQueue_nodeDevice];  //set the individual timestamp, any communication is considered to be a keepalive - the nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() twice for efficiency
+        nodeTimestamp[senderNode] = nodeTimestamp[nodeDevice];  //set the individual timestamp, any communication is considered to be a keepalive - the nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() twice for efficiency
       }
       else if (receiveNodesOnly == 1) {  //the event was not received from a node and it is configured to receive events from node IPs only
         Serial.println(F("EtherEventQueue.availableEvent: unauthorized IP"));
@@ -699,11 +699,11 @@ byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPo
     Serial.println(F("EtherEventQueue.queue: not a node"));
     return 0;
   }
-  if (targetNode == EtherEventQueue_nodeDevice) {  //send events to self regardless of timeout state
+  if (targetNode == nodeDevice) {  //send events to self regardless of timeout state
     Serial.println(F("EtherEventQueue.queue: self send"));
     localEventQueueCount++;
   }
-  else if (targetNode != EtherEventQueue_nodeDevice && targetNode >= 0 && millis() - nodeTimestamp[targetNode] > nodeTimeout) {  //not self, is a node and is timed out
+  else if (targetNode != nodeDevice && targetNode >= 0 && millis() - nodeTimestamp[targetNode] > nodeTimeout) {  //not self, is a node and is timed out
     Serial.println(F("EtherEventQueue.queue: timed out node"));
     return 0;  //don't queue events to timed out nodes
   }
@@ -718,7 +718,7 @@ byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPo
     Serial.println(F("EtherEventQueue.queue: Queue Overflowed"));
     success = 2;  //indicate overflow in the return
     queueOverflowFlag = 1;
-    if (getNode(IPqueue[queueSize - 1]) == EtherEventQueue_nodeDevice) {  //the overflowed queue item is a local event
+    if (getNode(IPqueue[queueSize - 1]) == nodeDevice) {  //the overflowed queue item is a local event
       localEventQueueCount--;
     }
     for (byte count = 0; count < queueSize - 1; count++) {  //shift all messages up the queue and add new item to queue. This is kind of similar to the ack received part where I removed the message from the queue so maybe it could be a function
@@ -793,7 +793,7 @@ void EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
         int targetNode = getNode(IPqueue[queueStepSend]);  //get the node of the target IP
         Serial.print(F("EtherEventQueue.queueHandler: targetNode="));
         Serial.println(targetNode);
-        if (targetNode == EtherEventQueue_nodeDevice) {  //ignore internal events, they are sent in availableEvent()
+        if (targetNode == nodeDevice) {  //ignore internal events, they are sent in availableEvent()
           continue;  //move on to the next queue step
         }
         if (targetNode < 0) {  //-1 indicates no node match
@@ -858,7 +858,7 @@ void EtherEventQueueClass::flushQueue() {
 //checkTimeout - checks all the nodes until it finds a _NEWLY_ timed out node and returns it and then updates the nodeState value for that node. If no nodes are newly timed out then this function returns -1.  Note that this works differently than checkState()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int8_t EtherEventQueueClass::checkTimeout() {
-  for (byte node = 0; node < sizeof(EtherEventQueueNodes::nodeIP) / sizeof(EtherEventQueueNodes::nodeIP[0]); node++) {
+  for (byte node = 0; node < nodeCount; node++) {
     if (nodeState[node] == 1 && millis() - nodeTimestamp[node] > nodeTimeout) {  //previous state not timed out, and is currently timed out
       Serial.print(F("EtherEventQueue.checkTimeout: timed out node="));
       Serial.println(node);
@@ -874,7 +874,7 @@ int8_t EtherEventQueueClass::checkTimeout() {
 //checkTimein - checks all the authorized IPs until it finds a _NEWLY_ timed in node and returns it and then updates the nodeState value for that node. If no nodes are newly timed in then this function returns -1.  Note that this works differently than checkState()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int8_t EtherEventQueueClass::checkTimein() {
-  for (byte node = 0; node < sizeof(EtherEventQueueNodes::nodeIP) / sizeof(EtherEventQueueNodes::nodeIP[0]); node++) {
+  for (byte node = 0; node < nodeCount; node++) {
     if (nodeState[node] == 0 && millis() - nodeTimestamp[node] < nodeTimeout) {  //node is newly timed out(since the last time the function was run)
       Serial.print(F("EtherEventQueue.checkTimein: timed in node="));
       Serial.println(node);
