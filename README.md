@@ -163,7 +163,7 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
   - Type: EthernetClient
 - Returns: none
    
- `EtherEventQueue.()` - remove all events from the queue
+ `EtherEventQueue.flushQueue()` - remove all events from the queue
  - Returns: none
 
 `EtherEventQueue.checkTimeout()` - check for newly timed out nodes

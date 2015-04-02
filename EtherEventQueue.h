@@ -69,9 +69,9 @@ class EtherEventQueueClass {
     boolean checkState(byte node);
 
 
-    //-----------------------------------------------------------------------------------------------------------
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //getNode - template that can accept IPAddress or byte array type parameters - this function must be defined in the .h instead of the .cpp because it is a template
-    //-----------------------------------------------------------------------------------------------------------
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
     template <typename IPtype>
     int8_t getNode(const IPtype IPvalue) {
       //Serial.println(F("EtherEventQueue.getNode: start"));

@@ -8,9 +8,9 @@
 #include "Numlen.h"  //For finding the length of numbers. Included with the EtherEventQueue library or the latest version available here: http://github.com/per1234/Numlen
 #include "Flash.h"  //https://github.com/rkhamilton/Flash - uncomment this line if you have the Flash library installed
 
-//-----------------------------------------------------------------------------------------------------------
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //START user configuration parameters
-//-----------------------------------------------------------------------------------------------------------
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define DEBUG false  //(false == serial debug output off,  true == serial debug output on)The serial debug output will increase memory usage and communication latency so only enable when in use.
 #define Serial if(DEBUG)Serial
 
@@ -23,15 +23,15 @@ const unsigned long nodeTimeoutSelf = 120000;  //(ms)the device is timed out if 
 const char eventKeepalive[] = "100";  //the library handles these special events differently
 const char eventAck[] = "101";
 const unsigned int resendDelay = 45000;  //(ms)delay between resends of messages
-//-----------------------------------------------------------------------------------------------------------
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //END user configuration parameters
-//-----------------------------------------------------------------------------------------------------------
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 const byte eventIDlength = 2;  //number of characters of the message ID that is appended to the start of the raw payload, the message ID must be exactly this length
-//-----------------------------------------------------------------------------------------------------------
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //begin
-//-----------------------------------------------------------------------------------------------------------
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EtherEventQueueClass::begin(char password[], byte nodeDeviceInput, unsigned int portInput, byte queueSizeMaxInput, byte sendEventLengthMaxInput, byte sendPayloadLengthMaxInput, byte receivedEventLengthMaxInput, byte receivedPayloadLengthMaxInput) {
   EtherEventQueue_nodeDevice = nodeDeviceInput;
   nodeState[EtherEventQueue_nodeDevice] = 1;  //start the device as timed in
@@ -49,28 +49,28 @@ void EtherEventQueueClass::begin(char password[], byte nodeDeviceInput, unsigned
   sendEventLengthMax = sendEventLengthMaxInput;
   eventQueue = (char**)malloc(queueSizeMax * sizeof(char*));
   for (byte counter = 0; counter < queueSizeMax; counter++) {
-    eventQueue[counter] = (char*)malloc(sendEventLengthMax + 1);
+    eventQueue[counter] = (char*)malloc((sendEventLengthMax + 1) * sizeof(char));
   }
-  eventIDqueue = (byte*)malloc(queueSizeMax);
+  eventIDqueue = (byte*)malloc(queueSizeMax * sizeof(byte));
   sendPayloadLengthMax = sendPayloadLengthMaxInput;
   payloadQueue = (char**)malloc(queueSizeMax * sizeof(char*));
   for (byte counter = 0; counter < queueSizeMax; counter++) {
-    payloadQueue[counter] = (char*)malloc(sendPayloadLengthMax + 1);
+    payloadQueue[counter] = (char*)malloc((sendPayloadLengthMax + 1) * sizeof(char));
   }
-  resendFlagQueue = (byte*)malloc(queueSizeMax);
+  resendFlagQueue = (byte*)malloc(queueSizeMax * sizeof(byte));
 
   //size received event buffers
   receivedEventLengthMax = receivedEventLengthMaxInput;
-  receivedEvent = (char*)malloc(receivedEventLengthMax + 1);
+  receivedEvent = (char*)malloc((receivedEventLengthMax + 1) * sizeof(char));
   receivedPayloadLengthMax = receivedPayloadLengthMaxInput;
-  receivedPayload = (char*)malloc(receivedPayloadLengthMax + 1);
+  receivedPayload = (char*)malloc((receivedPayloadLengthMax + 1) * sizeof(char));
   EtherEvent.begin(password, receivedEventLengthMax, eventIDlength + receivedPayloadLengthMax); //initialize EtherEvent
 }
 
 
-//-----------------------------------------------------------------------------------------------------------
-//availableEvent
-//-----------------------------------------------------------------------------------------------------------
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//availableEvent - check for new incoming events, process and buffer them and return the length of the event string
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
   if (receivedEventLength == 0) {  //there is no event buffered
     if (localEventQueueCount > 0) {
@@ -171,10 +171,10 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
 }
 
 
-//-----------------------------------------------------------------------------------------------------------
-//availablePayload
-//-----------------------------------------------------------------------------------------------------------
-byte EtherEventQueueClass::availablePayload() {  //returns the number of chars in the payload including the null terminator if there is one
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//availablePayload - returns the number of chars in the payload including the null terminator if there is one
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+byte EtherEventQueueClass::availablePayload() {
   if (byte length = strlen(receivedPayload)) {  //strlen(receivedPayload)>0
     return length + 1;  //length of the payload + null terminator
   }
@@ -182,9 +182,9 @@ byte EtherEventQueueClass::availablePayload() {  //returns the number of chars i
 }
 
 
-//-----------------------------------------------------------------------------------------------------------
-//readEvent
-//-----------------------------------------------------------------------------------------------------------
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//readEvent - places the event into the passed buffer
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EtherEventQueueClass::readEvent(char eventBuffer[]) {
   Serial.println(F("EtherEventQueue.readEvent: start"));
   strcpy(eventBuffer, receivedEvent);
@@ -192,35 +192,35 @@ void EtherEventQueueClass::readEvent(char eventBuffer[]) {
 }
 
 
-//-----------------------------------------------------------------------------------------------------------
-//readPayload
-//-----------------------------------------------------------------------------------------------------------
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//readPayload - places the payload into the passed buffer
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EtherEventQueueClass::readPayload(char payloadBuffer[]) {
   Serial.println(F("EtherEventQueue.readPayload: start"));
   strcpy(payloadBuffer, receivedPayload);
 }
 
 
-//-----------------------------------------------------------------------------------------------------------
-//senderIP
-//-----------------------------------------------------------------------------------------------------------
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//senderIP - returns the IP address of the sender of the last event
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 IPAddress EtherEventQueueClass::senderIP() {
   return receivedIP;
 }
 
 
-//-----------------------------------------------------------------------------------------------------------
-//flushReceiver
-//-----------------------------------------------------------------------------------------------------------
-void EtherEventQueueClass::flushReceiver() {  //dump the last message received so another one can be received
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//flushReceiver - dump the last message received so another one can be received
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EtherEventQueueClass::flushReceiver() {
   receivedEvent[0] = 0;  //reset the event buffer
   receivedPayload[0] = 0;  //reset the payload buffer
   receivedEventLength = 0;  //enable availableEvent() to receive new events
 }
 
-//-----------------------------------------------------------------------------------------------------------
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //queue - add the relayed outgoing message to the send queue. Returns: 0==fail, 1==success, 2==success w/ queue overflow
-//-----------------------------------------------------------------------------------------------------------
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, const char event[], const char payload[], byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(node, char event, char payload version): start"));
   return queue(EtherEventQueueNodes::nodeIP[targetNode], targetPort, event, payload, resendFlag);
@@ -688,6 +688,9 @@ byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPo
 #endif
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//queue
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPort, const char event[], const char payload[], byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(IP, char event, char payload version): start"));
   byte success = 0;
@@ -706,7 +709,6 @@ byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPo
   }
 
   success = 1;  //indicate event successfully queued in return
-  byte eventID = eventIDfind();  //get an event ID
   queueSize++;
 
   Serial.print(F("EtherEventQueue.queue: queueSize="));
@@ -734,9 +736,9 @@ byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPo
   //add the new message to the queue
   IPcopy(IPqueue[queueSize - 1], targetIP);
   portQueue[queueSize - 1] = targetPort;
-  strcpy(eventQueue[queueSize - 1], event);  //set the eventID for the message in the queue
-  eventIDqueue[queueSize - 1] = eventID;
-  strcpy(payloadQueue[queueSize - 1], payload);  //put the new payload in the queue
+  strcpy(eventQueue[queueSize - 1], event);
+  eventIDqueue[queueSize - 1] = eventIDfind();
+  strcpy(payloadQueue[queueSize - 1], payload);
   resendFlagQueue[queueSize - 1] = resendFlag;
 
   queueNewCount++;
@@ -759,10 +761,10 @@ byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPo
 }
 
 
-//-----------------------------------------------------------------------------------------------------------
-//queueHandler
-//-----------------------------------------------------------------------------------------------------------
-void EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {  //ethernetQueueHandler - sends out the messages in the queue-------------
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//queueHandler - sends out the messages in the queue
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
   if (queueSize > 0) {  //there are messages in the queue
     if (queueNewCount > 0 || millis() - queueSendTimestamp > resendDelay) {  //it is time
       if (queueNewCount > queueSize) {  //sanity check - if the acks get messed up this can happen
@@ -841,9 +843,9 @@ void EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {  //eth
 }
 
 
-//-----------------------------------------------------------------------------------------------------------
-//flushQueue
-//-----------------------------------------------------------------------------------------------------------
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//flushQueue - removes all events from the queue
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EtherEventQueueClass::flushQueue() {
   Serial.println(F("EtherEventQueue.flushQueue: start"));
   queueSize = 0;
@@ -852,10 +854,10 @@ void EtherEventQueueClass::flushQueue() {
 }
 
 
-//-----------------------------------------------------------------------------------------------------------
-//checkTimeout
-//-----------------------------------------------------------------------------------------------------------
-int8_t EtherEventQueueClass::checkTimeout() {  //checks all the nodes until it finds a _NEWLY_ timed out node and returns it and then updates the nodeState value for that node. If no nodes are newly timed out then this function returns -1.  Note that this works differently than checkState()
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//checkTimeout - checks all the nodes until it finds a _NEWLY_ timed out node and returns it and then updates the nodeState value for that node. If no nodes are newly timed out then this function returns -1.  Note that this works differently than checkState()
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int8_t EtherEventQueueClass::checkTimeout() {
   for (byte node = 0; node < sizeof(EtherEventQueueNodes::nodeIP) / sizeof(EtherEventQueueNodes::nodeIP[0]); node++) {
     if (nodeState[node] == 1 && millis() - nodeTimestamp[node] > nodeTimeout) {  //previous state not timed out, and is currently timed out
       Serial.print(F("EtherEventQueue.checkTimeout: timed out node="));
@@ -868,10 +870,10 @@ int8_t EtherEventQueueClass::checkTimeout() {  //checks all the nodes until it f
 }
 
 
-//-----------------------------------------------------------------------------------------------------------
-//checkTimein
-//-----------------------------------------------------------------------------------------------------------
-int8_t EtherEventQueueClass::checkTimein() {  //checks all the authorized IPs until it finds a _NEWLY_ timed in node and returns it and then updates the nodeState value for that node. If no nodes are newly timed in then this function returns -1.  Note that this works differently than checkState()
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//checkTimein - checks all the authorized IPs until it finds a _NEWLY_ timed in node and returns it and then updates the nodeState value for that node. If no nodes are newly timed in then this function returns -1.  Note that this works differently than checkState()
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int8_t EtherEventQueueClass::checkTimein() {
   for (byte node = 0; node < sizeof(EtherEventQueueNodes::nodeIP) / sizeof(EtherEventQueueNodes::nodeIP[0]); node++) {
     if (nodeState[node] == 0 && millis() - nodeTimestamp[node] < nodeTimeout) {  //node is newly timed out(since the last time the function was run)
       Serial.print(F("EtherEventQueue.checkTimein: timed in node="));
@@ -884,10 +886,10 @@ int8_t EtherEventQueueClass::checkTimein() {  //checks all the authorized IPs un
 }
 
 
-//-----------------------------------------------------------------------------------------------------------
-//checkState
-//-----------------------------------------------------------------------------------------------------------
-boolean EtherEventQueueClass::checkState(byte node) {  //checks if the given node is timed out. Note that this doesn't update the nodeState like checkTimeout()/checkTimein().
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//checkState - checks if the given node is timed out. Note that this doesn't update the nodeState like checkTimeout()/checkTimein().
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+boolean EtherEventQueueClass::checkState(byte node) {
   Serial.print(F("EtherEventQueue.checkTimeoutNode: nodeState for node "));
   Serial.print(node);
   Serial.print(F("="));
@@ -900,31 +902,32 @@ boolean EtherEventQueueClass::checkState(byte node) {  //checks if the given nod
 }
 
 
-//-----------------------------------------------------------------------------------------------------------
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //checkQueueOverflow
-//-----------------------------------------------------------------------------------------------------------
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 boolean EtherEventQueueClass::checkQueueOverflow() {
-  return queueOverflowFlag;
-  queueOverflowFlag = 0;
+  byte queueOverflowFlagValue = queueOverflowFlag; //save the value before resetting it
+  queueOverflowFlag = false;  //reset the flag
+  return queueOverflowFlagValue;
 }
 
 
-//-----------------------------------------------------------------------------------------------------------
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //private functions
-//-----------------------------------------------------------------------------------------------------------
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-//-----------------------------------------------------------------------------------------------------------
-//eventIDfind
-//-----------------------------------------------------------------------------------------------------------
-byte EtherEventQueueClass::eventIDfind() {  //find a free eventID - this is similar to the eventID check in the ack received code so maybe make a function
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//eventIDfind - find a free eventID
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+byte EtherEventQueueClass::eventIDfind() {
   Serial.println(F("EtherEventQueue.eventIDfind: start"));
   if (queueSize == 0) {  //the queue is empty
     Serial.println(F("EtherEventQueue.eventIDfind: eventID=10"));
     return 10;  //default value if there are no other messages
   }
   if (queueSize > 0) {
-    for (byte eventID = 10; eventID < queueSizeMax + 10; eventID++) {  //step through all possible eventIDs. They start at 10 so they will always be 2 digit
+    for (byte eventID = 10; eventID <= 99; eventID++) {  //step through all possible eventIDs. They start at 10 so they will always be 2 digit
       byte eventIDduplicate = 0;
       for (byte count = 0; count < queueSize; count++) {  //step through the currently occupied section of the eventIDqueue[]
         if (eventID == eventIDqueue[count]) {  //the eventID is already being used
@@ -942,10 +945,10 @@ byte EtherEventQueueClass::eventIDfind() {  //find a free eventID - this is simi
 }
 
 
-//-----------------------------------------------------------------------------------------------------------
-//remove
-//-----------------------------------------------------------------------------------------------------------
-void EtherEventQueueClass::remove(byte queueStep) {  //remove the given item from the queue
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//remove - remove the given item from the queue
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EtherEventQueueClass::remove(byte queueStep) {
   if (queueSize > 0) {
     queueSize--;
   }
@@ -964,9 +967,9 @@ void EtherEventQueueClass::remove(byte queueStep) {  //remove the given item fro
 }
 
 
-//-----------------------------------------------------------------------------------------------------------
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //IPcopy - converts and copies IPAddress to 4 byte array - IPdestination will contain the converted IPsource after this function is called
-//-----------------------------------------------------------------------------------------------------------
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EtherEventQueueClass::IPcopy(byte IPdestination[], const IPAddress IPsource) {
   for (byte counter = 0; counter < 4; counter++) {
     IPdestination[counter] = IPsource[counter];
