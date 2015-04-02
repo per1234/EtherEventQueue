@@ -30,10 +30,10 @@ const byte nodeCount = sizeof(EtherEventQueueNodes::nodeIP) / sizeof(EtherEventQ
 const byte eventIDlength = 2;  //number of characters of the message ID that is appended to the start of the raw payload, the event ID must be exactly this length
 
 //type lengths - used for conversion of number to strings
-const byte uint16_tLengthMax=6;  //sign + 5 digits
-const byte int16_tLengthMax=5;  //5 digits
-const byte uint32_tLengthMax=11;  //sign + 10 digits
-const byte int32_tLengthMax=10;  //10 digits
+const byte uint16_tLengthMax = 6; //sign + 5 digits
+const byte int16_tLengthMax = 5; //5 digits
+const byte uint32_tLengthMax = 11; //sign + 10 digits
+const byte int32_tLengthMax = 10; //10 digits
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //begin
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -91,8 +91,7 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
           Serial.print(F("EtherEventQueue.availableEvent: receivedIP="));
           Serial.println(receivedIP);
           remove(queueStepCount);  //remove the event from the queue
-          queueNewCount--;
-          localEventQueueCount--;
+          queueNewCount--;  //queueHandler doesn't handle internal events so they will always be new events
           return strlen(receivedEvent);
         }
       }
@@ -248,7 +247,7 @@ byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, const
   Serial.println(F("EtherEventQueue.queue(node, char event, int payload version): start"));
 
   //convert int to char
-  char payloadChar[int16_tLengthMax+1];  //max length+terminator
+  char payloadChar[int16_tLengthMax + 1]; //max length+terminator
   itoa(payloadInt, payloadChar, 10);
 
   return queue(EtherEventQueueNodes::nodeIP[targetNode], targetPort, event, payloadChar, resendFlag);
@@ -259,7 +258,7 @@ byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, const
   Serial.println(F("EtherEventQueue.queue(node, char event, unsigned int payload version): start"));
 
   //convert unsigned int to char
-  char payloadChar[uint16_tLengthMax+1];  //max length+terminator
+  char payloadChar[uint16_tLengthMax + 1]; //max length+terminator
   sprintf_P(payloadChar, PSTR("%u"), payloadUint);
 
   return queue(EtherEventQueueNodes::nodeIP[targetNode], targetPort, event, payloadChar, resendFlag);
@@ -270,7 +269,7 @@ byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, const
   Serial.println(F("EtherEventQueue.queue(node, char event, long payload version): start"));
 
   //convert long to char
-  char payloadChar[int32_tLengthMax+1];  //max length+terminator
+  char payloadChar[int32_tLengthMax + 1]; //max length+terminator
   ltoa(payloadLong, payloadChar, 10);
 
   return queue(EtherEventQueueNodes::nodeIP[targetNode], targetPort, event, payloadChar, resendFlag);
@@ -714,31 +713,18 @@ byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPo
   }
 
   success = 1;  //indicate event successfully queued in return
-  queueSize++;
 
   Serial.print(F("EtherEventQueue.queue: queueSize="));
   Serial.println(queueSize);
-  if (queueSize > queueSizeMax) {  //queue overflowed
-    queueSize = queueSizeMax;  //had to bump the first item in the queue because there's no room for it
+  if (queueSize = queueSizeMax) {  //queue overflowed
     Serial.println(F("EtherEventQueue.queue: Queue Overflowed"));
+    remove(0);  //remove the oldest queued item
     success = 2;  //indicate overflow in the return
     queueOverflowFlag = 1;
-    if (getNode(IPqueue[queueSize - 1]) == nodeDevice) {  //the overflowed queue item is a local event
-      localEventQueueCount--;
-    }
-    for (byte count = 0; count < queueSize - 1; count++) {  //shift all messages up the queue and add new item to queue. This is kind of similar to the ack received part where I removed the message from the queue so maybe it could be a function
-      IPqueue[count] = IPqueue[count + 1];
-      portQueue[count] = portQueue[(count + 1)];
-      strcpy(eventQueue[count], eventQueue[count + 1]);
-      eventIDqueue[count] = eventIDqueue[count + 1];
-      strcpy(payloadQueue[count], payloadQueue[count + 1]);
-      resendFlagQueue[count] = resendFlagQueue[count + 1];
-    }
-    Serial.print(F("EtherEventQueue.queue: post overflow queueSize="));
-    Serial.println(queueSize);
   }
 
   //add the new message to the queue
+  queueSize++;
   IPcopy(IPqueue[queueSize - 1], targetIP);
   portQueue[queueSize - 1] = targetPort;
   strcpy(eventQueue[queueSize - 1], event);
@@ -954,12 +940,13 @@ byte EtherEventQueueClass::eventIDfind() {
 //remove - remove the given item from the queue
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EtherEventQueueClass::remove(byte queueStep) {
-  if (queueSize > 0) {
+  if (queueSize > 1) {
     queueSize--;
-  }
-  Serial.print(F("EtherEventQueue.remove: new queue size="));
-  Serial.println(queueSize);
-  if (queueSize > 0) {  //if the only message in the queue is being removed then it doesn't need to adjust the queue
+    Serial.print(F("EtherEventQueue.remove: new queue size="));
+    Serial.println(queueSize);
+    if (getNode(IPqueue[queueStep]) == nodeDevice) {  //the removed queue item is a local event
+      localEventQueueCount--;
+    }
     for (byte count = queueStep; count < queueSize; count++) {  //move all the messages above the one to remove up in the queue
       IPqueue[count] = IPqueue[count + 1];  //set the target for the message in the queue
       portQueue[count] = portQueue[count + 1];
@@ -968,6 +955,9 @@ void EtherEventQueueClass::remove(byte queueStep) {
       strcpy(payloadQueue[count], payloadQueue[count + 1]);
       resendFlagQueue[count] = resendFlagQueue[count + 1];
     }
+  }
+  else {
+    queueSize = 0; //if there is only one event in the queue then nothing needs to be shifted
   }
 }
 
