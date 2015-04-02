@@ -1,7 +1,7 @@
 #ifndef EtherEventQueueNodes_h
 #define EtherEventQueueNodes_h
 
-namespace EtherEventQueueNodes {
+namespace etherEventQueue {
 const IPAddress nodeIP[] = {  //IP addresses on the network, this can be used to filter IPs or to monitor the IPs for timeout/timein and optimize the queue based on this information
   IPAddress(192, 168, 69, 100),
   IPAddress(192, 168, 69, 101),

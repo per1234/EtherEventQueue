@@ -6,6 +6,12 @@
 #include "Flash.h"  //https://github.com/rkhamilton/Flash - uncomment this line if you have the Flash library installed
 #include "EtherEventQueueNodes.h"
 
+namespace etherEventQueue {
+const byte queueTypeOnce = 0;
+const byte queueTypeRepeat = 1;
+const byte queueTypeConfirm = 2;
+}
+
 class EtherEventQueueClass {
   public:
     void begin(char password[], byte nodeDeviceInput, unsigned int portInput, byte queueSizeMaxInput, byte sendEventLengthMaxInput, byte sendPayloadLengthMaxInput, byte receiveEventLengthMaxInput, byte receivePayloadLengthMaxInput);
@@ -72,10 +78,10 @@ class EtherEventQueueClass {
     template <typename IPtype>
     int8_t getNode(const IPtype IPvalue) {
       //Serial.println(F("EtherEventQueue.getNode: start"));
-      for (byte node = 0; node < sizeof(EtherEventQueueNodes::nodeIP) / sizeof(EtherEventQueueNodes::nodeIP[0]); node++) {  //step through all the nodes
+      for (byte node = 0; node < sizeof(etherEventQueue::nodeIP) / sizeof(etherEventQueue::nodeIP[0]); node++) {  //step through all the nodes
         byte octet;
         for (octet = 0; octet < 4; octet++) {
-          if (EtherEventQueueNodes::nodeIP[node][octet] != IPvalue[octet]) {  //mismatch
+          if (etherEventQueue::nodeIP[node][octet] != IPvalue[octet]) {  //mismatch
             octet = 0;
             break;  //check the next node for a match
           }
@@ -119,8 +125,8 @@ class EtherEventQueueClass {
     byte queueStep;  //which message in the queue is it on
     unsigned long queueSendTimestamp;  //used for delayed resends of messages in the queue that failed the first time
 
-    byte nodeState[sizeof(EtherEventQueueNodes::nodeIP)/sizeof(EtherEventQueueNodes::nodeIP[0])];  //1=not timed out 0=timed out - state at the last check
-    unsigned long nodeTimestamp[sizeof(EtherEventQueueNodes::nodeIP)/sizeof(EtherEventQueueNodes::nodeIP[0])];  //last received event time
+    byte nodeState[sizeof(etherEventQueue::nodeIP) / sizeof(etherEventQueue::nodeIP[0])]; //1=not timed out 0=timed out - state at the last check
+    unsigned long nodeTimestamp[sizeof(etherEventQueue::nodeIP) / sizeof(etherEventQueue::nodeIP[0])]; //last received event time
     byte queueOverflowFlag;
     byte localEventQueueCount;
     IPAddress receivedIP;
