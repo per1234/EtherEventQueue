@@ -62,7 +62,7 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
   - Type: byte
 - Parameter(optional): receivePayloadEventMax - Maximum payload length to receive. Longer entries will be truncated to this length. If this parameter is not passed then the default will be used.
   - Type: byte
-- Returns: none
+- Returns: boolean - true = success, false = memory allocation failure
 
 `EtherEventQueue.availableEvent(ethernetServer)` - Returns the number of chars of event including null terminator available to read. availableEvent() will not receive a new event until the last event has been read(via readEvent()) or flushed(via flushReceiver()).
 - Parameter: ethernetServer - the EthernetServer object created in the Ethernet setup of the user's sketch

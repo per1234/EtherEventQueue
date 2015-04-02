@@ -3,7 +3,7 @@
 #define EtherEventQueue_h
 #include <SPI.h>  //for the ethernet library
 #include "Ethernet.h"
-#include "Flash.h"  //https://github.com/rkhamilton/Flash - uncomment this line if you have the Flash library installed
+//#include "Flash.h"  //https://github.com/rkhamilton/Flash - uncomment this line if you have the Flash library installed
 #include "EtherEventQueueNodes.h"
 
 namespace etherEventQueue {
@@ -14,7 +14,7 @@ const byte queueTypeConfirm = 2;
 
 class EtherEventQueueClass {
   public:
-    void begin(char password[], byte nodeDeviceInput, unsigned int portInput, byte queueSizeMaxInput, byte sendEventLengthMaxInput, byte sendPayloadLengthMaxInput, byte receiveEventLengthMaxInput, byte receivePayloadLengthMaxInput);
+    boolean begin(char password[], byte nodeDeviceInput, unsigned int portInput, byte queueSizeMaxInput = 5, byte sendEventLengthMaxInput = 15, byte sendPayloadLengthMaxInput = 80, byte receiveEventLengthMaxInput = 15, byte receivePayloadLengthMaxInput = 80);
     byte availableEvent(EthernetServer &ethernetServer);
     byte availablePayload();
     void readEvent(char eventBuffer[]);

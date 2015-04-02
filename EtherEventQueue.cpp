@@ -5,7 +5,7 @@
 #include <SPI.h>  //for the ethernet library
 #include "Ethernet.h"
 #include "EtherEvent.h"  //http://github.com/per1234/EtherEvent
-#include "Flash.h"  //https://github.com/rkhamilton/Flash - uncomment this line if you have the Flash library installed
+//#include "Flash.h"  //https://github.com/rkhamilton/Flash - uncomment this line if you have the Flash library installed
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //START user configuration parameters
@@ -37,7 +37,7 @@ const byte int32_tLengthMax = 10; //10 digits
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //begin
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void EtherEventQueueClass::begin(char password[], byte nodeDeviceInput, unsigned int portInput, byte queueSizeMaxInput, byte sendEventLengthMaxInput, byte sendPayloadLengthMaxInput, byte receivedEventLengthMaxInput, byte receivedPayloadLengthMaxInput) {
+boolean EtherEventQueueClass::begin(char password[], byte nodeDeviceInput, unsigned int portInput, byte queueSizeMaxInput, byte sendEventLengthMaxInput, byte sendPayloadLengthMaxInput, byte receivedEventLengthMaxInput, byte receivedPayloadLengthMaxInput) {
   nodeDevice = nodeDeviceInput;
   nodeState[nodeDevice] = 1;  //start the device as timed in
   port = portInput;
@@ -69,7 +69,11 @@ void EtherEventQueueClass::begin(char password[], byte nodeDeviceInput, unsigned
   receivedEvent = (char*)malloc((receivedEventLengthMax + 1) * sizeof(char));
   receivedPayloadLengthMax = receivedPayloadLengthMaxInput;
   receivedPayload = (char*)malloc((receivedPayloadLengthMax + 1) * sizeof(char));
-  EtherEvent.begin(password, receivedEventLengthMax, eventIDlength + receivedPayloadLengthMax); //initialize EtherEvent
+  if (IPqueue == NULL || portQueue == NULL || eventQueue == NULL || eventIDqueue == NULL || payloadQueue == NULL || resendFlagQueue == NULL || receivedEvent == NULL || receivedPayload == NULL || EtherEvent.begin(password, receivedEventLengthMax, eventIDlength + receivedPayloadLengthMax) == false) {
+    Serial.println(F("memory allocation failed"));
+    return false;
+  }
+  return true;
 }
 
 
