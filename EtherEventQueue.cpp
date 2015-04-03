@@ -722,7 +722,7 @@ byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPo
 
   Serial.print(F("EtherEventQueue.queue: queueSize="));
   Serial.println(queueSize);
-  if (queueSize = queueSizeMax) {  //queue overflowed
+  if (queueSize == queueSizeMax) {  //queue overflowed
     Serial.println(F("EtherEventQueue.queue: Queue Overflowed"));
     remove(0);  //remove the oldest queued item
     success = 2;  //indicate overflow in the return
