@@ -38,6 +38,8 @@ const byte int32_tLengthMax = 10; //10 digits
 //begin
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 boolean EtherEventQueueClass::begin(char password[], byte nodeDeviceInput, unsigned int portInput, byte queueSizeMaxInput, byte sendEventLengthMaxInput, byte sendPayloadLengthMaxInput, byte receivedEventLengthMaxInput, byte receivedPayloadLengthMaxInput) {
+  Serial.begin(9600);  //for debugging
+  Serial.println(F("\n\n\nEtherEventQueue.begin"));
   nodeDevice = nodeDeviceInput;
   nodeState[nodeDevice] = 1;  //start the device as timed in
   port = portInput;
@@ -83,7 +85,7 @@ boolean EtherEventQueueClass::begin(char password[], byte nodeDeviceInput, unsig
 byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
   if (receivedEventLength == 0) {  //there is no event buffered
     if (localEventQueueCount > 0) {
-      for (int queueStepCount = queueSize - 1; queueStepCount >= 0; queueStepCount--) {  //internal event system: step through the queue from the newest to oldest
+      for (int8_t queueStepCount = queueSize - 1; queueStepCount >= 0; queueStepCount--) {  //internal event system: step through the queue from the newest to oldest
         if (getNode(IPqueue[queueStepCount]) == nodeDevice) {  //internal event
           strcpy(receivedEvent, eventQueue[queueStepCount]);
           Serial.print(F("EtherEventQueue.availableEvent: internal event="));
@@ -760,7 +762,7 @@ byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPo
 //queueHandler - sends out the messages in the queue
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
-  if (queueSize > 0) {  //there are messages in the queue
+  if (queueSize > 0 && queueSize > localEventQueueCount) {  //there are events in the queue and there are non-local events
     if (queueNewCount > 0 || millis() - queueSendTimestamp > resendDelay) {  //it is time
       if (queueNewCount > queueSize) {  //sanity check - if the acks get messed up this can happen
         queueNewCount = queueSize;
@@ -770,7 +772,7 @@ void EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
       Serial.print(F("EtherEventQueue.queueHandler: queueNewCount="));
       Serial.println(queueNewCount);
       byte queueStepSend;  //this is used to store the step to send which may not be the current step because of sending the new messages first
-      for (;;) {
+      for (byte counter = 0; counter < queueSize; counter++) {  //the maximum number of iterations is the queueSize
         if (queueNewCount == 0) {  //time to send the next one in the queue
           queueSendTimestamp = millis();  //reset the timestamp to delay the next queue resend
           queueStep++;
@@ -788,7 +790,10 @@ void EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
         int targetNode = getNode(IPqueue[queueStepSend]);  //get the node of the target IP
         Serial.print(F("EtherEventQueue.queueHandler: targetNode="));
         Serial.println(targetNode);
+        Serial.print(F("EtherEventQueue.queueHandler: nodeDevice="));
+        Serial.println(nodeDevice);
         if (targetNode == nodeDevice) {  //ignore internal events, they are sent in availableEvent()
+          Serial.println(F("EtherEventQueue.queueHandler: nodeDevice=targetNode"));
           continue;  //move on to the next queue step
         }
         if (targetNode < 0) {  //-1 indicates no node match
