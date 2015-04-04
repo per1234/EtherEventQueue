@@ -30,11 +30,8 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
     - DEBUG - Set this to true to enable debug output via serial. This will increase the sketch size dramatically so only enable when needed.
     - receiveNodesOnly - Set this to true to only allow events to be received from IP addresses defined in EtherEventQueueNodes.h
     - sendNodesOnly - Set this to true to only allow events to be sent to IP addresses defined in EtherEventQueueNodes.h
-    - nodeTimeout - (ms)the node is timed out if it has been longer than this duration since the last event was received from it
-    - nodeTimeoutSelf  - (ms)the device is timed out if it has been longer than this duration since any event was received
     - eventKeepalive - The event that can be periodically send to keep nodes from being considered timed out. The default value is "100". This event will not be passed on via availableEvent(). Any event will reset the timeout timer so this event only needs to be used if no other event has been sent within the timeout duration.
     - eventAck - The event that is sent back to the sender's IP address to acknowledge that an event has been received. The default value is "101". The payload of the ack is the ID number of the received event. When an ack is received it will not be passed on via availableEvent(). It is used to remove events that were queued with the resendFlag=2.
-    - resendDelay - The delay between resends of messages queued with resendFlag=1 or resendFlag=2.
 - Restart the Arduino IDE
 - File>Examples>etherEventQueueExample
  - Set the device IP address, this can be any available IP address on the network. DHCP not currently implemented.
@@ -45,12 +42,12 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 - Repeat with other connected devices. The serial monitor will show details of the test communications.
 
 #### Usage
-`EtherEventQueue.begin(password, deviceID, port[, queueSizeMax, sendEventLengthMax, sendPayloadLengthMax, receiveEventLengthMax, receivePayloadEventMax])` - Initialize EtherEventQueue
+`EtherEventQueue.begin(password, deviceID, port[, queueSizeMax, sendEventLengthMax, sendPayloadLengthMax, receiveEventLengthMax, receivePayloadEventMax])` - Initialize EtherEventQueue.
 - Parameter: password - EtherEvent password. This must match the password set in EventGhost.
   - Type: char array
-- Parameter: deviceID - The node number of the device. The device IP address must be in the node array in EtherEventQueue.cpp
+- Parameter: deviceID - The node number of the device. The device IP address must be in the node array in EtherEventQueue.cpp.
   - Type: byte
-- Parameter: port - The port being used for events. This is used only for sending acks, queue() allows sending to any port, the device Ethernet port is configured with the EthernetServer initialization
+- Parameter: port - The port being used for events. This is used only for sending acks, queue() allows sending to any port, the device Ethernet port is configured with the EthernetServer initialization.
   - Type: unsigned int
 - Parameter(optional): queueSizeMax - Maximum number of events to queue. Longer entries will be truncated to this length. If this parameter is not passed then the default will be used.
   - Type: byte
@@ -65,7 +62,7 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 - Returns: boolean - true = success, false = memory allocation failure
 
 `EtherEventQueue.availableEvent(ethernetServer)` - Returns the number of chars of event including null terminator available to read. availableEvent() will not receive a new event until the last event has been read(via readEvent()) or flushed(via flushReceiver()).
-- Parameter: ethernetServer - the EthernetServer object created in the Ethernet setup of the user's sketch
+- Parameter: ethernetServer - The EthernetServer object created in the Ethernet setup of the user's sketch.
   - Type: EthernetServer
 - Returns: Number of chars in the event including the null terminator at the end of the string.
   - Type: byte
@@ -76,23 +73,23 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
   - Type: byte
 
 `EtherEventQueue.readEvent(eventBuffer)` - Puts the event in the passed array. availableEvent() must be called first.
-- Parameter: eventBuffer - size a char array according to the result of availableEvent () and pass it to the readEvent  function. After that it will contain the event.
+- Parameter: eventBuffer - Size a char array according to the result of availableEvent () and pass it to the readEvent  function. After that it will contain the event.
   - Type: char
 - Returns: none
 
 `EtherEventQueue.readPayload(payloadBuffer)` - Puts the payload string in the passed array. availableEvent() must be called first.
-- Parameter: payloadBuffer - size a char array according to the result of availablePayload () and pass it to the readPayload  function. After that it will contain the payload.
+- Parameter: payloadBuffer - Size a char array according to the result of availablePayload () and pass it to the readPayload  function. After that it will contain the payload.
   - Type: char
 - Returns: none
 
-`EtherEventQueue.senderIP()` - get the IP Address of the sender of the most recently received event.
+`EtherEventQueue.senderIP()` - Get the IP Address of the sender of the most recently received event.
 - Parameter: none
-- Returns: IP Address of the sender of the most recent event
+- Returns: IP Address of the sender of the most recent event.
   - Type: IPAddress
 
-`EtherEventQueue.flushReceiver()` - clear any buffered event and payload data so a new event can be received
-- Parameter:none
-- Returns:none
+`EtherEventQueue.flushReceiver()` - Clear any buffered event and payload data so a new event can be received.
+- Parameter: none
+- Returns: none
 
 `EtherEventQueue.queue(target, port, event, payload, resendFlag)` - Send an event and payload
 - Parameter: target - takes either the IP address or node number of the target device
@@ -125,15 +122,15 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
   - Type: byte
   
 `EtherEventQueue.queue(target, port, F(event), eventLength, payload, resendFlag)` - Send an event and payload - this version of the function accepts event strings placed in flash memory via the F() macro.
-- Parameter: target - takes either the IP address or node number of the target device
+- Parameter: target - Takes either the IP address or node number of the target device.
   - Type: IPAddress/byte
-- Parameter: port: - port to send the event to
+- Parameter: port - Port to send the event to.
   - Type: unsigned int
-- Parameter: event: - string to send as the event
+- Parameter: event - String to send as the event.
   - Type: F()/__FlashStringHelper
-- Parameter: eventLength:- length of the event
+- Parameter: eventLength - Length of the event.
   - Type: byte
-- Parameter: payload:- payload to send with the event. If you don't want a payload then just use 0 for this parameter
+- Parameter: payload - Payload to send with the event. If you don't want a payload then just use 0 for this parameter
   - Type: char/int8_t/byte/int/unsigned int/long/unsigned long/_FLASH_STRING
 - Parameter: resendFlag - (0 == no resend, 1 == resend until successful send, 2 == resend until ack) If this is set to 2 then the queue will resend a message until the ack is received or the target IP times out
   - Type: byte
@@ -141,43 +138,43 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
   - Type: byte
   
 `EtherEventQueue.queue(target, port, F(event), eventLength, F(payload), payloadLength, resendFlag)` - Send an event and payload - this version of the function accepts event and payload strings placed in flash memory via the F() macro.
-- Parameter: target - takes either the IP address or node number of the target device
+- Parameter: target - Takes either the IP address or node number of the target device.
   - Type: IPAddress/byte
-- Parameter: port: - port to send the event to
+- Parameter: port - Port to send the event to.
   - Type: unsigned int
-- Parameter: event: - string to send as the event
+- Parameter: event - String to send as the event.
   - Type: F()/__FlashStringHelper
-- Parameter: eventLength:- length of the event
+- Parameter: eventLength- Length of the event.
   - Type: byte
-- Parameter: payload:- payload to send with the event.
+- Parameter: payload - Payload to send with the event.
   - Type: F()/__FlashStringHelper
-- Parameter: payloadLength:- length of the payload
+- Parameter: payloadLength - Length of the payload.
   - Type: byte
 - Parameter: resendFlag - (0 == no resend, 1 == resend until successful send, 2 == resend until ack) If this is set to 2 then the queue will resend a message until the ack is received or the target IP times out
   - Type: byte
 - Returns: 0 for failure, 1 for success, , 2 for success w/ queue overflow
   - Type: byte
   
-`EtherEventQueue.queueHandler(ethernetClient)` - send queued events
-- Parameter: ethernetClient - the EthernetClient object created during the Ethernet library initialization
+`EtherEventQueue.queueHandler(ethernetClient)` - Send queued events.
+- Parameter: ethernetClient - The EthernetClient object created during the Ethernet library initialization.
   - Type: EthernetClient
 - Returns: none
    
- `EtherEventQueue.flushQueue()` - remove all events from the queue
+ `EtherEventQueue.flushQueue()` - Remove all events from the queue.
  - Returns: none
 
-`EtherEventQueue.checkTimeout()` - check for newly timed out nodes
+`EtherEventQueue.checkTimeout()` - Check for newly timed out nodes.
 - Parameter: none
-- Returns: node number of the tirst newly timed out node found or -1 if no timed out node found
+- Returns: Node number of the tirst newly timed out node found or -1 if no timed out node found.
   - Type: int8_t
   
-`EtherEventQueue.checkTimein()` - check for newly timed in nodes
+`EtherEventQueue.checkTimein()` - Check for newly timed in nodes.
 - Parameter: none
-- Returns: node number of the tirst newly timed out node found or -1 if no timed out node found
+- Returns: Node number of the tirst newly timed out node found or -1 if no timed out node found.
   - Type: int8_t
   
-`EtherEventQueue.checkState(node)` - check if the device has not received any events in longer than the timeout duration
-- Parameter: node - the node number of the node to be checked
+`EtherEventQueue.checkState(node)` - Check if no events have been received from the given node in longer than the timeout duration. The device is considered timed out when no events have received in longer than the timeout duration.
+- Parameter: node - The node number of the node to be checked.
   - Type: byte
 - Returns: 0 == not timed out, 1 == timed out
   - Type: boolean
@@ -188,10 +185,29 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
   - Type: boolean
   
 `EtherEventQueue.getNode(IP)` - Get the node number of an IP address. Nodes can be defined in EtherEventQueueNodes.h.
-- Parameter: IP - the IP address to determine the node number of
+- Parameter: IP - The IP address to determine the node number of
   - Type: IPAddress or byte
 - Returns: node number, -1 == no match
   - Type: int8_t
+  
+`EtherEventQueue.setResendDelay(resendDelay)` - Set the event resend delay.
+- Parameter: resendDelay - (ms)The delay before resending resend or confirm type queued events.
+  - Type: unsigned int
+- Returns: none
+  
+`EtherEventQueue.getResendDelay()` - Returns the value of the queued event resend delay.
+- Parameter: none
+- Returns: resendDelay - (ms)The delay before resending resend or confirm type queued events.
+  
+`EtherEventQueue.setNodeTimeoutDuration(nodeTimeoutDuration)` - Set the node timeout duration.
+- Parameter: nodeTimeoutDuration - (ms)The amout of time without receiving an event from a node before it is considered timed out.
+  - Type: unsigned int
+- Returns: none
+  
+`EtherEventQueue.getNodeTimeoutDuration()` - Returns the value of the node timeout duration.
+- Parameter: none
+- Returns: nodeTimeoutDuration - (ms)The amout of time without receiving an event from a node before it is considered timed out.
+  
 
 
  #### Process

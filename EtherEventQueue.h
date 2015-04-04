@@ -3,7 +3,7 @@
 #define EtherEventQueue_h
 #include <SPI.h>  //for the ethernet library
 #include "Ethernet.h"
-//#include "Flash.h"  //https://github.com/rkhamilton/Flash - uncomment this line if you have the Flash library installed
+#include "Flash.h"  //https://github.com/rkhamilton/Flash - uncomment this line if you have the Flash library installed
 #include "EtherEventQueueNodes.h"
 
 namespace etherEventQueue {
@@ -98,6 +98,10 @@ class EtherEventQueueClass {
 
 
     boolean checkQueueOverflow();
+    void setResendDelay(unsigned int resendDelayValue);
+    unsigned int getResendDelay();
+    void setNodeTimeoutDuration(unsigned int nodeTimeoutDurationValue);
+    unsigned int getNodeTimeoutDuration();
   private:
     byte eventIDfind();
     void remove(byte queueStep);

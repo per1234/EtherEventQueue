@@ -9,6 +9,9 @@
 //#include "Flash.h"  //uncomment this line if you have the Flash library installed
 
 const unsigned int port = 1024; //EtherEvent TCP port
+const unsigned int resendDelay = 30000; //(ms)Delay before resending repeat or confirm type queued events.
+const unsigned int nodeTimeoutDuration = 240000; //(ms)If no event has been received from a node in greater than this duration then it is considered timed out.
+
 
 EthernetServer ethernetServer(port);  //TCP port to receive on
 EthernetClient ethernetClient;  //create the client object for ethernet communication
@@ -24,6 +27,9 @@ void setup() {
     Serial.print(F("ERROR: Buffer size exceeds available memory, use smaller values."));
     while (1);  //abort execution of the rest of the program
   }
+  EtherEventQueue.setResendDelay(resendDelay);
+  EtherEventQueue.setNodeTimeoutDuration(nodeTimeoutDuration);
+
   EtherEvent.setTimeout(20); //set timeout duration
 #ifdef ethernet_h
   W5100.setRetransmissionTime(400);  //(0.1ms)used to set the timeout for the w5100 module.

@@ -13,6 +13,10 @@ checkTimeout	KEYWORD2
 checkTimein	KEYWORD2
 checkState	KEYWORD2
 getNode	KEYWORD2
+setResendDelay	KEYWORD2
+getResendDelay	KEYWORD2
+setNodeTimeoutDuration	KEYWORD2
+getNodeTimeoutDuration	KEYWORD2
 eventIDfind	KEYWORD2
 remove	KEYWORD2
 IPcopy	KEYWORD2

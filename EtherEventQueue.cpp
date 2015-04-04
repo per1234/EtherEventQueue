@@ -5,7 +5,7 @@
 #include <SPI.h>  //for the ethernet library
 #include "Ethernet.h"
 #include "EtherEvent.h"  //http://github.com/per1234/EtherEvent
-//#include "Flash.h"  //https://github.com/rkhamilton/Flash - uncomment this line if you have the Flash library installed
+#include "Flash.h"  //https://github.com/rkhamilton/Flash - uncomment this line if you have the Flash library installed
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //START user configuration parameters
@@ -16,15 +16,14 @@
 const boolean receiveNodesOnly = false;  //restrict event receiving to nodes only
 const boolean sendNodesOnly = false;  //restrict event sending to nodes only
 
-const unsigned long nodeTimeout = 270000;  //(ms)the node is timed out if it has been longer than this duration since the last event was received from it
-const unsigned long nodeTimeoutSelf = 120000;  //(ms)the device is timed out if it has been longer than this duration since any event was received
-
 const char eventKeepalive[] = "100";  //the library handles these special events differently
 const char eventAck[] = "101";
-const unsigned int resendDelay = 45000;  //(ms)delay between resends of messages
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //END user configuration parameters
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+unsigned long nodeTimeoutDuration = 270000;  //(ms)the node is timed out if it has been longer than this duration since the last event was received from it
+unsigned int resendDelay = 45000;  //(ms)delay between resends of messages
 using namespace etherEventQueue;
 const byte nodeCount = sizeof(nodeIP) / sizeof(nodeIP[0]);
 const byte eventIDlength = 2;  //number of characters of the message ID that is appended to the start of the raw payload, the event ID must be exactly this length
@@ -713,7 +712,7 @@ byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPo
     Serial.println(F("EtherEventQueue.queue: self send"));
     localEventQueueCount++;
   }
-  else if (targetNode != nodeDevice && targetNode >= 0 && millis() - nodeTimestamp[targetNode] > nodeTimeout) {  //not self, is a node and is timed out
+  else if (targetNode != nodeDevice && targetNode >= 0 && millis() - nodeTimestamp[targetNode] > nodeTimeoutDuration) {  //not self, is a node and is timed out
     Serial.println(F("EtherEventQueue.queue: timed out node"));
     return 0;  //don't queue events to timed out nodes
   }
@@ -801,7 +800,7 @@ void EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
           break;  //non-nodes never timeout
         }
 
-        if (millis() - nodeTimestamp[targetNode] < nodeTimeout || strcmp(eventQueue[queueStepSend], eventKeepalive) == 0) {  //non-timed out node or keepalive
+        if (millis() - nodeTimestamp[targetNode] < nodeTimeoutDuration || strcmp(eventQueue[queueStepSend], eventKeepalive) == 0) {  //non-timed out node or keepalive
           break;  //continue with the message send
         }
         Serial.print(F("EtherEventQueue.queueHandler: targetNode timed out for queue#="));
@@ -859,7 +858,7 @@ void EtherEventQueueClass::flushQueue() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int8_t EtherEventQueueClass::checkTimeout() {
   for (byte node = 0; node < nodeCount; node++) {
-    if (nodeState[node] == 1 && millis() - nodeTimestamp[node] > nodeTimeout) {  //previous state not timed out, and is currently timed out
+    if (nodeState[node] == 1 && millis() - nodeTimestamp[node] > nodeTimeoutDuration) {  //previous state not timed out, and is currently timed out
       Serial.print(F("EtherEventQueue.checkTimeout: timed out node="));
       Serial.println(node);
       nodeState[node] = 0;  //0 indicates the node is timed out
@@ -875,7 +874,7 @@ int8_t EtherEventQueueClass::checkTimeout() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int8_t EtherEventQueueClass::checkTimein() {
   for (byte node = 0; node < nodeCount; node++) {
-    if (nodeState[node] == 0 && millis() - nodeTimestamp[node] < nodeTimeout) {  //node is newly timed out(since the last time the function was run)
+    if (nodeState[node] == 0 && millis() - nodeTimestamp[node] < nodeTimeoutDuration) {  //node is newly timed out(since the last time the function was run)
       Serial.print(F("EtherEventQueue.checkTimein: timed in node="));
       Serial.println(node);
       nodeState[node] = 1;  //1 indicates the node is not timed out
@@ -893,7 +892,7 @@ boolean EtherEventQueueClass::checkState(byte node) {
   Serial.print(F("EtherEventQueue.checkTimeoutNode: nodeState for node "));
   Serial.print(node);
   Serial.print(F("="));
-  if (nodeTimestamp[node] > nodeTimeout) {  //node is not this device, not already timed out, and is timed out
+  if (nodeTimestamp[node] > nodeTimeoutDuration) {  //node is not this device, not already timed out, and is timed out
     Serial.println(F("timed out"));
     return 0;
   }
@@ -913,8 +912,35 @@ boolean EtherEventQueueClass::checkQueueOverflow() {
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//private functions
+//setResendDelay
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EtherEventQueueClass::setResendDelay(unsigned int resendDelayValue) {
+  resendDelay = resendDelayValue;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//getResendDelay
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+unsigned int EtherEventQueueClass::getResendDelay() {
+  return resendDelay;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//setNodeTimeoutDuration
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EtherEventQueueClass::setNodeTimeoutDuration(unsigned int nodeTimeoutDurationValue) {
+  nodeTimeoutDuration = nodeTimeoutDurationValue;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//getNodeTimeoutDuration
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+unsigned int EtherEventQueueClass::getNodeTimeoutDuration() {
+  return nodeTimeoutDuration;
+}
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
