@@ -1,23 +1,40 @@
-//example script for the EtherEventQueue library
+//Example script for the EtherEventQueue library.
+//Periodically queues a test event, sends queued events, receives events and prints them to the serial monitor.
 #include <SPI.h>  //these libraries are required by EtherEvent
 #include "Ethernet.h"
 #include "MD5.h"
-//#include <Entropy.h>  //uncomment this line if you have the Entropy library installed
+//#include <Entropy.h>  //uncomment this line if you are using the Entropy library with EtherEvent
 #include "EtherEvent.h"  //include the EtherEvent library so its functions can be accessed
 #include "EtherEventQueue.h"  //include the EtherEventQueue library so its functions can be accessed
-//#include "Flash.h"  //uncomment this line if you have the Flash library installed
+//#include "Flash.h"  //uncomment this line if you are using the Flash library with EtherEventQueue
 
-EthernetServer ethernetServer(1024);  //TCP port to receive on
+#define DHCP false  //true==use DHCP to assign an IP address to the device, this will significantly increase memory usage. false==use static IP address.
+byte MACaddress[] = {0, 1, 2, 3, 4, 4}; //this can be anything you like, but must be unique on your network
+#if DHCP == false
+const IPAddress deviceIP = IPAddress(192, 168, 69, 104);  //IP address to use for the device. This can be any valid address on the network as long as it is unique. If you are using DHCP then this doesn't need to be configured.
+#endif
+const char password[] = "password";  //EtherEvent password. This must match the password set in EventGhost.
+const byte deviceNode = 4;
+const unsigned int port = 1024;  //TCP port to receive events
+
+const unsigned int queueEventInterval = 4000;  //(ms)Delay between queueing the test events.
+const IPAddress sendIP = IPAddress(192, 168, 69, 100);  //The IP address to send the test events to.
+const unsigned int sendPort = 1024; //The port to send the test events to.
+
+
+EthernetServer ethernetServer(port);  //TCP port to receive on
 EthernetClient ethernetClient;  //create the client object for ethernet communication
-
 unsigned long sendTimeStamp; //used by the example to periodically send an event
 
 void setup() {
   Serial.begin(9600);  //the received event and other information will be displayed in your serial monitor while the sketch is running
-  byte mac[] = {0, 1, 2, 3, 4, 4}; //this can be anything you like, but must be unique on your network
-  Ethernet.begin(mac, IPAddress(192, 168, 69, 104));  //leave off the IP parameter for DHCP
+#if DHCP == true
+  Ethernet.begin(MACaddress);  //let the network assign an IP address
+#else
+  Ethernet.begin(MACaddress, deviceIP);  //use static IP address
+#endif
   ethernetServer.begin();  //begin the server that will be used to receive events
-  if (EtherEventQueue.begin("password", 4, 1024) == false) { //set the EtherEvent password, node ID, and the EtherEvent TCP port
+  if (EtherEventQueue.begin(password, deviceNode, port) == false) {  //initialize EtherEventQueue
     Serial.print(F("ERROR: Buffer size exceeds available memory, use smaller values."));
     while (1);  //abort execution of the rest of the program
   }
@@ -41,10 +58,10 @@ void loop() {
     Serial.println(payload);
   }
 
-  if (millis() - sendTimeStamp > 4000) { //periodically send event
+  if (millis() - sendTimeStamp > queueEventInterval) {  //periodically send event
     sendTimeStamp = millis(); //reset the timestamp for the next event send
     Serial.println(F("Attempting event queue"));
-    if (EtherEventQueue.queue(IPAddress(192, 168, 69, 100), 1024, "123", "test payload", 2)) { //queue an event to be sent to target IP address, port, event, payload, resendFlag
+    if (EtherEventQueue.queue(sendIP, sendPort, "123", "test payload", etherEventQueue::queueTypeRepeat)) {  //queue an event to be sent, EtherEventQueue will continue to attempt to send the event until it is successfully sent or the event overflows from the queue.
       Serial.println(F("Event queue successful"));
     }
     else {

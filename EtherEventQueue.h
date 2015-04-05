@@ -14,7 +14,7 @@ const byte queueTypeConfirm = 2;
 
 class EtherEventQueueClass {
   public:
-    boolean begin(char password[], byte nodeDeviceInput, unsigned int portInput, byte queueSizeMaxInput = 5, byte sendEventLengthMaxInput = 15, byte sendPayloadLengthMaxInput = 80, byte receiveEventLengthMaxInput = 15, byte receivePayloadLengthMaxInput = 80);
+    boolean begin(const char password[], byte nodeDeviceInput, unsigned int portInput, byte queueSizeMaxInput = 5, byte sendEventLengthMaxInput = 15, byte sendPayloadLengthMaxInput = 80, byte receiveEventLengthMaxInput = 15, byte receivePayloadLengthMaxInput = 80);
     byte availableEvent(EthernetServer &ethernetServer);
     byte availablePayload();
     void readEvent(char eventBuffer[]);
