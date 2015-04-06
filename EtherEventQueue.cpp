@@ -5,7 +5,7 @@
 #include <SPI.h>  //for the ethernet library
 #include "Ethernet.h"
 #include "EtherEvent.h"  //http://github.com/per1234/EtherEvent
-#include "Flash.h"  //https://github.com/rkhamilton/Flash - uncomment this line if you have the Flash library installed
+//#include "Flash.h"  //https://github.com/rkhamilton/Flash - uncomment this line if you have the Flash library installed
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //START user configuration parameters
@@ -92,9 +92,11 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
           strcpy(receivedPayload, payloadQueue[queueStepCount]);
           Serial.print(F("EtherEventQueue.availableEvent: internal event payload="));
           Serial.println(receivedPayload);
+#ifdef ethernetclientwithremoteIP_h  //this function is only available if the modified Ethernet library is installed
           receivedIP = IPAddress(IPqueue[queueStepCount]);
           Serial.print(F("EtherEventQueue.availableEvent: receivedIP="));
           Serial.println(receivedIP);
+#endif
           remove(queueStepCount);  //remove the event from the queue
           queueNewCount--;  //queueHandler doesn't handle internal events so they will always be new events
           return strlen(receivedEvent);
@@ -106,11 +108,14 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
       Serial.println(F("---------------------------"));
       Serial.print(F("EtherEventQueue.availableEvent: EtherEvent.availableEvent()="));
       Serial.println(availableBytesEvent);
+#ifdef ethernetclientwithremoteIP_h  //this function is only available if the modified Ethernet library is installed
       receivedIP = EtherEvent.senderIP();
       Serial.print(F("EtherEventQueue.availableEvent: remoteIP="));
       Serial.println(receivedIP);
+#endif
 
       nodeTimestamp[nodeDevice] = millis();  //set the device timestamp(using the nodeDevice because that part of the array is never used otherwise)
+#ifdef ethernetclientwithremoteIP_h  //this function is only available if the modified Ethernet library is installed
       //update timed out status of the event sender
       byte senderNode = getNode(receivedIP);  //get the node of the senderIP
       if (senderNode >= 0) {  //receivedIP is a node(-1 indicates no node match)
@@ -121,6 +126,7 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
         EtherEvent.flushReceiver();  //event has not been read yet so have to flush
         return 0;
       }
+#endif
 
       EtherEvent.readEvent(receivedEvent);  //put the event in the buffer
       Serial.print(F("EtherEventQueue.availableEvent: ethernetReadEvent="));
@@ -170,8 +176,10 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
         return 0;  //receive ack silently
       }
 
+#ifdef ethernetclientwithremoteIP_h  //this function is only available if the modified Ethernet library is installed
       Serial.println(F("EtherEventQueue.availableEvent: send ack"));
       queue(receivedIP, port, eventAck, receivedEventID, 0);  //send the ack - the eventID of the received message is the payload
+#endif
 
       receivedEventLength = availableBytesEvent;  //there is a new event
     }
@@ -210,12 +218,14 @@ void EtherEventQueueClass::readPayload(char payloadBuffer[]) {
 }
 
 
+#ifdef ethernetclientwithremoteIP_h  //this function is only available if the modified Ethernet library is installed
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//senderIP - returns the IP address of the sender of the last event
+//senderIP - Returns the IP address of the sender of the last event.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 IPAddress EtherEventQueueClass::senderIP() {
   return receivedIP;
 }
+#endif
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////

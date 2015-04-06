@@ -3,7 +3,7 @@
 #define EtherEventQueue_h
 #include <SPI.h>  //for the ethernet library
 #include "Ethernet.h"
-#include "Flash.h"  //https://github.com/rkhamilton/Flash - uncomment this line if you have the Flash library installed
+//#include "Flash.h"  //https://github.com/rkhamilton/Flash - uncomment this line if you have the Flash library installed
 #include "EtherEventQueueNodes.h"
 
 namespace etherEventQueue {
@@ -19,7 +19,9 @@ class EtherEventQueueClass {
     byte availablePayload();
     void readEvent(char eventBuffer[]);
     void readPayload(char payloadBuffer[]);
+#ifdef ethernetclientwithremoteIP_h
     IPAddress senderIP();
+#endif
     void flushReceiver();
     byte queue(byte targetNode, unsigned int port, const char event[], const char payload[], byte resendFlag);
     byte queue(byte targetNode, unsigned int port, const char event[], const __FlashStringHelper* payload, byte payloadLength, byte resendFlag);
@@ -133,7 +135,9 @@ class EtherEventQueueClass {
     unsigned long nodeTimestamp[sizeof(etherEventQueue::nodeIP) / sizeof(etherEventQueue::nodeIP[0])]; //last received event time
     byte queueOverflowFlag;
     byte localEventQueueCount;
+#ifdef ethernetclientwithremoteIP_h
     IPAddress receivedIP;
+#endif
     byte receivedEventLength;
 };
 extern EtherEventQueueClass EtherEventQueue;  //declare the class so it doesn't have to be done in the sketch

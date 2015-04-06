@@ -8,9 +8,9 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 
 #### Required Libraries
 - EtherEvent http://github.com/per1234/EtherEvent
-- Modified Ethernet library - allows the event sender's IP address to be recorded: http://github.com/per1234/Ethernet - make sure to choose the correct branch for your Arduino IDE version
 
 #### Related Programs
+- Modified Ethernet library - allows the event sender's IP address to be recorded: http://github.com/per1234/Ethernet - make sure to choose the correct branch for your Arduino IDE version
 - UIPEthernet library for ENC28J60 ethernet chip: http://github.com/ntruchsess/arduino_uip
 - EventGhost free open source automation tool for Windows http://eventghost.com
 - TCP Events EventGhost plugin: http://www.eventghost.org/forum/viewtopic.php?p=16803 download link: http://docs.google.com/uc?id=0B3RTucUBY2bwVW5MQWdvRU90eTA - Improved network event sender/receiver allows sending events to multiple IP addresses
@@ -18,11 +18,11 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 
 #### Installation
 - 64k is the minimum recommended flash memory capacity of the MCU
-- Download the most recent version of EtherEventQueue here http://github.com/per1234/EtherEventQueue  - Download ZIP button(or Clone in Desktop if you have GitHub Desktop installed)
+- Download the most recent version of EtherEventQueue here: http://github.com/per1234/EtherEventQueue  - Click the "Download ZIP" button(or "Clone in Desktop" if you have GitHub Desktop installed)
 - Extract the EtherEventQueue-master folder from the downloaded zip file
 - Rename the folder EtherEventQueue
-- Move the folder to your arduino sketchbook\libraries folder
-- Repeat this process with the other required libraries
+- Move the folder to the libraries folder under your Arduino sketchbook folder as configured in Arduino IDE File>Preferences>Sketchbook location.
+- Repeat this process with the EtherEvent library and any other associated libraries you 
 - If you are using the Flash library then uncomment #include "Flash.h" in EtherEventQueue.cpp and EtherEventQueue.h
 - EtherEventQueue library configuration parameters
   - EtherEventQueueNodes.h - IP addresses of nodes can be defined here, then events can be queued for sending to a node using just the node number and the status of the node will be monitored.
@@ -82,7 +82,7 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
   - Type: char
 - Returns: none
 
-`EtherEventQueue.senderIP()` - Get the IP Address of the sender of the most recently received event.
+`EtherEventQueue.senderIP()` - Get the IP Address of the sender of the most recently received event. This function is only available if the modified Ethernet library is installed.
 - Parameter: none
 - Returns: IP Address of the sender of the most recent event.
   - Type: IPAddress

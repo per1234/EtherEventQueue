@@ -8,6 +8,7 @@
 #include "EtherEventQueue.h"  //include the EtherEventQueue library so its functions can be accessed
 //#include "Flash.h"  //uncomment this line if you are using the Flash library with EtherEventQueue
 
+//configuration parameters - modify these values to your desired settings
 #define DHCP false  //true==use DHCP to assign an IP address to the device, this will significantly increase memory usage. false==use static IP address.
 byte MACaddress[] = {0, 1, 2, 3, 4, 4}; //this can be anything you like, but must be unique on your network
 #if DHCP == false

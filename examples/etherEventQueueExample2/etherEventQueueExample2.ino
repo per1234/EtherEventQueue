@@ -9,6 +9,7 @@
 #include <utility/w5100.h>  //Used for setting the ethernet send connect timeout
 //#include "Flash.h"  //uncomment this line if you are using the Flash library with EtherEventQueue
 
+//configuration parameters - modify these values to your desired settings
 #define DHCP false  //true==use DHCP to assign an IP address to the device, this will significantly increase memory usage. false==use static IP address.
 byte MACaddress[] = {0, 1, 2, 3, 4, 4};  //this can be anything you like as long as it's unique on your network
 #if DHCP == false
@@ -74,8 +75,10 @@ void loop() {
     EtherEventQueue.readPayload(payload);
     Serial.print(F("Received payload: "));
     Serial.println(payload);
+#ifdef ethernetclientwithremoteIP_h  //this function is only available if the modified Ethernet library is installed
     Serial.print(F("Received from IP: "));
     Serial.println(EtherEventQueue.senderIP());  //this will return 0.0.0.0 if you don't have the modified ethernet library and the flag set in EtherEvent.cpp
+#endif
   }
 
   if (millis() - sendTimeStamp > queueEventInterval) {  //periodically send event
