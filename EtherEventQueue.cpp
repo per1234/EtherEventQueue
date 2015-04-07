@@ -98,10 +98,10 @@ boolean EtherEventQueueClass::begin(const char password[], byte nodeDeviceInput,
   //size received event buffers
   receivedEventLengthMax = receivedEventLengthMaxInput;
   receivedEvent = (char*)realloc(receivedEvent, (receivedEventLengthMax + 1) * sizeof(char));
-  receivedEvent[0] = 0; //clear buffer - realloc does not zero initialize so the buffer could contain anything
+  receivedEvent[0] = 0;  //clear buffer - realloc does not zero initialize so the buffer could contain anything
   receivedPayloadLengthMax = receivedPayloadLengthMaxInput;
   receivedPayload = (char*)realloc(receivedPayload, (receivedPayloadLengthMax + 1) * sizeof(char));
-  receivedPayload[0] = 0; //clear buffer - realloc does not zero initialize so the buffer could contain anything
+  receivedPayload[0] = 0;  //clear buffer - realloc does not zero initialize so the buffer could contain anything
   if (IPqueue == NULL || portQueue == NULL || eventQueue == NULL || eventIDqueue == NULL || payloadQueue == NULL || resendFlagQueue == NULL || receivedEvent == NULL || receivedPayload == NULL || EtherEvent.begin(password, receivedEventLengthMax, eventIDlength + receivedPayloadLengthMax) == false) {
     Serial.println(F("memory allocation failed"));
     return false;
@@ -210,11 +210,6 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
         flushReceiver();  //event and payload have been read so only have to flush EtherEventQueue
         return 0;  //receive ack silently
       }
-
-#ifdef ethernetclientwithremoteIP_h  //this function is only available if the modified Ethernet library is installed
-      Serial.println(F("EtherEventQueue.availableEvent: send ack"));
-      queue(receivedIP, port, eventAck, receivedEventID, 0);  //send the ack - the eventID of the received message is the payload
-#endif
 
       receivedEventLength = availableBytesEvent;  //there is a new event
     }
