@@ -93,12 +93,15 @@ boolean EtherEventQueueClass::begin(const char password[], byte nodeDeviceInput,
 
   resendFlagQueue = (byte*)realloc(resendFlagQueue, queueSizeMaxInput * sizeof(byte));
 
+  queueSizeMax = queueSizeMaxInput;  //save the new queueSizeMax, this is done at the end of begin() because it needs to remember the previous value for freeing the array items
+
   //size received event buffers
   receivedEventLengthMax = receivedEventLengthMaxInput;
   receivedEvent = (char*)realloc(receivedEvent, (receivedEventLengthMax + 1) * sizeof(char));
+  receivedEvent[0] = 0; //clear buffer - realloc does not zero initialize so the buffer could contain anything
   receivedPayloadLengthMax = receivedPayloadLengthMaxInput;
   receivedPayload = (char*)realloc(receivedPayload, (receivedPayloadLengthMax + 1) * sizeof(char));
-  queueSizeMax = queueSizeMaxInput;  //save the new queueSizeMax, this is done at the end of begin() because it needs to remember the previous value for freeing the array items
+  receivedPayload[0] = 0; //clear buffer - realloc does not zero initialize so the buffer could contain anything
   if (IPqueue == NULL || portQueue == NULL || eventQueue == NULL || eventIDqueue == NULL || payloadQueue == NULL || resendFlagQueue == NULL || receivedEvent == NULL || receivedPayload == NULL || EtherEvent.begin(password, receivedEventLengthMax, eventIDlength + receivedPayloadLengthMax) == false) {
     Serial.println(F("memory allocation failed"));
     return false;
@@ -186,10 +189,13 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
 
       if (payloadLength > eventIDlength + 1) {  //there is a true payload
         for (byte count = 0; count < payloadLength - eventIDlength; count++) {
-          receivedPayload[count] = receivedPayloadRaw[count + eventIDlength];  //(TODO: just use receivedPayload for the buffer instead of having the raw buffer)
+          receivedPayload[count] = receivedPayloadRaw[count + eventIDlength];
         }
         Serial.print(F("EtherEventQueue.availableEvent: receivedPayload="));
         Serial.println(receivedPayload);
+      }
+      else { //no true payload
+        receivedPayload[0] = 0; //clear the payload buffer
       }
 
       if (strcmp(receivedEvent, eventAck) == 0) {  //ack handler
