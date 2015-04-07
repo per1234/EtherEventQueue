@@ -45,31 +45,46 @@ boolean EtherEventQueueClass::begin(const char password[], byte nodeDeviceInput,
 
   //buffer sizing - these are dynamically allocated so that the sized can be set via the API
   //size send event queue buffers
-  queueSizeMax = min(queueSizeMaxInput, 90); //the current system uses a 2 digit messageID so the range is 10-99, this restricts the queueSizeMax <= 90
-  IPqueue = (byte**)malloc(queueSizeMax * sizeof(byte*));  //have to use 4 byte arrays for the IP addresses instead of IPAddress because I can't get IPAddress to work with malloc
-  for (byte counter = 0; counter < queueSizeMax; counter++) {
+  queueSizeMaxInput = min(queueSizeMaxInput, 90); //the current system uses a 2 digit messageID so the range is 10-99, this restricts the queueSizeMax <= 90
+
+  for (byte counter = 0; counter < queueSizeMax; counter++) {  //free previously allocated array items - this has to be done for arrays only because realloc doesn't work with the array items
+    free(IPqueue[counter]);
+  }
+  IPqueue = (byte**)realloc(IPqueue, queueSizeMaxInput * sizeof(byte*));  //have to use 4 byte arrays for the IP addresses instead of IPAddress because I can't get IPAddress to work with malloc
+  for (byte counter = 0; counter < queueSizeMaxInput; counter++) {
     IPqueue[counter] = (byte*)malloc(4);  //4 bytes/IP address
   }
 
-  portQueue = (unsigned int*)malloc(queueSizeMax * sizeof(unsigned int));
-  sendEventLengthMax = sendEventLengthMaxInput;
-  eventQueue = (char**)malloc(queueSizeMax * sizeof(char*));
+  portQueue = (unsigned int*)realloc(portQueue, queueSizeMaxInput * sizeof(unsigned int));
+
   for (byte counter = 0; counter < queueSizeMax; counter++) {
+    free(eventQueue[counter]);
+  }
+  eventQueue = (char**)realloc(eventQueue, queueSizeMaxInput * sizeof(char*));
+  sendEventLengthMax = sendEventLengthMaxInput;
+  for (byte counter = 0; counter < queueSizeMaxInput; counter++) {
     eventQueue[counter] = (char*)malloc((sendEventLengthMax + 1) * sizeof(char));
   }
-  eventIDqueue = (byte*)malloc(queueSizeMax * sizeof(byte));
-  sendPayloadLengthMax = sendPayloadLengthMaxInput;
-  payloadQueue = (char**)malloc(queueSizeMax * sizeof(char*));
+
+  eventIDqueue = (byte*)realloc(eventIDqueue, queueSizeMaxInput * sizeof(byte));
+
   for (byte counter = 0; counter < queueSizeMax; counter++) {
+    free(payloadQueue[counter]);
+  }
+  payloadQueue = (char**)realloc(payloadQueue, queueSizeMaxInput * sizeof(char*));
+  sendPayloadLengthMax = sendPayloadLengthMaxInput;
+  for (byte counter = 0; counter < queueSizeMaxInput; counter++) {
     payloadQueue[counter] = (char*)malloc((sendPayloadLengthMax + 1) * sizeof(char));
   }
-  resendFlagQueue = (byte*)malloc(queueSizeMax * sizeof(byte));
+
+  resendFlagQueue = (byte*)realloc(resendFlagQueue, queueSizeMaxInput * sizeof(byte));
 
   //size received event buffers
   receivedEventLengthMax = receivedEventLengthMaxInput;
-  receivedEvent = (char*)malloc((receivedEventLengthMax + 1) * sizeof(char));
+  receivedEvent = (char*)realloc(receivedEvent, (receivedEventLengthMax + 1) * sizeof(char));
   receivedPayloadLengthMax = receivedPayloadLengthMaxInput;
-  receivedPayload = (char*)malloc((receivedPayloadLengthMax + 1) * sizeof(char));
+  receivedPayload = (char*)realloc(receivedPayload, (receivedPayloadLengthMax + 1) * sizeof(char));
+  queueSizeMax = queueSizeMaxInput;
   if (IPqueue == NULL || portQueue == NULL || eventQueue == NULL || eventIDqueue == NULL || payloadQueue == NULL || resendFlagQueue == NULL || receivedEvent == NULL || receivedPayload == NULL || EtherEvent.begin(password, receivedEventLengthMax, eventIDlength + receivedPayloadLengthMax) == false) {
     Serial.println(F("memory allocation failed"));
     return false;
