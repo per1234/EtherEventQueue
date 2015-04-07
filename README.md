@@ -28,8 +28,6 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
   - EtherEventQueueNodes.h - IP addresses of nodes can be defined here, then events can be queued for sending to a node using just the node number and the status of the node will be monitored.
   - EtherEventQueue.cpp
     - DEBUG - Set this to true to enable debug output via serial. This will increase the sketch size dramatically so only enable when needed.
-    - receiveNodesOnly - Set this to true to only allow events to be received from IP addresses defined in EtherEventQueueNodes.h
-    - sendNodesOnly - Set this to true to only allow events to be sent to IP addresses defined in EtherEventQueueNodes.h
   - EtherEventQueue.h
     - eventKeepalive - The event that can be periodically send to keep nodes from being considered timed out. The default value is "100". This event will not be passed on via availableEvent(). Any event will reset the timeout timer so this event only needs to be used if no other event has been sent within the timeout duration.
     - eventAck - The event that is sent back to the sender's IP address to acknowledge that an event has been received. The default value is "101". The payload of the ack is the ID number of the received event. When an ack is received it will not be passed on via availableEvent(). It is used to remove events that were queued with the resendFlag=2.
@@ -208,7 +206,16 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 `EtherEventQueue.getNodeTimeoutDuration()` - Returns the value of the node timeout duration.
 - Parameter: none
 - Returns: nodeTimeoutDuration - (ms)The amout of time without receiving an event from a node before it is considered timed out.
-  
+
+`EtherEventQueue.receiveNodesOnly(receiveNodesOnlyValue)` - Receive events from nodes only. This feature is turned off by default.
+- Parameter: receiveNodesOnlyValue - true == receive from nodes only, false == receive from any IP address.
+  - Type: boolean
+- Returns: none
+
+`EtherEventQueue.sendNodesOnly(sendNodesOnlyValue)` - Send events to nodes only. This feature is turned off by default.
+- Parameter: sendNodesOnlyValue - true == semd to nodes only, false == send to any IP address.
+  - Type: boolean
+- Returns: none
 
 
  #### Process

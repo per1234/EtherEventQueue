@@ -7,18 +7,8 @@
 #include "EtherEvent.h"  //http://github.com/per1234/EtherEvent
 //#include "Flash.h"  //https://github.com/rkhamilton/Flash - uncomment this line if you have the Flash library installed
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//START user configuration parameters
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define DEBUG false  //(false == serial debug output off,  true == serial debug output on)The serial debug output will increase memory usage and communication latency so only enable when in use.
 #define Serial if(DEBUG)Serial
-
-const boolean receiveNodesOnly = false;  //restrict event receiving to nodes only
-const boolean sendNodesOnly = false;  //restrict event sending to nodes only
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//END user configuration parameters
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const unsigned long nodeTimeoutDurationDefault = 270000;  //(ms)the node is timed out if it has been longer than this duration since the last event was received from it
 const unsigned int resendDelayDefault = 45000;  //(ms)delay between resends of messages
@@ -151,7 +141,7 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
       if (senderNode >= 0) {  //receivedIP is a node(-1 indicates no node match)
         nodeTimestamp[senderNode] = nodeTimestamp[nodeDevice];  //set the individual timestamp, any communication is considered to be a keepalive - the nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() twice for efficiency
       }
-      else if (receiveNodesOnly == 1) {  //the event was not received from a node and it is configured to receive events from node IPs only
+      else if (receiveNodesOnlyState == 1) {  //the event was not received from a node and it is configured to receive events from node IPs only
         Serial.println(F("EtherEventQueue.availableEvent: unauthorized IP"));
         EtherEvent.flushReceiver();  //event has not been read yet so have to flush
         return 0;
@@ -742,7 +732,7 @@ byte EtherEventQueueClass::queue(const IPAddress targetIP, unsigned int targetPo
   Serial.println(F("EtherEventQueue.queue(IP, char event, char payload version): start"));
   byte success = 0;
   int targetNode = getNode(targetIP);
-  if (sendNodesOnly == 1 && targetNode < 0) {  //not a node
+  if (sendNodesOnlyState == 1 && targetNode < 0) {  //not a node
     Serial.println(F("EtherEventQueue.queue: not a node"));
     return 0;
   }
@@ -979,6 +969,27 @@ void EtherEventQueueClass::setNodeTimeoutDuration(unsigned int nodeTimeoutDurati
 unsigned int EtherEventQueueClass::getNodeTimeoutDuration() {
   return nodeTimeoutDuration;
 }
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//receiveNodesOnly
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EtherEventQueueClass::receiveNodesOnly(boolean receiveNodesOnlyValue) {
+  receiveNodesOnlyState = receiveNodesOnlyValue;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//sendNodesOnly
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EtherEventQueueClass::sendNodesOnly(boolean sendNodesOnlyValue) {
+  sendNodesOnlyState = sendNodesOnlyValue;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//private functions
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////

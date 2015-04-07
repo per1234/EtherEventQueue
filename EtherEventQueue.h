@@ -99,14 +99,17 @@ class EtherEventQueueClass {
     unsigned int getResendDelay();
     void setNodeTimeoutDuration(unsigned int nodeTimeoutDurationValue);
     unsigned int getNodeTimeoutDuration();
+    void receiveNodesOnly(boolean receiveNodesOnlyValue = true);
+    void sendNodesOnly(boolean sendNodesOnlyValue = true);
 
     //public constants
     const byte queueTypeOnce = 0;
     const byte queueTypeRepeat = 1;
     const byte queueTypeConfirm = 2;
 
-    const char eventKeepalive[] = "100";  //the library handles these special events differently
-    const char eventAck[] = "101";
+    //the library handles these special events differently
+    const char eventKeepalive[4] = {'1', '0', '0', 0};
+    const char eventAck[4] = {'1','0', '1', 0};
 
   private:
     byte eventIDfind();
@@ -145,6 +148,8 @@ class EtherEventQueueClass {
     byte receivedEventLength;
     unsigned long nodeTimeoutDuration;
     unsigned int resendDelay;
+    boolean receiveNodesOnlyState;  //restrict event receiving to nodes only
+    boolean sendNodesOnlyState;  //restrict event sending to nodes only
 };
 extern EtherEventQueueClass EtherEventQueue;  //declare the class so it doesn't have to be done in the sketch
 #endif

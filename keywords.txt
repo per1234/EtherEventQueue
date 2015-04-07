@@ -20,3 +20,5 @@ getNodeTimeoutDuration	KEYWORD2
 eventIDfind	KEYWORD2
 remove	KEYWORD2
 IPcopy	KEYWORD2
+receiveNodesOnly	KEYWORD2
+sendNodesOnly	KEYWORD2
