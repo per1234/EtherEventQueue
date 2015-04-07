@@ -94,7 +94,7 @@ class EtherEventQueueClass {
           return node;
         }
       }
-      Serial.print(F("EtherEventQueue.getNode: node not found"));
+      Serial.println(F("EtherEventQueue.getNode: node not found"));
       return -1;  //no match
     }
 

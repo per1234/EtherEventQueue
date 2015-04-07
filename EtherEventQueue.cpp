@@ -37,6 +37,9 @@ const byte int32_tLengthMax = 10; //10 digits
 //begin
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 boolean EtherEventQueueClass::begin(const char password[], byte nodeDeviceInput, unsigned int portInput, byte queueSizeMaxInput, byte sendEventLengthMaxInput, byte sendPayloadLengthMaxInput, byte receivedEventLengthMaxInput, byte receivedPayloadLengthMaxInput) {
+#if DEBUG == true
+  delay(15);  //There needs to be a delay between the calls to Serial.begin() in sketch setup() and here or garbage will be printed to the serial monitor
+#endif
   Serial.begin(9600);  //for debugging
   Serial.println(F("\n\n\nEtherEventQueue.begin"));
   nodeDevice = nodeDeviceInput;
@@ -84,7 +87,7 @@ boolean EtherEventQueueClass::begin(const char password[], byte nodeDeviceInput,
   receivedEvent = (char*)realloc(receivedEvent, (receivedEventLengthMax + 1) * sizeof(char));
   receivedPayloadLengthMax = receivedPayloadLengthMaxInput;
   receivedPayload = (char*)realloc(receivedPayload, (receivedPayloadLengthMax + 1) * sizeof(char));
-  queueSizeMax = queueSizeMaxInput;
+  queueSizeMax = queueSizeMaxInput;  //save the new queueSizeMax, this is done at the end of begin() because it needs to remember the previous value for freeing the array items
   if (IPqueue == NULL || portQueue == NULL || eventQueue == NULL || eventIDqueue == NULL || payloadQueue == NULL || resendFlagQueue == NULL || receivedEvent == NULL || receivedPayload == NULL || EtherEvent.begin(password, receivedEventLengthMax, eventIDlength + receivedPayloadLengthMax) == false) {
     Serial.println(F("memory allocation failed"));
     return false;
