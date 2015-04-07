@@ -6,16 +6,16 @@
 #include "Ethernet.h"
 #include "EtherEvent.h"  //http://github.com/per1234/EtherEvent
 //#include "Flash.h"  //https://github.com/rkhamilton/Flash - uncomment this line if you have the Flash library installed
+using namespace etherEventQueue;
 
 #define DEBUG false  //(false == serial debug output off,  true == serial debug output on)The serial debug output will increase memory usage and communication latency so only enable when in use.
 #define Serial if(DEBUG)Serial
 
 const unsigned long nodeTimeoutDurationDefault = 270000;  //(ms)the node is timed out if it has been longer than this duration since the last event was received from it
 const unsigned int resendDelayDefault = 45000;  //(ms)delay between resends of messages
-using namespace etherEventQueue;
-const byte nodeCount = sizeof(nodeIP) / sizeof(nodeIP[0]);
 const byte eventIDlength = 2;  //number of characters of the message ID that is appended to the start of the raw payload, the event ID must be exactly this length
 
+const byte nodeCount = sizeof(nodeIP) / sizeof(nodeIP[0]);
 //type lengths - used for conversion of number to strings
 const byte uint16_tLengthMax = 6; //sign + 5 digits
 const byte int16_tLengthMax = 5; //5 digits

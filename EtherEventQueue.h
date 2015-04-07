@@ -18,6 +18,25 @@ class EtherEventQueueClass {
     IPAddress senderIP();
 #endif
     void flushReceiver();
+
+    //port optional queue() templates
+    template <typename targetType, typename eventType, typename payloadType>
+    byte queue(targetType target, eventType event, payloadType payload, byte resendFlag) {
+      return queue(target, port, event, payload, resendFlag);
+    }
+    template <typename targetType, typename eventType, typename payloadType>
+    byte queue(targetType target, eventType event, byte eventLength, payloadType payload, byte resendFlag) {
+      return queue(target, port, event, eventLength, payload, resendFlag);
+    }
+    template <typename targetType, typename eventType, typename payloadType>
+    byte queue(targetType target, eventType event, payloadType payload, byte payloadLength, byte resendFlag) {
+      return queue(target, port, event, payload, payloadLength, resendFlag);
+    }
+    template <typename targetType, typename eventType, typename payloadType>
+    byte queue(targetType target, eventType event, byte eventLength, payloadType payload, byte payloadLength, byte resendFlag) {
+      return queue(target, port, event, eventLength, payload, payloadLength, resendFlag);
+    }
+
     byte queue(byte targetNode, unsigned int port, const char event[], const char payload[], byte resendFlag);
     byte queue(byte targetNode, unsigned int port, const char event[], const __FlashStringHelper* payload, byte payloadLength, byte resendFlag);
     byte queue(byte targetNode, unsigned int port, const char event[], int16_t payloadInt, byte resendFlag);
@@ -109,7 +128,7 @@ class EtherEventQueueClass {
 
     //the library handles these special events differently
     const char eventKeepalive[4] = {'1', '0', '0', 0};
-    const char eventAck[4] = {'1','0', '1', 0};
+    const char eventAck[4] = {'1', '0', '1', 0};
 
   private:
     byte eventIDfind();

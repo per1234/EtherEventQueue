@@ -46,7 +46,7 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
   - Type: char array
 - Parameter: deviceID - The node number of the device. The device IP address must be in the node array in EtherEventQueue.cpp.
   - Type: byte
-- Parameter: port - The port being used for events. This is used only for sending acks, queue() allows sending to any port, the device Ethernet port is configured with the EthernetServer initialization.
+- Parameter: port - The default port used for sending events. This is used when no port is specified with queue().
   - Type: unsigned int
 - Parameter(optional): queueSizeMax - Maximum number of events to queue. Longer entries will be truncated to this length. If this parameter is not passed then the default will be used.
   - Type: byte
@@ -93,7 +93,7 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 `EtherEventQueue.queue(target, port, event, payload, resendFlag)` - Send an event and payload
 - Parameter: target - takes either the IP address or node number of the target device
   - Type: IPAddress/byte
-- Parameter: port: - port to send the event to
+- Parameter(optional): port: - Port to send the event to. If no port is specified then the event will be sent to the default port set in begin().
   - Type: unsigned int
 - Parameter: event: - string to send as the event
   - Type: char/int
