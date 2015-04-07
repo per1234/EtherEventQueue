@@ -118,7 +118,9 @@ class EtherEventQueueClass {
     unsigned int getResendDelay();
     void setNodeTimeoutDuration(unsigned int nodeTimeoutDurationValue);
     unsigned int getNodeTimeoutDuration();
+#ifdef ethernetclientwithremoteIP_h
     void receiveNodesOnly(boolean receiveNodesOnlyValue = true);
+#endif
     void sendNodesOnly(boolean sendNodesOnlyValue = true);
 
     //public constants
