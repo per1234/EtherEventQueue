@@ -16,8 +16,6 @@
 const boolean receiveNodesOnly = false;  //restrict event receiving to nodes only
 const boolean sendNodesOnly = false;  //restrict event sending to nodes only
 
-const char eventKeepalive[] = "100";  //the library handles these special events differently
-const char eventAck[] = "101";
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //END user configuration parameters
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////

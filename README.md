@@ -30,6 +30,7 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
     - DEBUG - Set this to true to enable debug output via serial. This will increase the sketch size dramatically so only enable when needed.
     - receiveNodesOnly - Set this to true to only allow events to be received from IP addresses defined in EtherEventQueueNodes.h
     - sendNodesOnly - Set this to true to only allow events to be sent to IP addresses defined in EtherEventQueueNodes.h
+  - EtherEventQueue.h
     - eventKeepalive - The event that can be periodically send to keep nodes from being considered timed out. The default value is "100". This event will not be passed on via availableEvent(). Any event will reset the timeout timer so this event only needs to be used if no other event has been sent within the timeout duration.
     - eventAck - The event that is sent back to the sender's IP address to acknowledge that an event has been received. The default value is "101". The payload of the ack is the ID number of the received event. When an ack is received it will not be passed on via availableEvent(). It is used to remove events that were queued with the resendFlag=2.
 - Restart the Arduino IDE

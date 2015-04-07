@@ -105,6 +105,9 @@ class EtherEventQueueClass {
     const byte queueTypeRepeat = 1;
     const byte queueTypeConfirm = 2;
 
+    const char eventKeepalive[] = "100";  //the library handles these special events differently
+    const char eventAck[] = "101";
+
   private:
     byte eventIDfind();
     void remove(byte queueStep);
