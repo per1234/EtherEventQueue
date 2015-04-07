@@ -6,12 +6,6 @@
 //#include "Flash.h"  //https://github.com/rkhamilton/Flash - uncomment this line if you have the Flash library installed
 #include "EtherEventQueueNodes.h"
 
-namespace etherEventQueue {
-const byte queueTypeOnce = 0;
-const byte queueTypeRepeat = 1;
-const byte queueTypeConfirm = 2;
-}
-
 class EtherEventQueueClass {
   public:
     EtherEventQueueClass();
@@ -105,6 +99,12 @@ class EtherEventQueueClass {
     unsigned int getResendDelay();
     void setNodeTimeoutDuration(unsigned int nodeTimeoutDurationValue);
     unsigned int getNodeTimeoutDuration();
+
+    //public constants
+    const byte queueTypeOnce = 0;
+    const byte queueTypeRepeat = 1;
+    const byte queueTypeConfirm = 2;
+
   private:
     byte eventIDfind();
     void remove(byte queueStep);
