@@ -219,6 +219,9 @@ class EtherEventQueueClass {
 
 
     IPAddress getIP(byte nodeNumber);
+    void sendKeepalive(unsigned int port);
+    unsigned long getSendKeepaliveMargin();
+    void setSendKeepaliveMargin(unsigned long sendKeepaliveMarginInput);
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
   private:
@@ -272,6 +275,9 @@ class EtherEventQueueClass {
     byte* nodeState;  //1=not timed out 0=timed out - state at the last check
     unsigned long* nodeTimestamp;
     unsigned long nodeTimeoutDuration;
+    unsigned long sendKeepaliveMargin;
+
+
     byte eventIDfind();
     void remove(byte queueStep);
 

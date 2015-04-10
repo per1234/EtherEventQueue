@@ -476,7 +476,7 @@ void EtherEventQueueClass::flushQueue() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int8_t EtherEventQueueClass::checkTimeout() {
   for (byte node = 0; node < nodeCount; node++) {
-    if (nodeIP[0] == 0 && nodeIP[1] == 0 && nodeIP[2] == 0 && nodeIP[3] == 0) { //node has not been set
+    if (nodeIP[node][0] == 0 && nodeIP[node][1] == 0 && nodeIP[node][2] == 0 && nodeIP[node][3] == 0) { //node has not been set
       continue;
     }
     if (nodeState[node] == nodeStateActive && millis() - nodeTimestamp[node] > nodeTimeoutDuration) {  //previous state not timed out, and is currently timed out
@@ -496,10 +496,10 @@ int8_t EtherEventQueueClass::checkTimeout() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int8_t EtherEventQueueClass::checkTimein() {
   for (byte node = 0; node < nodeCount; node++) {
-    if (nodeIP[0] == 0 && nodeIP[1] == 0 && nodeIP[2] == 0 && nodeIP[3] == 0) { //node has not been set
+    if (nodeIP[node][0] == 0 && nodeIP[node][1] == 0 && nodeIP[node][2] == 0 && nodeIP[node][3] == 0) { //node has not been set
       continue;
     }
-    if (nodeState[node] == nodeStateTimedOut && millis() - nodeTimestamp[node] < nodeTimeoutDuration) {  //node is newly timed out(since the last time the function was run)
+    if (nodeState[node] == nodeStateTimedOut && millis() - nodeTimestamp[node] < nodeTimeoutDuration) {  //node is newly timed in(since the last time the function was run)
       Serial.print(F("EtherEventQueue.checkTimein: timed in node="));
       Serial.println(node);
       nodeState[node] = nodeStateActive;  //set the node state to active
@@ -633,6 +633,35 @@ IPAddress EtherEventQueueClass::getIP(byte nodeNumber) {
     return IPAddress(nodeIP[nodeNumber][0], nodeIP[nodeNumber][1], nodeIP[nodeNumber][2], nodeIP[nodeNumber][3]);
   }
 }
+
+
+void EtherEventQueueClass::setSendKeepaliveMargin(unsigned long sendKeepaliveMarginInput) {
+  sendKeepaliveMargin = min(sendKeepaliveMarginInput, nodeTimeoutDuration);
+}
+
+
+unsigned long EtherEventQueueClass::getSendKeepaliveMargin() {
+  return sendKeepaliveMargin;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//sendKeepalive
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EtherEventQueueClass::sendKeepalive(unsigned int port) {
+  for (byte node = 0; node < nodeCount; node++) {
+    if (node == nodeDevice || (nodeIP[node][0] == 0 && nodeIP[node][1] == 0 && nodeIP[node][2] == 0 && nodeIP[node][3] == 0)) { //device node or node has not been set
+      continue;
+    }
+    if (millis() - nodeTimestamp[node] > nodeTimeoutDuration - sendKeepaliveMargin) { //node is newly timed out(since the last time the function was run)
+      Serial.print(F("EtherEventQueue.sendKeepalive: sending to node="));
+      Serial.println(node);
+      queue(node, port, eventKeepalive, "", queueTypeOnce);
+    }
+  }
+  Serial.println(F("EtherEventQueue.sendKeepalive: no keepalive sent"));
+}
+
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////

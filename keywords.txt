@@ -25,3 +25,6 @@ sendNodesOnly	KEYWORD2
 setNode	KEYWORD2
 removeNode	KEYWORD2
 getIP	KEYWORD2
+sendKeepalive	KEYWORD2
+getSendKeepaliveMargin	KEYWORD2
+setSendKeepaliveMargin	KEYWORD2

@@ -10,7 +10,7 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 - EtherEvent http://github.com/per1234/EtherEvent
 
 #### Related Programs
-- Modified Ethernet library - allows the event sender's IP address to be recorded: http://github.com/per1234/Ethernet - make sure to choose the correct branch for your Arduino IDE version
+- Modified Ethernet library - allows the event sender's IP address to be recorded: http://github.com/per1234/Ethernet - make sure to choose the correct branch for your Arduino IDE version. If this library is not installed then timestamp for external nodes will not be reset on received event, senderIP function is disabled, and receiveNodesOnly function is disabled.
 - UIPEthernet library for ENC28J60 ethernet chip: http://github.com/ntruchsess/arduino_uip
 - EventGhost free open source automation tool for Windows http://eventghost.com
 - TCP Events EventGhost plugin: http://www.eventghost.org/forum/viewtopic.php?p=16803 download link: http://docs.google.com/uc?id=0B3RTucUBY2bwVW5MQWdvRU90eTA - Improved network event sender/receiver allows sending events to multiple IP addresses
@@ -192,6 +192,24 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
   - Type: byte
 - Returns: IP address of the given node.
   -Type: IPAddress
+
+
+`EtherEventQueue.sendKeepalive(port)` - Sends keepalive to the first node that is within the keepalive margin of being timed out.
+- Parameter: port - The port to send keepalives to.
+  - Type: unsigned int
+- Returns: none
+
+
+`EtherEventQueue.getSendKeepaliveMargin()` - Returns the keepalive margin value.
+- Parameter: none
+- Returns: keepalive margin - (ms)the amount of time before the end of the timeout duration to send the keepalive.
+  -Type: unsigned long
+
+
+`EtherEventQueue.setSendKeepaliveMargin(keepaliveMargin)` - Sets the keepalive margin value.
+- Parameter: keepaliveMargin - (ms)the amount of time before the end of the timeout duration to send the keepalive.
+  - Type: unsigned long
+- Returns: none
 
 
  #### Process
