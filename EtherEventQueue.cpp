@@ -162,7 +162,7 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
 
       nodeTimestamp[nodeDevice] = millis();  //set the device timestamp(using the nodeDevice because that part of the array is never used otherwise)
 #ifdef ethernetclientwithremoteIP_h  //this function is only available if the modified Ethernet library is installed
-      //update timed out status of the event sender
+      //update timestamp of the event sender
       byte senderNode = getNode(receivedIP);  //get the node of the senderIP
       if (senderNode >= 0) {  //receivedIP is a node(-1 indicates no node match)
         nodeTimestamp[senderNode] = nodeTimestamp[nodeDevice];  //set the individual timestamp, any communication is considered to be a keepalive - the nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() twice for efficiency
@@ -438,6 +438,13 @@ void EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
 
       if (EtherEvent.send(ethernetClient, IPqueue[queueStepSend], portQueue[queueStepSend], eventQueue[queueStepSend], payload) > 0) {
         Serial.println(F("EtherEventQueue.queueHandler: send successful"));
+        nodeTimestamp[nodeDevice] = millis();  //set the device timestamp(using the nodeDevice because that part of the array is never used otherwise)
+        //update timestamp of the target node
+        byte targetNode = getNode(IPqueue[queueStepSend]);  //get the node of the senderIP
+        if (targetNode >= 0) {  //receivedIP is a node(-1 indicates no node match)
+          nodeTimestamp[targetNode] = nodeTimestamp[nodeDevice];  //set the individual timestamp, any communication is considered to be a keepalive - the nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() twice for efficiency
+        }
+
         if (resendFlagQueue[queueStepSend] != queueTypeConfirm) {  //the flag indicates not to wait for an ack
           Serial.println(F("EtherEventQueue.queueHandler: resendFlag != queueTypeConfirm, event removed from queue"));
           remove(queueStepSend);  //remove the message from the queue immediately
