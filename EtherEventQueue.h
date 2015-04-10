@@ -4,12 +4,32 @@
 #include <SPI.h>  //for the ethernet library
 #include "Ethernet.h"
 //#include "Flash.h"  //https://github.com/rkhamilton/Flash - uncomment this line if you have the Flash library installed
-#include "EtherEventQueueNodes.h"
+
+#define DEBUG false  //(false == serial debug output off,  true == serial debug output on)The serial debug output will increase memory usage and communication latency so only enable when in use.
+#define ETHEREVENTQUEUE_SERIAL if(DEBUG)Serial  //I have to use a different name for Serial in this file otherwise the debug statement control also effects any other file that includes this file.
+
 
 class EtherEventQueueClass {
   public:
+    //public constants
+    const byte queueTypeOnce = 0;
+    const byte queueTypeRepeat = 1;
+    const byte queueTypeConfirm = 2;
+
+    const byte queueSuccessOverflow = 2;
+
+    //the library handles these special events differently
+    const char eventKeepalive[4] = {'1', '0', '0', 0};
+    const char eventAck[4] = {'1', '0', '1', 0};
+
+
     EtherEventQueueClass();
-    boolean begin(const char password[], byte nodeDeviceInput, unsigned int portInput, byte queueSizeMaxInput = 5, byte sendEventLengthMaxInput = 15, byte sendPayloadLengthMaxInput = 80, byte receiveEventLengthMaxInput = 15, byte receivePayloadLengthMaxInput = 80);
+
+    boolean begin(const char password[]);
+    boolean begin(const char password[], byte queueSizeMaxInput, byte sendEventLengthMaxInput, byte sendPayloadLengthMaxInput, byte receivedEventLengthMaxInput, byte receivedPayloadLengthMaxInput);
+    boolean begin(const char password[], byte nodeDeviceInput, byte nodeCountInput);
+    boolean begin(const char password[], byte nodeDeviceInput, byte nodeCountInput, byte queueSizeMaxInput, byte sendEventLengthMaxInput, byte sendPayloadLengthMaxInput, byte receivedEventLengthMaxInput, byte receivedPayloadLengthMaxInput);
+
     byte availableEvent(EthernetServer &ethernetServer);
     byte availablePayload();
     void readEvent(char eventBuffer[]);
@@ -19,130 +39,214 @@ class EtherEventQueueClass {
 #endif
     void flushReceiver();
 
-    //port optional queue() templates
-    template <typename targetType, typename eventType, typename payloadType>
-    byte queue(targetType target, eventType event, payloadType payload, byte resendFlag) {
-      return queue(target, port, event, payload, resendFlag);
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //queue
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    byte queue(const byte targetIP[], unsigned int port, const char event[], const char payload[], byte resendFlag);  //main queue prototype
+    byte queue(byte targetNode, unsigned int targetPort, const char event[], const char payload[], byte resendFlag);
+    byte queue(IPAddress targetIPAddress, unsigned int port,  const char event[], const char payload[], byte resendFlag);
+
+    //convert event
+    template <typename targetType, typename payloadType>
+    byte queue(const targetType &target, unsigned int port, int16_t event, payloadType payload, byte resendFlag) {
+      char eventChar[int16_tLengthMax + 1];
+      itoa(event, eventChar, 10);
+      return queue(target, port, eventChar, payload, resendFlag);
     }
-    template <typename targetType, typename eventType, typename payloadType>
-    byte queue(targetType target, eventType event, byte eventLength, payloadType payload, byte resendFlag) {
-      return queue(target, port, event, eventLength, payload, resendFlag);
+    template <typename targetType, typename payloadType>
+    byte queue(const targetType &target, unsigned int port, uint16_t event, payloadType payload, byte resendFlag) {
+      char eventChar[uint16_tLengthMax + 1];
+      sprintf_P(eventChar, PSTR("%u"), event);
+      return queue(target, port, eventChar, payload, resendFlag);
     }
-    template <typename targetType, typename eventType, typename payloadType>
-    byte queue(targetType target, eventType event, payloadType payload, byte payloadLength, byte resendFlag) {
-      return queue(target, port, event, payload, payloadLength, resendFlag);
+    template <typename targetType, typename payloadType>
+    byte queue(const targetType &target, unsigned int port, int32_t event, payloadType payload, byte resendFlag) {
+      char eventChar[int32_tLengthMax + 1];
+      ltoa(event, eventChar, 10);
+      return queue(target, port, eventChar, payload, resendFlag);
     }
-    template <typename targetType, typename eventType, typename payloadType>
-    byte queue(targetType target, eventType event, byte eventLength, payloadType payload, byte payloadLength, byte resendFlag) {
-      return queue(target, port, event, eventLength, payload, payloadLength, resendFlag);
+    template <typename targetType, typename payloadType>
+    byte queue(const targetType &target, unsigned int port, uint32_t event, payloadType payload, byte resendFlag) {
+      char eventChar[uint32_tLengthMax + 1];
+      ultoa(event, eventChar, 10);
+      return queue(target, port, eventChar, payload, resendFlag);
+    }
+    template <typename targetType, typename payloadType>
+    byte queue(const targetType &target, unsigned int port, const __FlashStringHelper* event, byte eventLength, payloadType payload, byte resendFlag) {
+      char eventChar[eventLength + 1];
+      memcpy_P(eventChar, event, eventLength + 1);  //+1 for the null terminator
+      return queue(target, port, eventChar, payload, resendFlag);
     }
 
-    byte queue(byte targetNode, unsigned int port, const char event[], const char payload[], byte resendFlag);
-    byte queue(byte targetNode, unsigned int port, const char event[], const __FlashStringHelper* payload, byte payloadLength, byte resendFlag);
-    byte queue(byte targetNode, unsigned int port, const char event[], int16_t payloadInt, byte resendFlag);
-    byte queue(byte targetNode, unsigned int port, const char event[], uint16_t payloadUint, byte resendFlag);
-    byte queue(byte targetNode, unsigned int port, const char event[], int32_t payloadLong, byte resendFlag);
-    byte queue(byte targetNode, unsigned int port, const char event[], uint32_t payloadUlong, byte resendFlag);
-    byte queue(const IPAddress targetIP, unsigned int port, const char event[], const __FlashStringHelper* payload, byte payloadLength, byte resendFlag);
-    byte queue(const IPAddress targetIP, unsigned int port, const char event[], int16_t payloadInt, byte resendFlag);
-    byte queue(const IPAddress targetIP, unsigned int port, const char event[], uint16_t payloadUint, byte resendFlag);
-    byte queue(const IPAddress targetIP, unsigned int port, const char event[], int32_t payloadLong, byte resendFlag);
-    byte queue(const IPAddress targetIP, unsigned int port, const char event[], uint32_t payloadUlong, byte resendFlag);
-    byte queue(const IPAddress targetIP, unsigned int port, const char event[], const char payload[], byte resendFlag);
-    byte queue(byte targetNode, unsigned int port, int event, const char payload[], byte resendFlag);
-    byte queue(byte targetNode, unsigned int port, int event, const __FlashStringHelper* payload, byte payloadLength, byte resendFlag);
-    byte queue(byte targetNode, unsigned int port, int event, int16_t payloadInt, byte resendFlag);
-    byte queue(byte targetNode, unsigned int port, int event, uint16_t payloadUint, byte resendFlag);
-    byte queue(byte targetNode, unsigned int port, int event, int32_t payloadLong, byte resendFlag);
-    byte queue(byte targetNode, unsigned int port, int event, uint32_t payloadUlong, byte resendFlag);
-    byte queue(const IPAddress targetIP, unsigned int port, int event, const __FlashStringHelper* payload, byte payloadLength, byte resendFlag);
-    byte queue(const IPAddress targetIP, unsigned int port, int event, int16_t payloadInt, byte resendFlag);
-    byte queue(const IPAddress targetIP, unsigned int port, int event, uint16_t payloadUint, byte resendFlag);
-    byte queue(const IPAddress targetIP, unsigned int port, int event, int32_t payloadLong, byte resendFlag);
-    byte queue(const IPAddress targetIP, unsigned int port, int event, uint32_t payloadUlong, byte resendFlag);
-    byte queue(const IPAddress targetIP, unsigned int port, int16_t event, const char payload[], byte resendFlag);
-    byte queue(byte targetNode, unsigned int port, const __FlashStringHelper* event, byte eventLength, const char payload[], byte resendFlag);
-    byte queue(byte targetNode, unsigned int port, const __FlashStringHelper* event, byte eventLength, const __FlashStringHelper* payload, byte payloadLength, byte resendFlag);
-    byte queue(byte targetNode, unsigned int port, const __FlashStringHelper* event, byte eventLength, int16_t payloadInt, byte resendFlag);
-    byte queue(byte targetNode, unsigned int port, const __FlashStringHelper* event, byte eventLength, uint16_t payloadUint, byte resendFlag);
-    byte queue(byte targetNode, unsigned int port, const __FlashStringHelper* event, byte eventLength, int32_t payloadLong, byte resendFlag);
-    byte queue(byte targetNode, unsigned int port, const __FlashStringHelper* event, byte eventLength, uint32_t payloadUlong, byte resendFlag);
-    byte queue(const IPAddress targetIP, unsigned int port, const __FlashStringHelper* event, byte eventLength, const __FlashStringHelper* payload, byte payloadLength, byte resendFlag);
-    byte queue(const IPAddress targetIP, unsigned int port, const __FlashStringHelper* event, byte eventLength, int16_t payloadInt, byte resendFlag);
-    byte queue(const IPAddress targetIP, unsigned int port, const __FlashStringHelper* event, byte eventLength, uint16_t payloadUint, byte resendFlag);
-    byte queue(const IPAddress targetIP, unsigned int port, const __FlashStringHelper* event, byte eventLength, int32_t payloadLong, byte resendFlag);
-    byte queue(const IPAddress targetIP, unsigned int port, const __FlashStringHelper* event, byte eventLength, uint32_t payloadUlong, byte resendFlag);
-    byte queue(const IPAddress targetIP, unsigned int port, const __FlashStringHelper* event, byte eventLength, const char payload[], byte resendFlag);
+    //convert payload
+    template <typename targetType>
+    byte queue(const targetType &target, unsigned int port, char event[], int16_t payload, byte resendFlag) {
+      char payloadChar[int16_tLengthMax + 1];
+      itoa(payload, payloadChar, 10);
+      return queue(target, port, event, payloadChar, resendFlag);
+    }
+    template <typename targetType>
+    byte queue(const targetType &target, unsigned int port, char event[], uint16_t payload, byte resendFlag) {
+      char payloadChar[uint16_tLengthMax + 1];
+      sprintf_P(payloadChar, PSTR("%u"), payload);
+      return queue(target, port, event, payloadChar, resendFlag);
+    }
+    template <typename targetType>
+    byte queue(const targetType &target, unsigned int port, char event[], int32_t payload, byte resendFlag) {
+      char payloadChar[int32_tLengthMax + 1];
+      ltoa(payload, payloadChar, 10);
+      return queue(target, port, event, payloadChar, resendFlag);
+    }
+    template <typename targetType>
+    byte queue(const targetType &target, unsigned int port, char event[], uint32_t payload, byte resendFlag) {
+      char payloadChar[uint32_tLengthMax + 1];
+      uloa(payload, payloadChar, 10);
+      return queue(target, port, event, payloadChar, resendFlag);
+    }
+    template <typename targetType, typename eventType>
+    byte queue(const targetType &target, unsigned int port, eventType event, const __FlashStringHelper* payload, byte payloadLength, byte resendFlag) {
+      char payloadChar[payloadLength + 1];
+      memcpy_P(payloadChar, payload, payloadLength + 1);  //+1 for the null terminator
+      return queue(target, port, event, payloadChar, resendFlag);
+    }
+
+
+    //convert F() event and payload
+    template <typename targetType>
+    byte queue(const targetType &target, unsigned int port, const __FlashStringHelper* event, byte eventLength, const __FlashStringHelper* payload, byte payloadLength, byte resendFlag) {
+      char eventChar[eventLength + 1];
+      memcpy_P(eventChar, event, eventLength + 1);  //+1 for the null terminator
+
+      char payloadChar[payloadLength + 1];
+      memcpy_P(payloadChar, payload, payloadLength + 1);  //+1 for the null terminator
+
+      return queue(target, port, eventChar, payloadChar, resendFlag);
+    }
+
+    //Flash templates
 #ifdef __FLASH_H__
-    byte queue(byte targetNode, unsigned int port, const char event[], _FLASH_STRING payloadFlashString, byte resendFlag);
-    byte queue(const IPAddress targetIP, unsigned int port, const char event[], _FLASH_STRING payloadFlashString, byte resendFlag);
-    byte queue(byte targetNode, unsigned int port, const __FlashStringHelper* event, byte eventLength, _FLASH_STRING payloadFlashString, byte resendFlag);
-    byte queue(const IPAddress targetIP, unsigned int port, const __FlashStringHelper* event, byte eventLength, _FLASH_STRING payloadFlashString, byte resendFlag);
-    byte queue(byte targetNode, unsigned int port, int event, _FLASH_STRING payloadFlashString, byte resendFlag);
-    byte queue(const IPAddress targetIP, unsigned int port, int event, _FLASH_STRING payloadFlashString, byte resendFlag);
+    template <typename targetType, typename payloadType>
+    byte queue(const targetType &target, unsigned int port, _FLASH_STRING event, payloadType payload, byte resendFlag) {
+      byte stringLength = event.length();
+      char eventChar[stringLength + 1];
+      event.copy(eventChar, stringLength + 1, 0);  //+1 for null terminator
+      return queue(target, port, eventChar, payload, resendFlag);
+    }
+    template <typename targetType, typename eventType>
+    byte queue(const targetType &target, unsigned int port, char event[], _FLASH_STRING payload, byte resendFlag) {
+      byte stringLength = payload.length();
+      char payloadChar[stringLength + 1];
+      payload.copy(payloadChar, stringLength + 1, 0);  //+1 for null terminator
+      return queue(target, port, event, payloadChar, resendFlag);
+    }
 #endif
+
+
+
     void queueHandler(EthernetClient &ethernetClient);
     void flushQueue();
     int8_t checkTimeout();
     int8_t checkTimein();
-    boolean checkState(byte node);
+    int8_t checkState(byte node);
 
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //getNode - template that can accept IPAddress or byte array type parameters - this function must be defined in the .h instead of the .cpp because it is a template
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
     template <typename IPtype>
-    int8_t getNode(const IPtype IPvalue) {
-      //Serial.println(F("EtherEventQueue.getNode: start"));
-      for (byte node = 0; node < sizeof(etherEventQueue::nodeIP) / sizeof(etherEventQueue::nodeIP[0]); node++) {  //step through all the nodes
+    int8_t getNode(const IPtype &IPvalue) {
+      //ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.getNode"));
+      for (byte node = 0; node < nodeCount; node++) {  //step through all the nodes
         byte octet;
         for (octet = 0; octet < 4; octet++) {
-          if (etherEventQueue::nodeIP[node][octet] != IPvalue[octet]) {  //mismatch
+          if (nodeIP[node][octet] != IPvalue[octet]) {  //mismatch
             octet = 0;
             break;  //check the next node for a match
           }
         }
         if (octet == 4) {  //node matched
-          //Serial.print(F("EtherEventQueue.getNode: node found="));
-          //Serial.println(node);
+          //ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.getNode: node found="));
+          //ETHEREVENTQUEUE_SERIAL.println(node);
           return node;
         }
       }
-      Serial.println(F("EtherEventQueue.getNode: node not found"));
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.getNode: node not found"));
       return -1;  //no match
     }
 
 
     boolean checkQueueOverflow();
-    void setResendDelay(unsigned int resendDelayValue);
-    unsigned int getResendDelay();
-    void setNodeTimeoutDuration(unsigned int nodeTimeoutDurationValue);
-    unsigned int getNodeTimeoutDuration();
+    void setResendDelay(unsigned long resendDelayValue);
+    unsigned long getResendDelay();
+    void setNodeTimeoutDuration(unsigned long nodeTimeoutDurationValue);
+    unsigned long getNodeTimeoutDuration();
 #ifdef ethernetclientwithremoteIP_h
     void receiveNodesOnly(boolean receiveNodesOnlyValue = true);
 #endif
     void sendNodesOnly(boolean sendNodesOnlyValue = true);
 
-    //public constants
-    const byte queueTypeOnce = 0;
-    const byte queueTypeRepeat = 1;
-    const byte queueTypeConfirm = 2;
 
-    //the library handles these special events differently
-    const char eventKeepalive[4] = {'1', '0', '0', 0};
-    const char eventAck[4] = {'1', '0', '1', 0};
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //setNode
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    template <typename IPtype>
+    boolean setNode(byte nodeNumber, const IPtype &nodeIPaddress) {
+      ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.setNode: node="));
+      ETHEREVENTQUEUE_SERIAL.println(nodeNumber);
+      if (nodeNumber >= nodeCount) { //sanity check
+        ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.setNode: invalid node number"));
+        return false;
+      }
+      //write the device IP address to nodeIP
+      for (byte counter = 0; counter < 4; counter++) {
+        nodeIP[nodeNumber][counter] = nodeIPaddress[counter];
+      }
+      nodeTimestamp[nodeNumber] = millis();
+      nodeState[nodeNumber] = nodeStateUnknown;  //start in unknown state
+      return true;
+    }
 
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //removeNode
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    void removeNode(byte nodeNumber);
+    template<typename IPtype>
+    void removeNode(const IPtype &nodeIPaddress) {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.removeNode"));
+      removeNode(getNode(nodeIPaddress));
+    }
+
+
+    IPAddress getIP(byte nodeNumber);
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
   private:
-    byte eventIDfind();
-    void remove(byte queueStep);
-    void IPcopy(byte IPdestination[], const IPAddress IPsource);
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+    //private constants - these are constants that need to be accessed in this file so they can't be defined in EtherEventQueue.cpp
+    const byte uint16_tLengthMax = 5;  //5 digits
+    const byte int16_tLengthMax = 1 + uint16_tLengthMax;  //sign + 5 digits
+    const byte uint32_tLengthMax = 10;  //10 digits
+    const byte int32_tLengthMax = 1 + uint32_tLengthMax;  //sign + 10 digits
+    const byte floatLengthMax = 1 + 7 + 1;  //sign + 7 digits + decimal
+    const byte nodeStateTimedOut = 0;
+    const byte nodeStateActive = 1;
+    const byte nodeStateUnknown = 2;
+
+    //private global variables
     byte nodeDevice;
-    unsigned int port;
+    unsigned int defaultPort;
     byte receivedEventLengthMax;
     char* receivedEvent;  //buffer to hold the received event
     byte receivedPayloadLengthMax;
     char* receivedPayload;  //buffer to hold the received payload
+#ifdef ethernetclientwithremoteIP_h
+    IPAddress receivedIP;
+#endif
+    byte receivedEventLength;
+    boolean receiveNodesOnlyState;  //restrict event receiving to nodes only
 
     byte queueSizeMax;
     byte** IPqueue;  //queue buffers
@@ -155,22 +259,35 @@ class EtherEventQueueClass {
     byte* resendFlagQueue;
 
     byte queueNewCount;  //number of new messages in the queue
+    byte localEventQueueCount;
     byte queueSize;  //how many messages are currently in the send queue
     byte queueStep;  //which message in the queue is it on
     unsigned long queueSendTimestamp;  //used for delayed resends of messages in the queue that failed the first time
-
-    byte nodeState[sizeof(etherEventQueue::nodeIP) / sizeof(etherEventQueue::nodeIP[0])]; //1=not timed out 0=timed out - state at the last check
-    unsigned long nodeTimestamp[sizeof(etherEventQueue::nodeIP) / sizeof(etherEventQueue::nodeIP[0])]; //last received event time
     byte queueOverflowFlag;
-    byte localEventQueueCount;
-#ifdef ethernetclientwithremoteIP_h
-    IPAddress receivedIP;
-#endif
-    byte receivedEventLength;
-    unsigned long nodeTimeoutDuration;
-    unsigned int resendDelay;
-    boolean receiveNodesOnlyState;  //restrict event receiving to nodes only
+    unsigned long resendDelay;
     boolean sendNodesOnlyState;  //restrict event sending to nodes only
+
+    byte nodeCount;
+    byte** nodeIP;
+    byte* nodeState;  //1=not timed out 0=timed out - state at the last check
+    unsigned long* nodeTimestamp;
+    unsigned long nodeTimeoutDuration;
+    byte eventIDfind();
+    void remove(byte queueStep);
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //IPcopy - copies IPAddress or 4 byte array to 4 byte array - IPdestination will contain the converted IPsource after this function is called
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    template<typename IPdestinationType, typename IPsourceType>
+    void IPcopy(IPdestinationType &IPdestination, const IPsourceType &IPsource) {
+      ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.IPcopy(array input): IPsource="));
+      ETHEREVENTQUEUE_SERIAL.println(IPAddress(IPsource));
+      for (byte counter = 0; counter < 4; counter++) {
+        IPdestination[counter] = IPsource[counter];
+      }
+    }
+
 };
 extern EtherEventQueueClass EtherEventQueue;  //declare the class so it doesn't have to be done in the sketch
 #endif

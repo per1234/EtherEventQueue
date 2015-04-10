@@ -41,22 +41,22 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 - Repeat with other connected devices. The serial monitor will show details of the test communications.
 
 #### Usage
-`EtherEventQueue.begin(password, deviceID, port[, queueSizeMax, sendEventLengthMax, sendPayloadLengthMax, receiveEventLengthMax, receivePayloadEventMax])` - Initialize EtherEventQueue.
+`EtherEventQueue.begin(password[, deviceID][, nodeCount][, queueSizeMax, sendEventLengthMax, sendPayloadLengthMax, receiveEventLengthMax, receivePayloadEventMax])` - Initialize EtherEventQueue.
 - Parameter: password - EtherEvent password. This must match the password set in EventGhost.
   - Type: char array
-- Parameter: deviceID - The node number of the device. The device IP address must be in the node array in EtherEventQueue.cpp.
+- Parameter(optional): deviceID - The node number of the device. The default value is 0.
   - Type: byte
-- Parameter: port - The default port used for sending events. This is used when no port is specified with queue().
-  - Type: unsigned int
-- Parameter(optional): queueSizeMax - Maximum number of events to queue. Longer entries will be truncated to this length. If this parameter is not passed then the default will be used.
+- Parameter(optional): nodeCount - The maximum number of nodes(including the device's node). The minimum value is 1 as one node is required for the device.  The default value is 1.
   - Type: byte
-- Parameter(optional): sendEventLengthMax - Maximum event length to send. Longer entries will be truncated to this length. If this parameter is not passed then the default will be used.
+- Parameter(optional): queueSizeMax - Maximum number of events to queue. Longer entries will be truncated to this length. The default value is 5.
   - Type: byte
-- Parameter(optional): sendPayloadLengthMax - Maximum payload length to send. Longer entries will be truncated to this length. If this parameter is not passed then the default will be used.
+- Parameter(optional): sendEventLengthMax - Maximum event length to send. Longer entries will be truncated to this length. The default value is 15.
   - Type: byte
-- Parameter(optional): receiveEventLengthMax - Maximum event length to receive. Longer entries will be truncated to this length. If this parameter is not passed then the default will be used.
+- Parameter(optional): sendPayloadLengthMax - Maximum payload length to send. Longer entries will be truncated to this length. The default value is 80.
   - Type: byte
-- Parameter(optional): receivePayloadEventMax - Maximum payload length to receive. Longer entries will be truncated to this length. If this parameter is not passed then the default will be used.
+- Parameter(optional): receiveEventLengthMax - Maximum event length to receive. Longer entries will be truncated to this length. The default value is 15.
+  - Type: byte
+- Parameter(optional): receivePayloadEventMax - Maximum payload length to receive. Longer entries will be truncated to this length. The default value is 80.
   - Type: byte
 - Returns: boolean - true = success, false = memory allocation failure
 
@@ -90,68 +90,22 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 - Parameter: none
 - Returns: none
 
-`EtherEventQueue.queue(target, port, event, payload, resendFlag)` - Send an event and payload
+`EtherEventQueue.queue(target[, port], event[, eventLength], payload[, payloadLength], resendFlag)` - Send an event and payload
 - Parameter: target - takes either the IP address or node number of the target device
-  - Type: IPAddress/byte
-- Parameter(optional): port: - Port to send the event to. If no port is specified then the event will be sent to the default port set in begin().
+  - Type: IPAddress/4 byte array/byte
+- Parameter: port: - Port to send the event to.
   - Type: unsigned int
 - Parameter: event: - string to send as the event
-  - Type: char/int
-- Parameter: payload:- payload to send with the event. If you don't want a payload then just use 0 for this parameter
-  - Type: char/int8_t/byte/int/unsigned int/long/unsigned long/_FLASH_STRING
-- Parameter: resendFlag - (0 == no resend, 1 == resend until successful send, 2 == resend until ack) If this is set to 2 then the queue will resend a message until the ack is received or the target IP times out or the queue exceeds the maximum queue size and the oldest queued events are removed.
+  - Type: char/int8_t/byte/int/unsigned int/long/unsigned long/_FLASH_STRING/__FlashStringHelper(F() macro)
+- Parameter: eventLength - Length of the event. This parameter should only be used if event is of type __FlashStringHelper(F() macro).
   - Type: byte
-- Returns: 0 for failure, 1 for success, , 2 for success w/ queue overflow
+- Parameter: payload - payload to send with the event. If you don't want a payload then just use "" for this parameter
+  - Type: char/int8_t/byte/int/unsigned int/long/unsigned long/_FLASH_STRING/__FlashStringHelper(F() macro)
+- Parameter: payloadLength:- length of the payload. This parameter should only be used if event is of type type __FlashStringHelper(F() macro).
   - Type: byte
-  
-`EtherEventQueue.queue(target, port, event, F(payload), payloadLength, resendFlag)` - Send an event and payload - this version of the function accepts payload strings placed in flash memory via the F() macro.
-- Parameter: target - takes either the IP address or node number of the target device
-  - Type: IPAddress/byte
-- Parameter: port: - port to send the event to
-  - Type: unsigned int
-- Parameter: event: - string to send as the event
-  - Type: char/int
-- Parameter: payload:- payload to send with the event.
-  - Type: F()/__FlashStringHelper
-- Parameter: payloadLength:- length of the payload
+- Parameter: resendFlag - (EtherEventQueue.queueTypeOnce == no resend, EtherEventQueue.queueTypeResend == resend until successful send, EtherEventQueue.queueTypeConfirm == resend until ack. If this is set to queueTypeConfirm then the queue will resend a message until the ack is received or the target IP times out or the queue exceeds the maximum queue size and the oldest queued events are removed.
   - Type: byte
-- Parameter: resendFlag - (0 == no resend, 1 == resend until successful send, 2 == resend until ack) If this is set to 2 then the queue will resend a message until the ack is received or the target IP times out
-  - Type: byte
-- Returns: 0 for failure, 1 for success, , 2 for success w/ queue overflow
-  - Type: byte
-  
-`EtherEventQueue.queue(target, port, F(event), eventLength, payload, resendFlag)` - Send an event and payload - this version of the function accepts event strings placed in flash memory via the F() macro.
-- Parameter: target - Takes either the IP address or node number of the target device.
-  - Type: IPAddress/byte
-- Parameter: port - Port to send the event to.
-  - Type: unsigned int
-- Parameter: event - String to send as the event.
-  - Type: F()/__FlashStringHelper
-- Parameter: eventLength - Length of the event.
-  - Type: byte
-- Parameter: payload - Payload to send with the event. If you don't want a payload then just use 0 for this parameter
-  - Type: char/int8_t/byte/int/unsigned int/long/unsigned long/_FLASH_STRING
-- Parameter: resendFlag - (0 == no resend, 1 == resend until successful send, 2 == resend until ack) If this is set to 2 then the queue will resend a message until the ack is received or the target IP times out
-  - Type: byte
-- Returns: 0 for failure, 1 for success, , 2 for success w/ queue overflow
-  - Type: byte
-  
-`EtherEventQueue.queue(target, port, F(event), eventLength, F(payload), payloadLength, resendFlag)` - Send an event and payload - this version of the function accepts event and payload strings placed in flash memory via the F() macro.
-- Parameter: target - Takes either the IP address or node number of the target device.
-  - Type: IPAddress/byte
-- Parameter: port - Port to send the event to.
-  - Type: unsigned int
-- Parameter: event - String to send as the event.
-  - Type: F()/__FlashStringHelper
-- Parameter: eventLength- Length of the event.
-  - Type: byte
-- Parameter: payload - Payload to send with the event.
-  - Type: F()/__FlashStringHelper
-- Parameter: payloadLength - Length of the payload.
-  - Type: byte
-- Parameter: resendFlag - (0 == no resend, 1 == resend until successful send, 2 == resend until ack) If this is set to 2 then the queue will resend a message until the ack is received or the target IP times out
-  - Type: byte
-- Returns: 0 for failure, 1 for success, , 2 for success w/ queue overflow
+- Returns: false == failure, true == successfully queued, EtherEventQueue.queueSuccessOverflow == successfully queued w/ queue overflow
   - Type: byte
   
 `EtherEventQueue.queueHandler(ethernetClient)` - Send queued events.
@@ -175,37 +129,39 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 `EtherEventQueue.checkState(node)` - Check if no events have been received from the given node in longer than the timeout duration. The device is considered timed out when no events have received in longer than the timeout duration.
 - Parameter: node - The node number of the node to be checked.
   - Type: byte
-- Returns: 0 == not timed out, 1 == timed out
-  - Type: boolean
+- Returns: true == not timed out, false == timed out, -1 == invalid node number
+  - Type: int8_t
 
 `EtherEventQueue.checkQueueOverflow()` - Check if the event queue has overflowed since the last time checkQueueOverflow() was called.
 - Parameter: none
-- Returns: 0 == queue has not overflowed since the last check, 1 == queue has overflowed since the last check
+- Returns: false == queue has not overflowed since the last check, true == queue has overflowed since the last check
   - Type: boolean
   
 `EtherEventQueue.getNode(IP)` - Get the node number of an IP address. Nodes can be defined in EtherEventQueueNodes.h.
 - Parameter: IP - The IP address to determine the node number of
-  - Type: IPAddress or byte
+  - Type: IPAddress or 4 byte array
 - Returns: node number, -1 == no match
   - Type: int8_t
   
 `EtherEventQueue.setResendDelay(resendDelay)` - Set the event resend delay.
 - Parameter: resendDelay - (ms)The delay before resending resend or confirm type queued events.
-  - Type: unsigned int
+  -Type: unsigned long
 - Returns: none
   
 `EtherEventQueue.getResendDelay()` - Returns the value of the queued event resend delay.
 - Parameter: none
 - Returns: resendDelay - (ms)The delay before resending resend or confirm type queued events.
+  -Type: unsigned long
   
 `EtherEventQueue.setNodeTimeoutDuration(nodeTimeoutDuration)` - Set the node timeout duration.
 - Parameter: nodeTimeoutDuration - (ms)The amout of time without receiving an event from a node before it is considered timed out.
-  - Type: unsigned int
+  -Type: unsigned long
 - Returns: none
   
 `EtherEventQueue.getNodeTimeoutDuration()` - Returns the value of the node timeout duration.
 - Parameter: none
 - Returns: nodeTimeoutDuration - (ms)The amout of time without receiving an event from a node before it is considered timed out.
+  -Type: unsigned long
 
 `EtherEventQueue.receiveNodesOnly(receiveNodesOnlyValue)` - Receive events from nodes only. This feature is turned off by default.
 - Parameter: receiveNodesOnlyValue - true == receive from nodes only, false == receive from any IP address.
@@ -216,6 +172,26 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 - Parameter: sendNodesOnlyValue - true == semd to nodes only, false == send to any IP address.
   - Type: boolean
 - Returns: none
+
+`EtherEventQueue.setNode(nodeNumber, nodeIP)` - Set the IP address of a node.
+- Parameter: nodeNumber - The number of the node to set.
+  - Type: byte
+- Parameter: nodeIP - The IP Address of the node to set.
+  - Type: IPAddress or 4 byte array.
+  - Returns: true == success, false == invalid nodeNumber
+
+
+`EtherEventQueue.removeNode(node)` - Remove a node.
+- Parameter: nodeNumber - The number or IP address of the node to remove.
+  - Type: byte, 4 byte array, or IPAddress
+- Returns: none
+
+
+`EtherEventQueue.getIP(nodeNumber)` - Returns the IP address of the given node.
+- Parameter: nodeNumber - The number of the node to return the IP address of.
+  - Type: byte
+- Returns: IP address of the given node.
+  -Type: IPAddress
 
 
  #### Process

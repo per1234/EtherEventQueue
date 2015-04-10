@@ -15,12 +15,11 @@ byte MACaddress[] = {0, 1, 2, 3, 4, 4}; //this can be anything you like, but mus
 const IPAddress deviceIP = IPAddress(192, 168, 69, 104);  //IP address to use for the device. This can be any valid address on the network as long as it is unique. If you are using DHCP then this doesn't need to be configured.
 #endif
 const char password[] = "password";  //EtherEvent password. This must match the password set in EventGhost.
-const byte deviceNode = 4;
 const unsigned int port = 1024;  //TCP port to receive events
 
 const unsigned int queueEventInterval = 4000;  //(ms)Delay between queueing the test events.
 const IPAddress sendIP = IPAddress(192, 168, 69, 100);  //The IP address to send the test events to.
-const unsigned int sendPort = 1024; //The port to send the test events to.
+const unsigned int sendPort = 1024; //The port to send the test events to. This will also be used as the default port to send events to.
 
 
 EthernetServer ethernetServer(port);  //TCP port to receive on
@@ -35,7 +34,7 @@ void setup() {
   Ethernet.begin(MACaddress, deviceIP);  //use static IP address
 #endif
   ethernetServer.begin();  //begin the server that will be used to receive events
-  if (EtherEventQueue.begin(password, deviceNode, port) == false) {  //initialize EtherEventQueue
+  if (EtherEventQueue.begin(password) == false) {  //initialize EtherEventQueue
     Serial.print(F("ERROR: Buffer size exceeds available memory, use smaller values."));
     while (1);  //abort execution of the rest of the program
   }
@@ -62,7 +61,7 @@ void loop() {
   if (millis() - sendTimeStamp > queueEventInterval) {  //periodically send event
     sendTimeStamp = millis(); //reset the timestamp for the next event send
     Serial.println(F("Attempting event queue"));
-    if (EtherEventQueue.queue(sendIP, sendPort, "123", "test payload", EtherEventQueue.queueTypeRepeat)) {  //queue an event to be sent, EtherEventQueue will continue to attempt to send the event until it is successfully sent or the event overflows from the queue.
+    if (EtherEventQueue.queue(sendIP, port, "123", "test payload", EtherEventQueue.queueTypeRepeat)) {  //queue an event to be sent, EtherEventQueue will continue to attempt to send the event until it is successfully sent or the event overflows from the queue.
       Serial.println(F("Event queue successful"));
     }
     else {

@@ -16,8 +16,7 @@ byte MACaddress[] = {0, 1, 2, 3, 4, 4};  //this can be anything you like as long
 const IPAddress deviceIP = IPAddress(192, 168, 69, 104);  //IP address to use for the device. This can be any valid address on the network as long as it is unique. If you are using DHCP then this doesn't need to be configured.
 #endif
 const char password[] = "password";  //EtherEvent password. This must match the password set in EventGhost.
-const byte deviceNode = 4;
-const unsigned int port = 1024;  //TCP port to receive events
+const unsigned int port = 1024;  //TCP port to receive events.
 const byte maxQueueSize = 10;  //Maximum number of events to queue. Longer entries will be truncated to this length. If this parameter is not passed then the default will be used.
 const byte maxSendEventLength = 8;  //Maximum event length to send. Longer entries will be truncated to this length. If this parameter is not passed then the default will be used.
 const byte maxSendPayloadLength = 25;  //Maximum payload length to send. Longer entries will be truncated to this length. If this parameter is not passed then the default will be used.
@@ -45,7 +44,7 @@ void setup() {
   Ethernet.begin(MACaddress, deviceIP);  //use static IP address
 #endif
   ethernetServer.begin();  //begin the server that will be used to receive events
-  if (EtherEventQueue.begin(password, deviceNode, port, maxQueueSize, maxSendEventLength, maxSendPayloadLength, maxReceivedEventLength, maxReceivedPayloadLength) == false) {  //initialize EtherEventQueue
+  if (EtherEventQueue.begin(password, maxQueueSize, maxSendEventLength, maxSendPayloadLength, maxReceivedEventLength, maxReceivedPayloadLength) == false) {  //initialize EtherEventQueue
     Serial.print(F("ERROR: Buffer size exceeds available memory, use smaller values."));
     while (1);  //abort execution of the rest of the program
   }

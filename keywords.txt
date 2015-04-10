@@ -22,3 +22,6 @@ remove	KEYWORD2
 IPcopy	KEYWORD2
 receiveNodesOnly	KEYWORD2
 sendNodesOnly	KEYWORD2
+setNode	KEYWORD2
+removeNode	KEYWORD2
+getIP	KEYWORD2
