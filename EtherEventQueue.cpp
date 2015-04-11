@@ -308,7 +308,7 @@ void EtherEventQueueClass::flushReceiver() {
 
 
 //convert IPAddress to 4 byte array
-byte EtherEventQueueClass::queue(IPAddress targetIPAddress, unsigned int port,  const char event[], const char payload[], byte resendFlag) {
+byte EtherEventQueueClass::queue(const IPAddress &targetIPAddress, unsigned int port,  const char event[], const char payload[], byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(convert IPAddress)"));
   byte targetIP[4];  //create buffer
   IPcopy(targetIP, targetIPAddress);  //convert
@@ -691,6 +691,8 @@ void EtherEventQueueClass::sendKeepalive(unsigned int port) {
 //setSendKeepaliveResendDelay
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EtherEventQueueClass::setSendKeepaliveResendDelay(unsigned long sendKeepaliveResendDelayInput) {
+  Serial.println(F("EtherEventQueue.setSendKeepaliveResendDelay: sendKeepaliveResendDelayInput="));
+  Serial.println(sendKeepaliveResendDelayInput);
   sendKeepaliveResendDelay = sendKeepaliveResendDelayInput;
 }
 
@@ -699,6 +701,8 @@ void EtherEventQueueClass::setSendKeepaliveResendDelay(unsigned long sendKeepali
 //getSendKeepaliveResendDelay
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 unsigned long EtherEventQueueClass::getSendKeepaliveResendDelay() {
+  Serial.print(F("EtherEventQueue.getSendKeepaliveResendDelay, sendKeepaliveResendDelay="));
+  Serial.println(sendKeepaliveResendDelay);
   return sendKeepaliveResendDelay;
 }
 
