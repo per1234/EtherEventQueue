@@ -86,6 +86,11 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 - Returns: IP Address of the sender of the most recent event.
   - Type: IPAddress
 
+`EtherEventQueue.receivedEventID()` - Returns the event ID of the received event. This is needed for confirming receipt of queueTypeConfirm type events.
+- Parameter: none
+- Returns: Event ID of the received event.
+  - Type: byte
+
 `EtherEventQueue.flushReceiver()` - Clear any buffered event and payload data so a new event can be received.
 - Parameter: none
 - Returns: none
@@ -103,7 +108,10 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
   - Type: char/int8_t/byte/int/unsigned int/long/unsigned long/_FLASH_STRING/__FlashStringHelper(F() macro)
 - Parameter: payloadLength:- length of the payload. This parameter should only be used if event is of type type __FlashStringHelper(F() macro).
   - Type: byte
-- Parameter: resendFlag - (EtherEventQueue.queueTypeOnce == no resend, EtherEventQueue.queueTypeResend == resend until successful send, EtherEventQueue.queueTypeConfirm == resend until ack. If this is set to queueTypeConfirm then the queue will resend a message until the ack is received or the target IP times out or the queue exceeds the maximum queue size and the oldest queued events are removed.
+- Parameter: resendFlag - (EtherEventQueue.queueTypeOnce == no resend, EtherEventQueue.queueTypeResend == resend until successful send, 
+  - Values: EtherEventQueue.queueTypeOnce - Make one attempt at sending the event and then remove it from the queue.
+            EtherEventQueue.queueTypeResend - Resend until successful send, then remove from queue.
+            EtherEventQueue.queueTypeConfirm == Resend a message until the ack is received, the target IP times out, or the event overflows from the queue. The ack is the eventAck with the eventID of the event to confirm for a payload.
   - Type: byte
 - Returns: false == failure, true == successfully queued, EtherEventQueue.queueSuccessOverflow == successfully queued w/ queue overflow
   - Type: byte

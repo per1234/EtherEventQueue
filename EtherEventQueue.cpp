@@ -193,13 +193,14 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
       Serial.println(receivedPayloadRaw);
 
       //break the payload down into parts and convert the eventID, code, and target address to byte, the true payload stays as a char array
-      char receivedEventID[eventIDlength + 1];
+      char receivedEventIDchar[eventIDlength + 1];
       for (byte count = 0; count < eventIDlength; count++) {
-        receivedEventID[count] = receivedPayloadRaw[count];
+        receivedEventIDchar[count] = receivedPayloadRaw[count];
       }
-      receivedEventID[eventIDlength] = 0;  //add the null terminator because there is not one after the id in the string
+      receivedEventIDchar[eventIDlength] = 0;  //add the null terminator because there is not one after the id in the string
+      receivedEventIDvalue = atoi(receivedEventIDchar);
       Serial.print(F("EtherEventQueue.availableEvent: eventID="));
-      Serial.println(receivedEventID);
+      Serial.println(receivedEventIDvalue);
 
       if (payloadLength > eventIDlength + 1) {  //there is a true payload
         for (byte count = 0; count < payloadLength - eventIDlength; count++) {
@@ -274,6 +275,14 @@ IPAddress EtherEventQueueClass::senderIP() {
   return receivedIP;
 }
 #endif
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//receivedEventID
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+byte EtherEventQueueClass::receivedEventID() {
+  return receivedEventIDvalue;
+}
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -635,12 +644,20 @@ IPAddress EtherEventQueueClass::getIP(byte nodeNumber) {
 }
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//setSendKeepaliveMargin
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EtherEventQueueClass::setSendKeepaliveMargin(unsigned long sendKeepaliveMarginInput) {
+  Serial.println(F("EtherEventQueue.setSendKeepaliveMargin"));
   sendKeepaliveMargin = min(sendKeepaliveMarginInput, nodeTimeoutDuration);
 }
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//getSendKeepaliveMargin
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 unsigned long EtherEventQueueClass::getSendKeepaliveMargin() {
+  Serial.println(F("EtherEventQueue.getSendKeepaliveMargin"));
   return sendKeepaliveMargin;
 }
 

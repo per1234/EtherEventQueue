@@ -37,6 +37,7 @@ class EtherEventQueueClass {
 #ifdef ethernetclientwithremoteIP_h
     IPAddress senderIP();
 #endif
+    byte receivedEventID();
     void flushReceiver();
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -242,6 +243,7 @@ class EtherEventQueueClass {
     byte nodeDevice;
     unsigned int defaultPort;
     byte receivedEventLengthMax;
+    byte receivedEventIDvalue;
     char* receivedEvent;  //buffer to hold the received event
     byte receivedPayloadLengthMax;
     char* receivedPayload;  //buffer to hold the received payload

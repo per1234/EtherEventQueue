@@ -28,3 +28,4 @@ getIP	KEYWORD2
 sendKeepalive	KEYWORD2
 getSendKeepaliveMargin	KEYWORD2
 setSendKeepaliveMargin	KEYWORD2
+receivedEventID	KEYWORD2
