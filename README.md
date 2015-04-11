@@ -188,12 +188,10 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
   - Type: IPAddress or 4 byte array.
   - Returns: true == success, false == invalid nodeNumber
 
-
 `EtherEventQueue.removeNode(node)` - Remove a node.
 - Parameter: nodeNumber - The number or IP address of the node to remove.
   - Type: byte, 4 byte array, or IPAddress
 - Returns: none
-
 
 `EtherEventQueue.getIP(nodeNumber)` - Returns the IP address of the given node.
 - Parameter: nodeNumber - The number of the node to return the IP address of.
@@ -201,24 +199,30 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 - Returns: IP address of the given node.
   -Type: IPAddress
 
-
 `EtherEventQueue.sendKeepalive(port)` - Sends keepalive to the first node that is within the keepalive margin of being timed out.
 - Parameter: port - The port to send keepalives to.
   - Type: unsigned int
 - Returns: none
-
 
 `EtherEventQueue.getSendKeepaliveMargin()` - Returns the keepalive margin value.
 - Parameter: none
 - Returns: keepalive margin - (ms)the amount of time before the end of the timeout duration to send the keepalive.
   -Type: unsigned long
 
-
 `EtherEventQueue.setSendKeepaliveMargin(keepaliveMargin)` - Sets the keepalive margin value.
 - Parameter: keepaliveMargin - (ms)the amount of time before the end of the timeout duration to send the keepalive.
   - Type: unsigned long
 - Returns: none
 
+`EtherEventQueue.setSendKeepaliveResendDelay(sendKeepaliveResendDelay)` - Sets the keepalive resend delay.
+- Parameter: sendKeepaliveResendDelay - (ms)the amount of time before the keepalive is resent after it was unsuccessfully sent.
+  - Type: unsigned long
+- Returns: none
+
+`EtherEventQueue.getSendKeepaliveResendDelay()` - Returns the sendKeepaliveResendDelay value.
+- Parameter: none
+- Returns: The sendKeepaliveResendDelay value
+  - Type: unsigned long
 
  #### Process
 An overview of the event queue process:

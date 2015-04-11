@@ -10,6 +10,8 @@
 #define Serial if(DEBUG)Serial
 
 const unsigned long nodeTimeoutDurationDefault = 270000;  //(ms)the node is timed out if it has been longer than this duration since the last event was received from it
+const unsigned long sendKeepaliveMarginDefault = nodeTimeoutDurationDefault - 30000;
+const unsigned long sendKeepaliveResendDelayDefault = 60000;
 const unsigned int resendDelayDefault = 45000;  //(ms)delay between resends of messages
 const byte eventIDlength = 2;  //number of characters of the message ID that is appended to the start of the raw payload, the event ID must be exactly this length
 
@@ -23,6 +25,8 @@ const byte payloadLengthMaxDefault = 80;
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 EtherEventQueueClass::EtherEventQueueClass() {
   nodeTimeoutDuration = nodeTimeoutDurationDefault;
+  sendKeepaliveMargin = sendKeepaliveMarginDefault;
+  sendKeepaliveResendDelay = sendKeepaliveResendDelayDefault;
   resendDelay = resendDelayDefault;
 }
 
@@ -65,8 +69,9 @@ boolean EtherEventQueueClass::begin(const char password[], byte nodeDeviceInput,
     }
   }
 
-  nodeState = (byte*)realloc(portQueue, nodeCountInput * sizeof(byte));
-  nodeTimestamp = (unsigned long*)realloc(portQueue, nodeCountInput * sizeof(unsigned long));
+  nodeState = (byte*)realloc(nodeState, nodeCountInput * sizeof(byte));
+  nodeTimestamp = (unsigned long*)realloc(nodeTimestamp, nodeCountInput * sizeof(unsigned long));
+  sendKeepaliveTimestamp = (unsigned long*)realloc(sendKeepaliveTimestamp, nodeCountInput * sizeof(unsigned long));
   nodeCount = max(nodeDevice + 1, nodeCountInput); //set this after the buffers have been realloced so that the old value can be used for free()ing the array items
 
   setNode(nodeDeviceInput, Ethernet.localIP());  //configure the device node
@@ -166,6 +171,7 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
       byte senderNode = getNode(receivedIP);  //get the node of the senderIP
       if (senderNode >= 0) {  //receivedIP is a node(-1 indicates no node match)
         nodeTimestamp[senderNode] = nodeTimestamp[nodeDevice];  //set the individual timestamp, any communication is considered to be a keepalive - the nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() twice for efficiency
+        sendKeepaliveTimestamp[senderNode] = millis() - sendKeepaliveResendDelay;
       }
       else if (receiveNodesOnlyState == 1) {  //the event was not received from a node and it is configured to receive events from node IPs only
         Serial.println(F("EtherEventQueue.availableEvent: unauthorized IP"));
@@ -452,6 +458,7 @@ void EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
         byte targetNode = getNode(IPqueue[queueStepSend]);  //get the node of the senderIP
         if (targetNode >= 0) {  //receivedIP is a node(-1 indicates no node match)
           nodeTimestamp[targetNode] = nodeTimestamp[nodeDevice];  //set the individual timestamp, any communication is considered to be a keepalive - the nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() twice for efficiency
+          sendKeepaliveTimestamp[targetNode] = millis() - sendKeepaliveResendDelay;
         }
 
         if (resendFlagQueue[queueStepSend] != queueTypeConfirm) {  //the flag indicates not to wait for an ack
@@ -670,7 +677,7 @@ void EtherEventQueueClass::sendKeepalive(unsigned int port) {
     if (node == nodeDevice || (nodeIP[node][0] == 0 && nodeIP[node][1] == 0 && nodeIP[node][2] == 0 && nodeIP[node][3] == 0)) { //device node or node has not been set
       continue;
     }
-    if (millis() - nodeTimestamp[node] > nodeTimeoutDuration - sendKeepaliveMargin) { //node is newly timed out(since the last time the function was run)
+    if (millis() - nodeTimestamp[node] > nodeTimeoutDuration - sendKeepaliveMargin && millis() - sendKeepaliveTimestamp[node] > sendKeepaliveResendDelay) { //node is newly timed out(since the last time the function was run)
       Serial.print(F("EtherEventQueue.sendKeepalive: sending to node="));
       Serial.println(node);
       queue(node, port, eventKeepalive, "", queueTypeOnce);
@@ -679,6 +686,21 @@ void EtherEventQueueClass::sendKeepalive(unsigned int port) {
   Serial.println(F("EtherEventQueue.sendKeepalive: no keepalive sent"));
 }
 
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//setSendKeepaliveResendDelay
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EtherEventQueueClass::setSendKeepaliveResendDelay(unsigned long sendKeepaliveResendDelayInput) {
+  sendKeepaliveResendDelay = sendKeepaliveResendDelayInput;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//getSendKeepaliveResendDelay
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+unsigned long EtherEventQueueClass::getSendKeepaliveResendDelay() {
+  return sendKeepaliveResendDelay;
+}
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////

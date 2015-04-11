@@ -29,3 +29,5 @@ sendKeepalive	KEYWORD2
 getSendKeepaliveMargin	KEYWORD2
 setSendKeepaliveMargin	KEYWORD2
 receivedEventID	KEYWORD2
+setSendKeepaliveResendDelay	KEYWORD2
+getSendKeepaliveResendDelay	KEYWORD2

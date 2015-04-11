@@ -21,8 +21,8 @@ class EtherEventQueueClass {
     //the library handles these special events differently
     const char eventKeepalive[4] = {'1', '0', '0', 0};
     const char eventAck[4] = {'1', '0', '1', 0};
-
-
+    
+    
     EtherEventQueueClass();
 
     boolean begin(const char password[]);
@@ -203,6 +203,7 @@ class EtherEventQueueClass {
         nodeIP[nodeNumber][counter] = nodeIPaddress[counter];
       }
       nodeTimestamp[nodeNumber] = millis();
+      sendKeepaliveTimestamp[nodeNumber] = millis()-sendKeepaliveResendDelay;
       nodeState[nodeNumber] = nodeStateUnknown;  //start in unknown state
       return true;
     }
@@ -223,6 +224,8 @@ class EtherEventQueueClass {
     void sendKeepalive(unsigned int port);
     unsigned long getSendKeepaliveMargin();
     void setSendKeepaliveMargin(unsigned long sendKeepaliveMarginInput);
+    void setSendKeepaliveResendDelay(unsigned long sendKeepaliveResendDelayInput);
+    unsigned long getSendKeepaliveResendDelay();
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
   private:
@@ -276,6 +279,8 @@ class EtherEventQueueClass {
     byte** nodeIP;
     byte* nodeState;  //1=not timed out 0=timed out - state at the last check
     unsigned long* nodeTimestamp;
+    unsigned long* sendKeepaliveTimestamp;
+    unsigned long sendKeepaliveResendDelay;
     unsigned long nodeTimeoutDuration;
     unsigned long sendKeepaliveMargin;
 
