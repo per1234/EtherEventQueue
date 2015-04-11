@@ -172,6 +172,9 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
       if (senderNode >= 0) {  //receivedIP is a node(-1 indicates no node match)
         nodeTimestamp[senderNode] = nodeTimestamp[nodeDevice];  //set the individual timestamp, any communication is considered to be a keepalive - the nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() twice for efficiency
         sendKeepaliveTimestamp[senderNode] = millis() - sendKeepaliveResendDelay;
+        if (nodeState[senderNode] == nodeStateUnknown) {
+          nodeState[senderNode] = nodeStateActive;  //set the node state to active
+        }
       }
       else if (receiveNodesOnlyState == 1) {  //the event was not received from a node and it is configured to receive events from node IPs only
         Serial.println(F("EtherEventQueue.availableEvent: unauthorized IP"));
@@ -459,6 +462,10 @@ void EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
         if (targetNode >= 0) {  //receivedIP is a node(-1 indicates no node match)
           nodeTimestamp[targetNode] = nodeTimestamp[nodeDevice];  //set the individual timestamp, any communication is considered to be a keepalive - the nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() twice for efficiency
           sendKeepaliveTimestamp[targetNode] = millis() - sendKeepaliveResendDelay;
+          if (nodeState[targetNode] == nodeStateUnknown) {
+            nodeState[targetNode] = nodeStateActive;  //set the node state to active
+          }
+
         }
 
         if (resendFlagQueue[queueStepSend] != queueTypeConfirm) {  //the flag indicates not to wait for an ack
