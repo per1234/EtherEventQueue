@@ -122,6 +122,45 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
  `EtherEventQueue.flushQueue()` - Remove all events from the queue.
  - Returns: none
 
+`EtherEventQueue.checkQueueOverflow()` - Check if the event queue has overflowed since the last time checkQueueOverflow() was called.
+- Parameter: none
+- Returns: false == queue has not overflowed since the last check, true == queue has overflowed since the last check
+  - Type: boolean
+
+`EtherEventQueue.setResendDelay(resendDelay)` - Set the event resend delay.
+- Parameter: resendDelay - (ms)The delay before resending resend or confirm type queued events.
+  -Type: unsigned long
+- Returns: none
+  
+`EtherEventQueue.getResendDelay()` - Returns the value of the queued event resend delay.
+- Parameter: none
+- Returns: resendDelay - (ms)The delay before resending resend or confirm type queued events.
+  -Type: unsigned long
+  
+`EtherEventQueue.setNode(nodeNumber, nodeIP)` - Set the IP address of a node.
+- Parameter: nodeNumber - The number of the node to set.
+  - Type: byte
+- Parameter: nodeIP - The IP Address of the node to set.
+  - Type: IPAddress or 4 byte array.
+  - Returns: true == success, false == invalid nodeNumber
+
+`EtherEventQueue.removeNode(node)` - Remove a node.
+- Parameter: nodeNumber - The number or IP address of the node to remove.
+  - Type: byte, 4 byte array, or IPAddress
+- Returns: none
+
+`EtherEventQueue.getIP(nodeNumber)` - Returns the IP address of the given node.
+- Parameter: nodeNumber - The number of the node to return the IP address of.
+  - Type: byte
+- Returns: IP address of the given node.
+  -Type: IPAddress
+
+`EtherEventQueue.getNode(IP)` - Get the node number of an IP address. Nodes can be defined in EtherEventQueueNodes.h.
+- Parameter: IP - The IP address to determine the node number of
+  - Type: IPAddress or 4 byte array
+- Returns: node number, -1 == no match
+  - Type: int8_t
+  
 `EtherEventQueue.checkTimeout()` - Check for newly timed out nodes.
 - Parameter: none
 - Returns: Node number of the tirst newly timed out node found or -1 if no timed out node found.
@@ -138,27 +177,6 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 - Returns: true == not timed out, false == timed out, -1 == invalid node number
   - Type: int8_t
 
-`EtherEventQueue.checkQueueOverflow()` - Check if the event queue has overflowed since the last time checkQueueOverflow() was called.
-- Parameter: none
-- Returns: false == queue has not overflowed since the last check, true == queue has overflowed since the last check
-  - Type: boolean
-  
-`EtherEventQueue.getNode(IP)` - Get the node number of an IP address. Nodes can be defined in EtherEventQueueNodes.h.
-- Parameter: IP - The IP address to determine the node number of
-  - Type: IPAddress or 4 byte array
-- Returns: node number, -1 == no match
-  - Type: int8_t
-  
-`EtherEventQueue.setResendDelay(resendDelay)` - Set the event resend delay.
-- Parameter: resendDelay - (ms)The delay before resending resend or confirm type queued events.
-  -Type: unsigned long
-- Returns: none
-  
-`EtherEventQueue.getResendDelay()` - Returns the value of the queued event resend delay.
-- Parameter: none
-- Returns: resendDelay - (ms)The delay before resending resend or confirm type queued events.
-  -Type: unsigned long
-  
 `EtherEventQueue.setNodeTimeoutDuration(nodeTimeoutDuration)` - Set the node timeout duration.
 - Parameter: nodeTimeoutDuration - (ms)The amout of time without receiving an event from a node before it is considered timed out.
   -Type: unsigned long
@@ -179,38 +197,20 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
   - Type: boolean
 - Returns: none
 
-`EtherEventQueue.setNode(nodeNumber, nodeIP)` - Set the IP address of a node.
-- Parameter: nodeNumber - The number of the node to set.
-  - Type: byte
-- Parameter: nodeIP - The IP Address of the node to set.
-  - Type: IPAddress or 4 byte array.
-  - Returns: true == success, false == invalid nodeNumber
-
-`EtherEventQueue.removeNode(node)` - Remove a node.
-- Parameter: nodeNumber - The number or IP address of the node to remove.
-  - Type: byte, 4 byte array, or IPAddress
-- Returns: none
-
-`EtherEventQueue.getIP(nodeNumber)` - Returns the IP address of the given node.
-- Parameter: nodeNumber - The number of the node to return the IP address of.
-  - Type: byte
-- Returns: IP address of the given node.
-  -Type: IPAddress
-
 `EtherEventQueue.sendKeepalive(port)` - Sends keepalive to the first node that is within the keepalive margin of being timed out. The keepalive is an event that is used only to keep nodes from timing out, it is handled internally update the node timestamp and will not be passed on by EtherEventQueue.
 - Parameter: port - The port to send keepalive to.
   - Type: unsigned int
+- Returns: none
+
+`EtherEventQueue.setSendKeepaliveMargin(keepaliveMargin)` - Sets the keepalive margin value.
+- Parameter: keepaliveMargin - (ms)the amount of time before the end of the timeout duration to send the keepalive.
+  - Type: unsigned long
 - Returns: none
 
 `EtherEventQueue.getSendKeepaliveMargin()` - Returns the keepalive margin value.
 - Parameter: none
 - Returns: keepalive margin - (ms)the amount of time before the end of the timeout duration to send the keepalive.
   -Type: unsigned long
-
-`EtherEventQueue.setSendKeepaliveMargin(keepaliveMargin)` - Sets the keepalive margin value.
-- Parameter: keepaliveMargin - (ms)the amount of time before the end of the timeout duration to send the keepalive.
-  - Type: unsigned long
-- Returns: none
 
 `EtherEventQueue.setSendKeepaliveResendDelay(sendKeepaliveResendDelay)` - Sets the keepalive resend delay.
 - Parameter: sendKeepaliveResendDelay - (ms)the amount of time before the keepalive is resent after it was unsuccessfully sent.
@@ -222,7 +222,7 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 - Returns: The sendKeepaliveResendDelay value
   - Type: unsigned long
 
- #### Process
+#### Process
 An overview of the event queue process:
 - queue() - put event in the queue
   - non-keepalive events addressed to timed out nodes(other than self) are not queued
