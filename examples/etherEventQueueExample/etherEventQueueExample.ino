@@ -34,10 +34,11 @@ void setup() {
   Ethernet.begin(MACaddress, deviceIP);  //use static IP address
 #endif
   ethernetServer.begin();  //begin the server that will be used to receive events
-  if (EtherEventQueue.begin(password) == false) {  //initialize EtherEventQueue
+  if (EtherEventQueue.begin() == false) {  //initialize EtherEventQueue
     Serial.print(F("ERROR: Buffer size exceeds available memory, use smaller values."));
     while (1);  //abort execution of the rest of the program
   }
+  EtherEvent.setPassword(password);  //set the EtherEvent password
 }
 
 void loop() {

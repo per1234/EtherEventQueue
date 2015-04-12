@@ -25,10 +25,10 @@ class EtherEventQueueClass {
 
     EtherEventQueueClass();
 
-    boolean begin(const char password[]);
-    boolean begin(const char password[], byte queueSizeMaxInput, byte sendEventLengthMaxInput, byte sendPayloadLengthMaxInput, byte receivedEventLengthMaxInput, byte receivedPayloadLengthMaxInput);
-    boolean begin(const char password[], byte nodeDeviceInput, byte nodeCountInput);
-    boolean begin(const char password[], byte nodeDeviceInput, byte nodeCountInput, byte queueSizeMaxInput, byte sendEventLengthMaxInput, byte sendPayloadLengthMaxInput, byte receivedEventLengthMaxInput, byte receivedPayloadLengthMaxInput);
+    boolean begin();
+    boolean begin(byte queueSizeMaxInput, byte sendEventLengthMaxInput, byte sendPayloadLengthMaxInput, byte receivedEventLengthMaxInput, byte receivedPayloadLengthMaxInput);
+    boolean begin(byte nodeDeviceInput, byte nodeCountInput);
+    boolean begin(byte nodeDeviceInput, byte nodeCountInput, byte queueSizeMaxInput, byte sendEventLengthMaxInput, byte sendPayloadLengthMaxInput, byte receivedEventLengthMaxInput, byte receivedPayloadLengthMaxInput);
 
     byte availableEvent(EthernetServer &ethernetServer);
     byte availablePayload();

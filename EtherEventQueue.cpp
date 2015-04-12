@@ -34,22 +34,22 @@ EtherEventQueueClass::EtherEventQueueClass() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //begin
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-boolean EtherEventQueueClass::begin(const char password[]) {  //no nodes, default buffer length version - the deviceNode is 0
-  return begin(password, 0, 1, queueSizeMaxDefault, eventLengthMaxDefault, payloadLengthMaxDefault, eventLengthMaxDefault, payloadLengthMaxDefault);
+boolean EtherEventQueueClass::begin() {  //no nodes, default buffer length version - the deviceNode is 0
+  return begin(0, 1, queueSizeMaxDefault, eventLengthMaxDefault, payloadLengthMaxDefault, eventLengthMaxDefault, payloadLengthMaxDefault);
 }
 
 
-boolean EtherEventQueueClass::begin(const char password[], byte queueSizeMaxInput, byte sendEventLengthMaxInput, byte sendPayloadLengthMaxInput, byte receivedEventLengthMaxInput, byte receivedPayloadLengthMaxInput) {  //no nodes version - the deviceNode is 0
-  return begin(password, 0, 1, queueSizeMaxInput, sendEventLengthMaxInput, sendPayloadLengthMaxInput, receivedEventLengthMaxInput, receivedPayloadLengthMaxInput);
+boolean EtherEventQueueClass::begin(byte queueSizeMaxInput, byte sendEventLengthMaxInput, byte sendPayloadLengthMaxInput, byte receivedEventLengthMaxInput, byte receivedPayloadLengthMaxInput) {  //no nodes version - the deviceNode is 0
+  return begin(0, 1, queueSizeMaxInput, sendEventLengthMaxInput, sendPayloadLengthMaxInput, receivedEventLengthMaxInput, receivedPayloadLengthMaxInput);
 }
 
 
-boolean EtherEventQueueClass::begin(const char password[], byte nodeDeviceInput, byte nodeCountInput) {  //default buffer length version - the deviceNode is 0
-  return begin(password, nodeDeviceInput, nodeCountInput, queueSizeMaxDefault, eventLengthMaxDefault, payloadLengthMaxDefault, eventLengthMaxDefault, payloadLengthMaxDefault);
+boolean EtherEventQueueClass::begin(byte nodeDeviceInput, byte nodeCountInput) {  //default buffer length version - the deviceNode is 0
+  return begin(nodeDeviceInput, nodeCountInput, queueSizeMaxDefault, eventLengthMaxDefault, payloadLengthMaxDefault, eventLengthMaxDefault, payloadLengthMaxDefault);
 }
 
 
-boolean EtherEventQueueClass::begin(const char password[], byte nodeDeviceInput, byte nodeCountInput, byte queueSizeMaxInput, byte sendEventLengthMaxInput, byte sendPayloadLengthMaxInput, byte receivedEventLengthMaxInput, byte receivedPayloadLengthMaxInput) {
+boolean EtherEventQueueClass::begin(byte nodeDeviceInput, byte nodeCountInput, byte queueSizeMaxInput, byte sendEventLengthMaxInput, byte sendPayloadLengthMaxInput, byte receivedEventLengthMaxInput, byte receivedPayloadLengthMaxInput) {
 #if DEBUG == true
   delay(15);  //There needs to be a delay between the calls to Serial.begin() in sketch setup() and here or garbage will be printed to the serial monitor
 #endif
@@ -121,7 +121,7 @@ boolean EtherEventQueueClass::begin(const char password[], byte nodeDeviceInput,
   receivedPayloadLengthMax = receivedPayloadLengthMaxInput;
   receivedPayload = (char*)realloc(receivedPayload, (receivedPayloadLengthMax + 1) * sizeof(char));
   receivedPayload[0] = 0;  //clear buffer - realloc does not zero initialize so the buffer could contain anything
-  if (IPqueue == NULL || portQueue == NULL || eventQueue == NULL || eventIDqueue == NULL || payloadQueue == NULL || resendFlagQueue == NULL || receivedEvent == NULL || receivedPayload == NULL || EtherEvent.begin(password, receivedEventLengthMax, eventIDlength + receivedPayloadLengthMax) == false) {
+  if (IPqueue == NULL || portQueue == NULL || eventQueue == NULL || eventIDqueue == NULL || payloadQueue == NULL || resendFlagQueue == NULL || receivedEvent == NULL || receivedPayload == NULL || EtherEvent.begin(receivedEventLengthMax, eventIDlength + receivedPayloadLengthMax) == false) {
     Serial.println(F("memory allocation failed"));
     return false;
   }

@@ -44,13 +44,14 @@ void setup() {
   Ethernet.begin(MACaddress, deviceIP);  //use static IP address
 #endif
   ethernetServer.begin();  //begin the server that will be used to receive events
-  if (EtherEventQueue.begin(password, maxQueueSize, maxSendEventLength, maxSendPayloadLength, maxReceivedEventLength, maxReceivedPayloadLength) == false) {  //initialize EtherEventQueue
+  if (EtherEventQueue.begin(maxQueueSize, maxSendEventLength, maxSendPayloadLength, maxReceivedEventLength, maxReceivedPayloadLength) == false) {  //initialize EtherEventQueue
     Serial.print(F("ERROR: Buffer size exceeds available memory, use smaller values."));
     while (1);  //abort execution of the rest of the program
   }
   EtherEventQueue.setResendDelay(resendDelay);
   EtherEventQueue.setNodeTimeoutDuration(nodeTimeoutDuration);
 
+  EtherEvent.setPassword(password);  //set the EtherEvent password
   EtherEvent.setTimeout(etherEventTimeout);  //set timeout duration
 #ifdef ethernet_h
   W5100.setRetransmissionTime(W5100timeout);  //set W5100 timeout duration

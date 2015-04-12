@@ -41,9 +41,7 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 - Repeat with other connected devices. The serial monitor will show details of the test communications.
 
 #### Usage
-`EtherEventQueue.begin(password[, deviceID][, nodeCount][, queueSizeMax, sendEventLengthMax, sendPayloadLengthMax, receiveEventLengthMax, receivePayloadEventMax])` - Initialize EtherEventQueue.
-- Parameter: password - EtherEvent password. This must match the password set in EventGhost.
-  - Type: char array
+`EtherEventQueue.begin([deviceID][, nodeCount][, queueSizeMax, sendEventLengthMax, sendPayloadLengthMax, receiveEventLengthMax, receivePayloadEventMax])` - Initialize EtherEventQueue.
 - Parameter(optional): deviceID - The node number of the device. The default value is 0.
   - Type: byte
 - Parameter(optional): nodeCount - The maximum number of nodes(including the device's node). The minimum value is 1 as one node is required for the device.  The default value is 1.
@@ -111,7 +109,7 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 - Parameter: resendFlag - (EtherEventQueue.queueTypeOnce == no resend, EtherEventQueue.queueTypeResend == resend until successful send, 
   - Values: EtherEventQueue.queueTypeOnce - Make one attempt at sending the event and then remove it from the queue.
             EtherEventQueue.queueTypeResend - Resend until successful send, then remove from queue.
-            EtherEventQueue.queueTypeConfirm == Resend a message until the ack is received, the target IP times out, or the event overflows from the queue. The ack is the eventAck with the eventID of the event to confirm for a payload.
+            EtherEventQueue.queueTypeConfirm == Resend a message until the ack is received, the target IP times out, or the event overflows from the queue. The ack is the eventAck with the eventID of the event to confirm for a payload. Received acks are handled internally by EtherEventQueue and will not be passed on.
   - Type: byte
 - Returns: false == failure, true == successfully queued, EtherEventQueue.queueSuccessOverflow == successfully queued w/ queue overflow
   - Type: byte
@@ -199,8 +197,8 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 - Returns: IP address of the given node.
   -Type: IPAddress
 
-`EtherEventQueue.sendKeepalive(port)` - Sends keepalive to the first node that is within the keepalive margin of being timed out.
-- Parameter: port - The port to send keepalives to.
+`EtherEventQueue.sendKeepalive(port)` - Sends keepalive to the first node that is within the keepalive margin of being timed out. The keepalive is an event that is used only to keep nodes from timing out, it is handled internally update the node timestamp and will not be passed on by EtherEventQueue.
+- Parameter: port - The port to send keepalive to.
   - Type: unsigned int
 - Returns: none
 
