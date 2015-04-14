@@ -6,7 +6,7 @@
 //#include "Flash.h"  //https://github.com/rkhamilton/Flash - uncomment this line if you have the Flash library installed
 
 #define DEBUG false  //(false == serial debug output off,  true == serial debug output on)The serial debug output will increase memory usage and communication latency so only enable when in use.
-#define ETHEREVENTQUEUE_SERIAL if(DEBUG)Serial  //I have to use a different name for Serial in this file otherwise the debug statement control also effects any other file that includes this file.
+#define ETHEREVENTQUEUE_SERIAL if(DEBUG)Serial  //I have to use a different name for Serial in this file otherwise the debug statement control also affects any other file that includes this file.
 
 
 class EtherEventQueueClass {
@@ -133,7 +133,7 @@ class EtherEventQueueClass {
       event.copy(eventChar, stringLength + 1, 0);  //+1 for null terminator
       return queue(target, port, eventChar, payload, resendFlag);
     }
-    template <typename targetType, typename eventType>
+    template <typename targetType>
     byte queue(const targetType &target, unsigned int port, const char event[], const _FLASH_STRING payload, byte resendFlag) {
       byte stringLength = payload.length();
       char payloadChar[stringLength + 1];

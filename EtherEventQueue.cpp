@@ -51,7 +51,7 @@ boolean EtherEventQueueClass::begin(byte nodeDeviceInput, byte nodeCountInput) {
 
 boolean EtherEventQueueClass::begin(byte nodeDeviceInput, byte nodeCountInput, byte queueSizeMaxInput, byte sendEventLengthMaxInput, byte sendPayloadLengthMaxInput, byte receivedEventLengthMaxInput, byte receivedPayloadLengthMaxInput) {
 #if DEBUG == true
-  delay(15);  //There needs to be a delay between the calls to Serial.begin() in sketch setup() and here or garbage will be printed to the serial monitor
+  delay(20);  //There needs to be a delay between the calls to Serial.begin() in sketch setup() and here or garbage will be printed to the serial monitor
 #endif
   Serial.begin(9600);  //for debugging
   Serial.println(F("\n\n\nEtherEventQueue.begin"));
@@ -698,7 +698,7 @@ void EtherEventQueueClass::sendKeepalive(unsigned int port) {
 //setSendKeepaliveResendDelay
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EtherEventQueueClass::setSendKeepaliveResendDelay(unsigned long sendKeepaliveResendDelayInput) {
-  Serial.println(F("EtherEventQueue.setSendKeepaliveResendDelay: sendKeepaliveResendDelayInput="));
+  Serial.print(F("EtherEventQueue.setSendKeepaliveResendDelay: sendKeepaliveResendDelayInput="));
   Serial.println(sendKeepaliveResendDelayInput);
   sendKeepaliveResendDelay = sendKeepaliveResendDelayInput;
 }
