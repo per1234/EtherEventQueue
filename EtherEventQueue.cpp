@@ -367,9 +367,11 @@ byte EtherEventQueueClass::queue(const byte targetIP[], unsigned int targetPort,
   queueSize++;
   IPcopy(IPqueue[queueSize - 1], targetIP);
   portQueue[queueSize - 1] = targetPort;
-  strcpy(eventQueue[queueSize - 1], event);
+  strncpy(eventQueue[queueSize - 1], event, sendEventLengthMax);
+  eventQueue[queueSize - 1][sendEventLengthMax] = 0; //add null terminator in case event is longer than sendPayloadLengthMax
   eventIDqueue[queueSize - 1] = eventIDfind();
-  strcpy(payloadQueue[queueSize - 1], payload);
+  strncpy(payloadQueue[queueSize - 1], payload, sendPayloadLengthMax);
+  payloadQueue[queueSize - 1][sendPayloadLengthMax] = 0; //add null terminator in case payload is longer than sendPayloadLengthMax
   resendFlagQueue[queueSize - 1] = resendFlag;
 
   queueNewCount++;
