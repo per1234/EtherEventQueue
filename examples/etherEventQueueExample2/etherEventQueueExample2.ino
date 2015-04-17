@@ -77,7 +77,7 @@ void loop() {
     Serial.println(payload);
 #ifdef ethernetclientwithremoteIP_h  //this function is only available if the modified Ethernet library is installed
     Serial.print(F("Received from IP: "));
-    Serial.println(EtherEventQueue.senderIP());  //this will return 0.0.0.0 if you don't have the modified ethernet library and the flag set in EtherEvent.cpp
+    Serial.println(EtherEventQueue.senderIP());
 #endif
   }
 

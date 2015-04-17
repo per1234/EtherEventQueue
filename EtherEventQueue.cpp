@@ -1,10 +1,10 @@
 //EtherEventQueue outgoing event queue for the EtherEvent authenticated network communication arduino library: http://github.com/per1234/EtherEvent
 #include <Arduino.h>
-#include "EtherEventQueue.h"  //http://github.com/per1234/EtherEventQueue
+#include "EtherEventQueue.h"
 #include <SPI.h>  //for the ethernet library
 #include "Ethernet.h"
-#include "EtherEvent.h"  //http://github.com/per1234/EtherEvent
-//#include "Flash.h"  //https://github.com/rkhamilton/Flash - uncomment this line if you have the Flash library installed
+#include "EtherEvent.h"
+//#include "Flash.h"  //uncomment this line if you have the Flash library installed
 
 #define DEBUG false  //(false == serial debug output off,  true == serial debug output on)The serial debug output will increase memory usage and communication latency so only enable when in use.
 #define Serial if(DEBUG)Serial
@@ -280,7 +280,8 @@ void EtherEventQueueClass::readPayload(char payloadBuffer[]) {
 //senderIP - Returns the IP address of the sender of the last event.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 IPAddress EtherEventQueueClass::senderIP() {
-  Serial.println(F("EtherEventQueue.senderIP"));
+  Serial.print(F("EtherEventQueue.senderIP: senderIP="));
+  Serial.println(receivedIP);
   return receivedIP;
 }
 #endif
@@ -312,7 +313,8 @@ void EtherEventQueueClass::flushReceiver() {
 
 //convert IPAddress to 4 byte array
 byte EtherEventQueueClass::queue(const IPAddress &targetIPAddress, unsigned int port,  const char event[], const char payload[], byte resendFlag) {
-  Serial.println(F("EtherEventQueue.queue(convert IPAddress)"));
+  Serial.print(F("EtherEventQueue.queue(convert IPAddress): targetIPAddress="));
+  Serial.println(targetIPAddress);
   byte targetIP[4];  //create buffer
   IPcopy(targetIP, targetIPAddress);  //convert
   return queue(targetIP, port, event, payload, resendFlag);
@@ -322,6 +324,10 @@ byte EtherEventQueueClass::queue(const IPAddress &targetIPAddress, unsigned int 
 //convert node to 4 byte array
 byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, const char event[], const char payload[], byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(convert node)"));
+  if (targetNode >= nodeCount) { //sanity check
+    Serial.println(F("EtherEventQueue.queue(convert node): invalid node number"));
+    return false;
+  }
   return queue(nodeIP[targetNode], targetPort, event, payload, resendFlag);
 }
 

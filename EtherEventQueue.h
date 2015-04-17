@@ -3,7 +3,7 @@
 #define EtherEventQueue_h
 #include <SPI.h>  //for the ethernet library
 #include "Ethernet.h"
-//#include "Flash.h"  //https://github.com/rkhamilton/Flash - uncomment this line if you have the Flash library installed
+//#include "Flash.h"  //uncomment this line if you have the Flash library installed
 
 #define DEBUG false  //(false == serial debug output off,  true == serial debug output on)The serial debug output will increase memory usage and communication latency so only enable when in use.
 #define ETHEREVENTQUEUE_SERIAL if(DEBUG)Serial  //I have to use a different name for Serial in this file otherwise the debug statement control also affects any other file that includes this file.
@@ -294,11 +294,13 @@ class EtherEventQueueClass {
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
     template<typename IPdestinationType, typename IPsourceType>
     void IPcopy(IPdestinationType &IPdestination, const IPsourceType &IPsource) {
-      ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.IPcopy(array input): IPsource="));
+      ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.IPcopy: IPsource="));
       ETHEREVENTQUEUE_SERIAL.println(IPAddress(IPsource));
       for (byte counter = 0; counter < 4; counter++) {
         IPdestination[counter] = IPsource[counter];
       }
+      ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.IPcopy: IPdestination="));
+      ETHEREVENTQUEUE_SERIAL.println(IPAddress(IPdestination));
     }
 
 };
