@@ -56,7 +56,7 @@ boolean EtherEventQueueClass::begin(byte nodeDeviceInput, byte nodeCountInput, b
   Serial.begin(9600);  //for debugging
   Serial.println(F("\n\n\nEtherEventQueue.begin"));
   nodeDevice = nodeDeviceInput;
-  nodeCountInput = max(nodeDevice + 1, nodeCountInput); //the nodeCount has to be enough to hold the device node number
+  nodeCountInput = max(nodeDevice + 1, nodeCountInput);  //the nodeCount has to be enough to hold the device node number
   for (byte counter = 0; counter < nodeCount; counter++) {  //free previously allocated array items - this has to be done for arrays only because realloc doesn't work with the array items
     free(nodeIP[counter]);
   }
@@ -72,7 +72,7 @@ boolean EtherEventQueueClass::begin(byte nodeDeviceInput, byte nodeCountInput, b
   nodeState = (byte*)realloc(nodeState, nodeCountInput * sizeof(byte));
   nodeTimestamp = (unsigned long*)realloc(nodeTimestamp, nodeCountInput * sizeof(unsigned long));
   sendKeepaliveTimestamp = (unsigned long*)realloc(sendKeepaliveTimestamp, nodeCountInput * sizeof(unsigned long));
-  nodeCount = max(nodeDevice + 1, nodeCountInput); //set this after the buffers have been realloced so that the old value can be used for free()ing the array items
+  nodeCount = max(nodeDevice + 1, nodeCountInput);  //set this after the buffers have been realloced so that the old value can be used for free()ing the array items
 
   setNode(nodeDeviceInput, Ethernet.localIP());  //configure the device node
 
@@ -218,7 +218,7 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
         Serial.print(F("EtherEventQueue.availableEvent: receivedPayload="));
         Serial.println(receivedPayload);
       }
-      else { //no true payload
+      else {  //no true payload
         receivedPayload[0] = 0;  //clear the payload buffer
       }
 
@@ -324,7 +324,7 @@ byte EtherEventQueueClass::queue(const IPAddress &targetIPAddress, unsigned int 
 //convert node to 4 byte array
 byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, const char event[], const char payload[], byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(convert node)"));
-  if (targetNode >= nodeCount) { //sanity check
+  if (targetNode >= nodeCount || !nodeIsSet(targetNode)) {  //sanity check
     Serial.println(F("EtherEventQueue.queue(convert node): invalid node number"));
     return false;
   }
@@ -336,7 +336,7 @@ byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, const
 byte EtherEventQueueClass::queue(const byte targetIP[], unsigned int targetPort, const char event[], const char payload[], byte resendFlag) {
   Serial.println(F("EtherEventQueue.queue(main)"));
   int targetNode = getNode(targetIP);
-  if (targetNode < 0) { //target is not a node
+  if (targetNode < 0) {  //target is not a node
     if (sendNodesOnlyState == 1) {
       Serial.println(F("EtherEventQueue.queue: not a node"));
       return false;
@@ -505,7 +505,7 @@ void EtherEventQueueClass::flushQueue() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int8_t EtherEventQueueClass::checkTimeout() {
   for (byte node = 0; node < nodeCount; node++) {
-    if (nodeIP[node][0] == 0 && nodeIP[node][1] == 0 && nodeIP[node][2] == 0 && nodeIP[node][3] == 0) { //node has not been set
+    if (!nodeIsSet(node)) {  //node has not been set
       continue;
     }
     if (nodeState[node] == nodeStateActive && millis() - nodeTimestamp[node] > nodeTimeoutDuration) {  //previous state not timed out, and is currently timed out
@@ -525,7 +525,7 @@ int8_t EtherEventQueueClass::checkTimeout() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int8_t EtherEventQueueClass::checkTimein() {
   for (byte node = 0; node < nodeCount; node++) {
-    if (nodeIP[node][0] == 0 && nodeIP[node][1] == 0 && nodeIP[node][2] == 0 && nodeIP[node][3] == 0) { //node has not been set
+    if (!nodeIsSet(node)) {  //node has not been set
       continue;
     }
     if (nodeState[node] == nodeStateTimedOut && millis() - nodeTimestamp[node] < nodeTimeoutDuration) {  //node is newly timed in(since the last time the function was run)
@@ -547,7 +547,7 @@ int8_t EtherEventQueueClass::checkState(byte node) {
   Serial.print(F("EtherEventQueue.checkTimeoutNode: nodeState for node "));
   Serial.print(node);
   Serial.print(F("="));
-  if (node > nodeCount - 1) { //sanity check
+  if (node > nodeCount - 1) {  //sanity check
     Serial.println(F("invalid node number"));
     return -1;
   }
@@ -639,7 +639,7 @@ void EtherEventQueueClass::sendNodesOnly(boolean sendNodesOnlyValue) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EtherEventQueueClass::removeNode(byte nodeNumber) {
   Serial.println(F("EtherEventQueue.removeNode"));
-  if (nodeNumber >= nodeCount) { //sanity check
+  if (nodeNumber >= nodeCount) {  //sanity check
     Serial.println(F("EtherEventQueue.removeNode: invalid node number"));
   }
   else {
@@ -655,7 +655,7 @@ void EtherEventQueueClass::removeNode(byte nodeNumber) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 IPAddress EtherEventQueueClass::getIP(byte nodeNumber) {
   Serial.println(F("EtherEventQueue.getIP"));
-  if (nodeNumber >= nodeCount) { //sanity check
+  if (nodeNumber >= nodeCount) {  //sanity check
     Serial.println(F("EtherEventQueue.getIP: invalid node number"));
   }
   else {
@@ -687,10 +687,10 @@ unsigned long EtherEventQueueClass::getSendKeepaliveMargin() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EtherEventQueueClass::sendKeepalive(unsigned int port) {
   for (byte node = 0; node < nodeCount; node++) {
-    if (node == nodeDevice || (nodeIP[node][0] == 0 && nodeIP[node][1] == 0 && nodeIP[node][2] == 0 && nodeIP[node][3] == 0)) { //device node or node has not been set
+    if (node == nodeDevice || !nodeIsSet(node)) {  //device node or node has not been set
       continue;
     }
-    if (millis() - nodeTimestamp[node] > nodeTimeoutDuration - sendKeepaliveMargin && millis() - sendKeepaliveTimestamp[node] > sendKeepaliveResendDelay) { //node is newly timed out(since the last time the function was run)
+    if (millis() - nodeTimestamp[node] > nodeTimeoutDuration - sendKeepaliveMargin && millis() - sendKeepaliveTimestamp[node] > sendKeepaliveResendDelay) {  //node is newly timed out(since the last time the function was run)
       Serial.print(F("EtherEventQueue.sendKeepalive: sending to node="));
       Serial.println(node);
       queue(node, port, eventKeepalive, "", queueTypeOnce);
@@ -778,6 +778,20 @@ void EtherEventQueueClass::remove(byte queueStep) {
   }
   Serial.print(F("EtherEventQueue.remove: new queue size="));
   Serial.println(queueSize);
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//nodeIsSet - check if the node has been set
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+boolean EtherEventQueueClass::nodeIsSet(byte nodeNumber) {
+  Serial.print(F("EtherEventQueue.nodeIsSet: result="));
+  if (nodeIP[nodeNumber][0] == 0 && nodeIP[nodeNumber][1] == 0 && nodeIP[nodeNumber][2] == 0 && nodeIP[nodeNumber][3] == 0) {
+    Serial.println(F("false"));
+    return false;
+  }
+  Serial.println(F("true"));
+  return true;
 }
 
 

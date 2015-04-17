@@ -41,7 +41,7 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 - Repeat with other connected devices. The serial monitor will show details of the test communications.
 
 #### Usage
-`EtherEventQueue.begin([deviceID][, nodeCount][, queueSizeMax, sendEventLengthMax, sendPayloadLengthMax, receiveEventLengthMax, receivePayloadEventMax])` - Initialize EtherEventQueue.
+`EtherEventQueue.begin([deviceID, nodeCount][, queueSizeMax, sendEventLengthMax, sendPayloadLengthMax, receiveEventLengthMax, receivePayloadEventMax])` - Initialize EtherEventQueue.
 - Parameter(optional): deviceID - The node number of the device. The default value is 0.
   - Type: byte
 - Parameter(optional): nodeCount - The maximum number of nodes(including the device's node). The minimum value is 1 as one node is required for the device.  The default value is 1.

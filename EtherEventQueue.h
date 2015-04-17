@@ -194,7 +194,7 @@ class EtherEventQueueClass {
     boolean setNode(byte nodeNumber, const IPtype &nodeIPaddress) {
       ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.setNode: node="));
       ETHEREVENTQUEUE_SERIAL.println(nodeNumber);
-      if (nodeNumber >= nodeCount) { //sanity check
+      if (nodeNumber >= nodeCount) {  //sanity check
         ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.setNode: invalid node number"));
         return false;
       }
@@ -303,6 +303,8 @@ class EtherEventQueueClass {
       ETHEREVENTQUEUE_SERIAL.println(IPAddress(IPdestination));
     }
 
+
+    boolean nodeIsSet(byte nodeNumber);
 };
 extern EtherEventQueueClass EtherEventQueue;  //declare the class so it doesn't have to be done in the sketch
 #endif
