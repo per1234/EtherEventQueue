@@ -145,8 +145,8 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
   - Returns: true == success, false == invalid nodeNumber
 
 `EtherEventQueue.removeNode(node)` - Remove a node.
-- Parameter: nodeNumber - The number or IP address of the node to remove.
-  - Type: byte, 4 byte array, or IPAddress
+- Parameter: nodeNumber - The number of the node to remove.
+  - Type: byte
 - Returns: none
 
 `EtherEventQueue.getIP(nodeNumber)` - Returns the IP address of the given node.

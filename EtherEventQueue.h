@@ -208,17 +208,7 @@ class EtherEventQueueClass {
       return true;
     }
 
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //removeNode
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
     void removeNode(byte nodeNumber);
-    template<typename IPtype>
-    void removeNode(const IPtype &nodeIPaddress) {
-      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.removeNode"));
-      removeNode(getNode(nodeIPaddress));
-    }
-
 
     IPAddress getIP(byte nodeNumber);
     void sendKeepalive(unsigned int port);
