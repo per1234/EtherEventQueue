@@ -80,6 +80,11 @@ boolean EtherEventQueueClass::begin(byte nodeDeviceInput, byte nodeCountInput, b
   //size send event queue buffers
   queueSizeMaxInput = min(queueSizeMaxInput, 90);  //the current system uses a 2 digit messageID so the range is 10-99, this restricts the queueSizeMax <= 90
 
+  queueIndex = (int8_t*)realloc(queueIndex, queueSizeMaxInput * sizeof(int8_t));
+  for (byte counter = 0; counter < queueSizeMaxInput; counter++) {
+    queueIndex[counter] = -1;  //set all queueIndex priority levels empty
+  }
+
   for (byte counter = 0; counter < queueSizeMax; counter++) {  //free previously allocated array items - this has to be done for arrays only because realloc doesn't work with the array items
     free(IPqueue[counter]);
   }
@@ -356,40 +361,60 @@ byte EtherEventQueueClass::queue(const byte targetIP[], unsigned int targetPort,
 
   Serial.print(F("EtherEventQueue.queue: queueSize="));
   Serial.println(queueSize);
+
+  byte queueSlot;
   if (queueSize == queueSizeMax) {  //queue overflowed
     Serial.println(F("EtherEventQueue.queue: Queue Overflowed"));
-    remove(0);  //remove the oldest queued item
+    queueSlot = queueIndex[queueSize - 1];
+    remove(queueSlot);
     success = queueSuccessOverflow;  //indicate overflow in the return
-    queueOverflowFlag = true;
+    queueOverflowFlag = true;  //set the overflow flag for use in checkQueueOverflow()
+  }
+  else {  //there are empty queue slots
+    //find an empty queue slot
+    for (queueSlot = 0; queueSlot < queueSizeMax; queueSlot++) {
+      byte counter = 0;
+      for (counter = 0; counter < queueSizeMax; counter++) {
+        if (queueIndex[counter] == queueSlot || queueIndex[counter] == -1) {  //the queue slot is filled or not found in the index
+          break;
+        }
+      }
+      if (queueIndex[counter] == -1) {  //the queue slot is empty
+        break;
+      }
+    }
   }
 
   //add the new message to the queue
   queueSize++;
-  IPcopy(IPqueue[queueSize - 1], targetIP);
-  portQueue[queueSize - 1] = targetPort;
-  strncpy(eventQueue[queueSize - 1], event, sendEventLengthMax);
-  eventQueue[queueSize - 1][sendEventLengthMax] = 0; //add null terminator in case event is longer than sendPayloadLengthMax
-  eventIDqueue[queueSize - 1] = eventIDfind();
-  strncpy(payloadQueue[queueSize - 1], payload, sendPayloadLengthMax);
-  payloadQueue[queueSize - 1][sendPayloadLengthMax] = 0; //add null terminator in case payload is longer than sendPayloadLengthMax
-  resendFlagQueue[queueSize - 1] = resendFlag;
+  queueIndex[queueSize - 1] = queueSlot;
+  IPcopy(IPqueue[queueSlot], targetIP);
+  portQueue[queueSlot] = targetPort;
+  strncpy(eventQueue[queueSlot], event, sendEventLengthMax);
+  eventQueue[queueSlot][sendEventLengthMax] = 0;  //add null terminator in case event is longer than sendPayloadLengthMax
+  eventIDqueue[queueSlot] = eventIDfind();
+  strncpy(payloadQueue[queueSlot], payload, sendPayloadLengthMax);
+  payloadQueue[queueSlot][sendPayloadLengthMax] = 0;  //add null terminator in case payload is longer than sendPayloadLengthMax
+  resendFlagQueue[queueSlot] = resendFlag;
 
   queueNewCount++;
 
-  Serial.print(F("EtherEventQueue.queue: done, queueNewCount="));
+  Serial.print(F("EtherEventQueue.queue: done, queueSlot="));
+  Serial.println(queueSlot);
+  Serial.print(F("EtherEventQueue.queue: queueNewCount="));
   Serial.println(queueNewCount);
   Serial.print(F("EtherEventQueue.queue: IP="));
-  Serial.println(IPAddress(IPqueue[queueSize - 1]));
+  Serial.println(IPAddress(IPqueue[queueSlot]));
   Serial.print(F("EtherEventQueue.queue: port="));
-  Serial.println(portQueue[queueSize - 1]);
+  Serial.println(portQueue[queueSlot]);
   Serial.print(F("EtherEventQueue.queue: event="));
-  Serial.println(eventQueue[queueSize - 1]);
+  Serial.println(eventQueue[queueSlot]);
   Serial.print(F("EtherEventQueue.queue: payload="));
-  Serial.println(payloadQueue[queueSize - 1]);
+  Serial.println(payloadQueue[queueSlot]);
   Serial.print(F("EtherEventQueue.queue: eventID="));
-  Serial.println(eventIDqueue[queueSize - 1]);
+  Serial.println(eventIDqueue[queueSlot]);
   Serial.print(F("EtherEventQueue.queue: resendFlag="));
-  Serial.println(resendFlagQueue[queueSize - 1]);
+  Serial.println(resendFlagQueue[queueSlot]);
   return success;
 }
 
@@ -399,7 +424,7 @@ byte EtherEventQueueClass::queue(const byte targetIP[], unsigned int targetPort,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
   if (queueSize > 0 && queueSize > localEventQueueCount) {  //there are events in the queue and there are non-local events
-    if (queueNewCount > 0 || millis() - queueSendTimestamp > resendDelay) {  //it is time
+    if (queueNewCount > 0 || millis() - queueSendTimestamp > resendDelay) {  //it is time(if there are new queue items then send immediately or if resend wait for the resendDelay)
       if (queueNewCount > queueSize) {  //sanity check - if the acks get messed up this can happen
         queueNewCount = queueSize;
       }
@@ -407,23 +432,27 @@ void EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
       Serial.println(queueSize);
       Serial.print(F("EtherEventQueue.queueHandler: queueNewCount="));
       Serial.println(queueNewCount);
-      byte queueStepSend;  //this is used to store the step to send which may not be the current step because of sending the new messages first
+      int8_t queueSlotSend = -1;  //this is used to store the slot
       for (byte counter = 0; counter < queueSize; counter++) {  //the maximum number of iterations is the queueSize
         if (queueNewCount == 0) {  //time to send the next one in the queue
-          queueSendTimestamp = millis();  //reset the timestamp to delay the next queue resend
-          queueStep++;
-          if (queueStep >= queueSize) {
-            queueStep = 0;
+          //find the next largest priority level value
+          if (queuePriorityLevel == queueSize - 1 || queueIndex[queuePriorityLevel + 1] == -1) {  //the last sent item was already at the largest priority level value so send the queue item with smallest priority level value
+            queuePriorityLevel = 0;
           }
-          queueStepSend = queueStep;
+          else {
+            queuePriorityLevel++;
+          }
+          queueSlotSend = queueIndex[queuePriorityLevel];
+          queueSendTimestamp = millis();  //reset the timestamp to delay the next queue resend
         }
-        else {  //send new items in the queue immediately
-          queueStepSend = queueSize - queueNewCount;  //send the oldest new one first
+        else {  //send the oldest new item in the queue
+          //find the (queueNewCount)th largest priority level value
+          queueSlotSend = queueIndex[queueSize - queueNewCount];
           queueNewCount--;
         }
-        Serial.print(F("EtherEventQueue.queueHandler: queueStepSend="));
-        Serial.println(queueStepSend);
-        int targetNode = getNode(IPqueue[queueStepSend]);  //get the node of the target IP
+        Serial.print(F("EtherEventQueue.queueHandler: queueSlotSend="));
+        Serial.println(queueSlotSend);
+        int targetNode = getNode(IPqueue[queueSlotSend]);  //get the node of the target IP
         Serial.print(F("EtherEventQueue.queueHandler: targetNode="));
         Serial.println(targetNode);
         Serial.print(F("EtherEventQueue.queueHandler: nodeDevice="));
@@ -437,12 +466,12 @@ void EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
           break;  //non-nodes never timeout
         }
 
-        if (millis() - nodeTimestamp[targetNode] < nodeTimeoutDuration || strcmp(eventQueue[queueStepSend], eventKeepalive) == 0) {  //non-timed out node or keepalive
+        if (millis() - nodeTimestamp[targetNode] < nodeTimeoutDuration || strcmp(eventQueue[queueSlotSend], eventKeepalive) == 0) {  //non-timed out node or keepalive
           break;  //continue with the message send
         }
         Serial.print(F("EtherEventQueue.queueHandler: targetNode timed out for queue#="));
-        Serial.println(queueStepSend);
-        remove(queueStepSend);  //dump messages for dead nodes from the queue
+        Serial.println(queueSlotSend);
+        remove(queueSlotSend);  //dump messages for dead nodes from the queue
         if (queueSize == 0) {  //no events left to send
           return;
         }
@@ -450,23 +479,23 @@ void EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
 
       //set up the raw payload
       char eventID[3];
-      itoa(eventIDqueue[queueStepSend], eventID, 10);  //put the message ID on the start of the payload
-      char payload[strlen(payloadQueue[queueStepSend]) + eventIDlength + 1];
+      itoa(eventIDqueue[queueSlotSend], eventID, 10);  //put the message ID on the start of the payload
+      char payload[strlen(payloadQueue[queueSlotSend]) + eventIDlength + 1];
       strcpy(payload, eventID);
-      strcat(payload, payloadQueue[queueStepSend]);  //add the true payload to the payload string
+      strcat(payload, payloadQueue[queueSlotSend]);  //add the true payload to the payload string
 
       Serial.print(F("EtherEventQueue.queueHandler: targetIP="));
-      Serial.println(IPAddress(IPqueue[queueStepSend]));
+      Serial.println(IPAddress(IPqueue[queueSlotSend]));
       Serial.print(F("EtherEventQueue.queueHandler: event="));
-      Serial.println(eventQueue[queueStepSend]);
+      Serial.println(eventQueue[queueSlotSend]);
       Serial.print(F("EtherEventQueue.queueHandler: payload="));
       Serial.println(payload);
 
-      if (EtherEvent.send(ethernetClient, IPqueue[queueStepSend], portQueue[queueStepSend], eventQueue[queueStepSend], payload) > 0) {
+      if (EtherEvent.send(ethernetClient, IPqueue[queueSlotSend], portQueue[queueSlotSend], eventQueue[queueSlotSend], payload) > 0) {
         Serial.println(F("EtherEventQueue.queueHandler: send successful"));
         nodeTimestamp[nodeDevice] = millis();  //set the device timestamp(using the nodeDevice because that part of the array is never used otherwise)
         //update timestamp of the target node
-        byte targetNode = getNode(IPqueue[queueStepSend]);  //get the node of the senderIP
+        byte targetNode = getNode(IPqueue[queueSlotSend]);  //get the node of the senderIP
         if (targetNode >= 0) {  //receivedIP is a node(-1 indicates no node match)
           nodeTimestamp[targetNode] = nodeTimestamp[nodeDevice];  //set the individual timestamp, any communication is considered to be a keepalive - the nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() twice for efficiency
           sendKeepaliveTimestamp[targetNode] = millis() - sendKeepaliveResendDelay;
@@ -476,15 +505,15 @@ void EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
 
         }
 
-        if (resendFlagQueue[queueStepSend] != queueTypeConfirm) {  //the flag indicates not to wait for an ack
+        if (resendFlagQueue[queueSlotSend] != queueTypeConfirm) {  //the flag indicates not to wait for an ack
           Serial.println(F("EtherEventQueue.queueHandler: resendFlag != queueTypeConfirm, event removed from queue"));
-          remove(queueStepSend);  //remove the message from the queue immediately
+          remove(queueSlotSend);  //remove the message from the queue immediately
         }
         return;
       }
       Serial.println(F("EtherEventQueue.queueHandler: send failed"));
-      if (resendFlagQueue[queueStepSend] == queueTypeOnce) {  //the flag indicates not to resend even after failure
-        remove(queueStepSend);  //remove keepalives even when send was not successful. This is because the keepalives are sent even to timed out nodes so they shouldn't be queued.
+      if (resendFlagQueue[queueSlotSend] == queueTypeOnce) {  //the flag indicates not to resend even after failure
+        remove(queueSlotSend);  //remove keepalives even when send was not successful. This is because the keepalives are sent even to timed out nodes so they shouldn't be queued.
       }
     }
   }
@@ -758,25 +787,34 @@ byte EtherEventQueueClass::eventIDfind() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //remove - remove the given item from the queue
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void EtherEventQueueClass::remove(byte queueStep) {
-  Serial.print(F("EtherEventQueue.remove: queueStep="));
-  Serial.println(queueStep);
-  if (queueSize > 1) {
-    queueSize--;
-    if (getNode(IPqueue[queueStep]) == nodeDevice) {  //the removed queue item is a local event
+void EtherEventQueueClass::remove(byte queueSlot) {
+  Serial.print(F("EtherEventQueue.remove: queueSlot="));
+  Serial.println(queueSlot);
+  if (getNode(IPqueue[queueSlot]) == nodeDevice) {  //the removed queue item is a local event
+    if (localEventQueueCount > 0) {  //sanity check
       localEventQueueCount--;
     }
-    for (byte count = queueStep; count < queueSize; count++) {  //move all the messages above the one to remove up in the queue
-      IPcopy(IPqueue[count], IPqueue[count + 1]);
-      portQueue[count] = portQueue[count + 1];
-      strcpy(eventQueue[count], eventQueue[count + 1]);
-      eventIDqueue[count] = eventIDqueue[count + 1];
-      strcpy(payloadQueue[count], payloadQueue[count + 1]);
-      resendFlagQueue[count] = resendFlagQueue[count + 1];
-    }
   }
-  else {
-    queueSize = 0;  //if there is only one event in the queue then nothing needs to be shifted
+  if (queueSize > 1) {
+    //find the priority level of the queueSlot to be removed
+    byte priorityLevel;
+    for (priorityLevel = 0; priorityLevel < queueSize; priorityLevel++) {
+      if (queueIndex[priorityLevel] == queueSlot) {
+        break;
+      }
+    }
+
+    //move up all queue slots with a larger priority level value than the removed slot
+    queueSize--;
+    byte counter;
+    for (counter = priorityLevel; counter < queueSize; counter++) {
+      queueIndex[counter] = queueIndex[counter + 1];
+    }
+    queueIndex[counter + 1] = -1;  //clear the last slot
+  }
+  else {  //there is only one item in the queue so priority level == 0
+    queueSize = 0;  //make sure that the queueSize will never negative overflow
+    queueIndex[0] = -1;  //clear the slot
   }
   Serial.print(F("EtherEventQueue.remove: new queue size="));
   Serial.println(queueSize);

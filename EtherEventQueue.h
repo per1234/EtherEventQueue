@@ -247,6 +247,7 @@ class EtherEventQueueClass {
     boolean receiveNodesOnlyState;  //restrict event receiving to nodes only
 
     byte queueSizeMax;
+    int8_t* queueIndex;
     byte** IPqueue;  //queue buffers
     unsigned int* portQueue;
     byte sendEventLengthMax;
@@ -259,7 +260,7 @@ class EtherEventQueueClass {
     byte queueNewCount;  //number of new messages in the queue
     byte localEventQueueCount;
     byte queueSize;  //how many messages are currently in the send queue
-    byte queueStep;  //which message in the queue is it on
+    byte queuePriorityLevel;  //the priority level of the last event sent
     unsigned long queueSendTimestamp;  //used for delayed resends of messages in the queue that failed the first time
     byte queueOverflowFlag;
     unsigned long resendDelay;
