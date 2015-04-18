@@ -18,11 +18,6 @@ class EtherEventQueueClass {
 
     const byte queueSuccessOverflow = 2;
 
-    //the library handles these special events differently
-    const char eventKeepalive[4] = {'1', '0', '0', 0};
-    const char eventAck[4] = {'1', '0', '1', 0};
-
-
     EtherEventQueueClass();
 
     boolean begin();
@@ -101,7 +96,7 @@ class EtherEventQueueClass {
     template <typename targetType>
     byte queue(const targetType &target, unsigned int port, const char event[], uint32_t payload, byte resendFlag) {
       char payloadChar[uint32_tLengthMax + 1];
-      uloa(payload, payloadChar, 10);
+      ultoa(payload, payloadChar, 10);
       return queue(target, port, event, payloadChar, resendFlag);
     }
     template <typename targetType, typename eventType>
@@ -216,11 +211,28 @@ class EtherEventQueueClass {
     void setSendKeepaliveMargin(unsigned long sendKeepaliveMarginInput);
     void setSendKeepaliveResendDelay(unsigned long sendKeepaliveResendDelayInput);
     unsigned long getSendKeepaliveResendDelay();
+    boolean setEventKeepalive(const char eventKeepaliveInput[]);
+    boolean setEventKeepalive(int16_t eventKeepaliveInput);
+    boolean setEventKeepalive(uint16_t eventKeepaliveInput);
+    boolean setEventKeepalive(int32_t eventKeepaliveInput);
+    boolean setEventKeepalive(uint32_t eventKeepaliveInput);
+    boolean setEventKeepalive(const __FlashStringHelper* eventKeepaliveInput, byte eventKeepaliveInputLength);
+
+
+    boolean setEventAck(const char eventAckInput[]);
+    boolean setEventAck(int16_t eventAckInput);
+    boolean setEventAck(uint16_t eventAckInput);
+    boolean setEventAck(int32_t eventAckInput);
+    boolean setEventAck(uint32_t eventAckInput);
+    boolean setEventAck(const __FlashStringHelper* eventAckInput, byte eventAckInputLength);
+#ifdef __FLASH_H__
+    boolean setEventKeepalive(const _FLASH_STRING eventKeepaliveInput);
+    boolean setEventAck(const _FLASH_STRING eventKeepaliveInput);
+#endif
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
   private:
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
     //private constants - these are constants that need to be accessed in this file so they can't be defined in EtherEventQueue.cpp
     const byte uint16_tLengthMax = 5;  //5 digits
@@ -274,6 +286,9 @@ class EtherEventQueueClass {
     unsigned long sendKeepaliveResendDelay;
     unsigned long nodeTimeoutDuration;
     unsigned long sendKeepaliveMargin;
+
+    char* eventKeepalive;
+    char* eventAck;
 
 
     byte eventIDfind();

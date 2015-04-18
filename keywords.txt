@@ -32,3 +32,5 @@ receivedEventID	KEYWORD2
 setSendKeepaliveResendDelay	KEYWORD2
 getSendKeepaliveResendDelay	KEYWORD2
 nodeIsSet	KEYWORD2
+setEventKeepalive	KEYWORD2
+setEventAck	KEYWORD2

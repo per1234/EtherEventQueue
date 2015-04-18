@@ -222,6 +222,23 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 - Returns: The sendKeepaliveResendDelay value
   - Type: unsigned long
 
+`EtherEventQueue.setEventKeepalive(eventKeepalive[, eventKeepaliveLength])` - Defines the keepalive event.
+- Parameter: eventKeepaliveInput - The event that is used as a keepalive.
+  - Type: char array, int, unsigned int, long, unsigned long, F()/__FlashStringHelper, _FLASH_STRING
+- Parameter: eventKeepaliveInputLength - The length of the event - use this parameter only if using F()/__FlashStringHelper type eventKeepalive.
+  - Type: byte
+- Returns: true == success, false == memory allocation failure.
+  - Type: boolean
+
+`EtherEventQueue.setEventAck(eventAck[, eventAckLength])` - Defines the event receipt confirmation event for use with queueTypeConfirm type events.
+- Parameter: eventAckInput - The event that is used as an ack.
+  - Type: char array, int, unsigned int, long, unsigned long, F()/__FlashStringHelper, _FLASH_STRING
+- Parameter: eventKeepaliveInputLength - The length of the event - use this parameter only if using F()/__FlashStringHelper type eventAck.
+  - Type: byte
+- Returns: true == success, false == memory allocation failure.
+  - Type: boolean
+
+
 #### Process
 An overview of the event queue process:
 - queue() - put event in the queue

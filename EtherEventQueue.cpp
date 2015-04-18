@@ -192,7 +192,7 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
       Serial.print(F("EtherEventQueue.availableEvent: event="));
       Serial.println(receivedEvent);
 
-      if (strcmp(receivedEvent, eventKeepalive) == 0) {  //keepalive received
+      if (eventKeepalive != NULL && strcmp(receivedEvent, eventKeepalive) == 0) { //keepalive received
         Serial.println(F("EtherEventQueue.availableEvent: keepalive received"));
         flushReceiver();  //the event has been read so EtherEventQueue has to be flushed
         return 0;  //receive keepalive silently
@@ -227,7 +227,7 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
         receivedPayload[0] = 0;  //clear the payload buffer
       }
 
-      if (strcmp(receivedEvent, eventAck) == 0) {  //ack handler
+      if (eventAck != NULL && strcmp(receivedEvent, eventAck) == 0) { //ack handler
         Serial.println(F("EtherEventQueue.availableEvent: ack received"));
         byte receivedPayloadInt = atoi(receivedPayload);  //convert to a byte
         for (byte count = 0; count < queueSize; count++) {  //step through the currently occupied section of the eventIDqueue[]
@@ -466,7 +466,7 @@ void EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
           break;  //non-nodes never timeout
         }
 
-        if (millis() - nodeTimestamp[targetNode] < nodeTimeoutDuration || strcmp(eventQueue[queueSlotSend], eventKeepalive) == 0) {  //non-timed out node or keepalive
+        if (millis() - nodeTimestamp[targetNode] < nodeTimeoutDuration || (eventKeepalive != NULL && strcmp(eventQueue[queueSlotSend], eventKeepalive) == 0)) { //non-timed out node or keepalive
           break;  //continue with the message send
         }
         Serial.print(F("EtherEventQueue.queueHandler: targetNode timed out for queue#="));
@@ -717,6 +717,10 @@ unsigned long EtherEventQueueClass::getSendKeepaliveMargin() {
 //sendKeepalive
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EtherEventQueueClass::sendKeepalive(unsigned int port) {
+  if (eventKeepalive == NULL) {
+    Serial.println(F("EtherEventQueue.sendKeepalive: eventKeepalive not set"));
+    return;
+  }
   for (byte node = 0; node < nodeCount; node++) {
     if (node == nodeDevice || !nodeIsSet(node)) {  //device node or node has not been set
       continue;
@@ -749,6 +753,127 @@ unsigned long EtherEventQueueClass::getSendKeepaliveResendDelay() {
   Serial.println(sendKeepaliveResendDelay);
   return sendKeepaliveResendDelay;
 }
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//setEventKeepalive
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+boolean EtherEventQueueClass::setEventKeepalive(const char eventKeepaliveInput[]) {
+  Serial.println(F("EtherEventQueue.setEventKeepalive"));
+  byte eventKeepaliveLength = strlen(eventKeepaliveInput);
+  eventKeepalive = (char*)realloc(eventKeepalive, (eventKeepaliveLength + 1) * sizeof(*eventKeepalive));  //allocate memory for the password
+  strcpy(eventKeepalive, eventKeepaliveInput);  //store the password
+  if (eventKeepalive == NULL) {
+    Serial.println(F("EtherEventQueue.setEventKeepalive: memory allocation failed"));
+    return false;
+  }
+  return true;
+}
+
+
+boolean EtherEventQueueClass::setEventKeepalive(int16_t eventKeepaliveInput) {
+  char eventKeepaliveInputChar[int16_tLengthMax + 1];
+  itoa(eventKeepaliveInput, eventKeepaliveInputChar, 10);
+  return setEventKeepalive(eventKeepaliveInputChar);
+}
+
+
+boolean EtherEventQueueClass::setEventKeepalive(uint16_t eventKeepaliveInput) {
+  char eventKeepaliveInputChar[uint16_tLengthMax + 1];
+  sprintf_P(eventKeepaliveInputChar, PSTR("%u"), eventKeepaliveInput);
+  return setEventKeepalive(eventKeepaliveInputChar);
+}
+
+
+boolean EtherEventQueueClass::setEventKeepalive(int32_t eventKeepaliveInput) {
+  char eventKeepaliveInputChar[int32_tLengthMax + 1];
+  ltoa(eventKeepaliveInput, eventKeepaliveInputChar, 10);
+  return setEventKeepalive(eventKeepaliveInputChar);
+}
+
+
+boolean EtherEventQueueClass::setEventKeepalive(uint32_t eventKeepaliveInput) {
+  char eventKeepaliveInputChar[uint32_tLengthMax + 1];
+  ultoa(eventKeepaliveInput, eventKeepaliveInputChar, 10);
+  return setEventKeepalive(eventKeepaliveInputChar);
+}
+
+
+boolean EtherEventQueueClass::setEventKeepalive(const __FlashStringHelper* eventKeepaliveInput, byte eventKeepaliveInputLength) {
+  char eventKeepaliveInputChar[eventKeepaliveInputLength + 1];
+  memcpy_P(eventKeepaliveInputChar, eventKeepaliveInput, eventKeepaliveInputLength + 1);  //+1 for the null terminator
+  return setEventKeepalive(eventKeepaliveInputChar);
+}
+
+
+#ifdef __FLASH_H__
+boolean EtherEventQueueClass::setEventKeepalive(const _FLASH_STRING eventKeepaliveInput) {
+  byte stringLength = eventKeepaliveInput.length();
+  char eventKeepaliveInputChar[stringLength + 1];
+  eventKeepaliveInput.copy(eventKeepaliveInputChar, stringLength + 1, 0);  //+1 for null terminator
+  return setEventKeepalive(eventKeepaliveInputChar);
+}
+#endif
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//setEventAck
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+boolean EtherEventQueueClass::setEventAck(const char eventAckInput[]) {
+  Serial.println(F("EtherEventQueue.setEventAck"));
+  byte eventAckLength = strlen(eventAckInput);
+  eventAck = (char*)realloc(eventAck, (eventAckLength + 1) * sizeof(*eventAck));  //allocate memory for the password
+  strcpy(eventAck, eventAckInput);  //store the password
+  if (eventAck == NULL) {
+    Serial.println(F("EtherEventQueue.setEventAck: memory allocation failed"));
+    return false;
+  }
+  return true;
+}
+
+
+boolean EtherEventQueueClass::setEventAck(int16_t eventAckInput) {
+  char eventAckInputChar[int16_tLengthMax + 1];
+  itoa(eventAckInput, eventAckInputChar, 10);
+  return setEventAck(eventAckInputChar);
+}
+
+
+boolean EtherEventQueueClass::setEventAck(uint16_t eventAckInput) {
+  char eventAckInputChar[uint16_tLengthMax + 1];
+  sprintf_P(eventAckInputChar, PSTR("%u"), eventAckInput);
+  return setEventAck(eventAckInputChar);
+}
+
+
+boolean EtherEventQueueClass::setEventAck(int32_t eventAckInput) {
+  char eventAckInputChar[int32_tLengthMax + 1];
+  ltoa(eventAckInput, eventAckInputChar, 10);
+  return setEventAck(eventAckInputChar);
+}
+
+
+boolean EtherEventQueueClass::setEventAck(uint32_t eventAckInput) {
+  char eventAckInputChar[uint32_tLengthMax + 1];
+  ultoa(eventAckInput, eventAckInputChar, 10);
+  return setEventAck(eventAckInputChar);
+}
+
+
+boolean EtherEventQueueClass::setEventAck(const __FlashStringHelper* eventAckInput, byte eventAckInputLength) {
+  char eventAckInputChar[eventAckInputLength + 1];
+  memcpy_P(eventAckInputChar, eventAckInput, eventAckInputLength + 1);  //+1 for the null terminator
+  return setEventAck(eventAckInputChar);
+}
+
+
+#ifdef __FLASH_H__
+boolean EtherEventQueueClass::setEventAck(const _FLASH_STRING eventAckInput) {
+  byte stringLength = eventAckInput.length();
+  char eventAckInputChar[stringLength + 1];
+  eventAckInput.copy(eventAckInputChar, stringLength + 1, 0);  //+1 for null terminator
+  return setEventAck(eventAckInputChar);
+}
+#endif
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
