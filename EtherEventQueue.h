@@ -270,7 +270,7 @@ class EtherEventQueueClass {
     byte* resendFlagQueue;
 
     byte queueNewCount;  //number of new messages in the queue
-    byte localEventQueueCount;
+    byte internalEventQueueCount;
     byte queueSize;  //how many messages are currently in the send queue
     byte queuePriorityLevel;  //the priority level of the last event sent
     unsigned long queueSendTimestamp;  //used for delayed resends of messages in the queue that failed the first time

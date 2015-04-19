@@ -94,7 +94,7 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 - Returns: none
 
 `EtherEventQueue.queue(target[, port], event[, eventLength], payload[, payloadLength], resendFlag)` - Send an event and payload
-- Parameter: target - takes either the IP address or node number of the target device
+- Parameter: target - Takes either the IP address or node number of the target device. EtherEventQueue can also be used to send internal events by sending to the device IPAddress or node number.
   - Type: IPAddress/4 byte array/byte
 - Parameter: port: - Port to send the event to.
   - Type: unsigned int

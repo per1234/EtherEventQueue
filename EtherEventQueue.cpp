@@ -139,9 +139,9 @@ boolean EtherEventQueueClass::begin(byte nodeDeviceInput, byte nodeCountInput, b
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
   if (receivedEventLength == 0) {  //there is no event buffered
-    if (localEventQueueCount > 0) {
+    if (internalEventQueueCount > 0) {
       for (int8_t queueStepCount = queueSize - 1; queueStepCount >= 0; queueStepCount--) {  //internal event system: step through the queue from the newest to oldest
-        if (getNode(IPqueue[queueStepCount]) == nodeDevice) {  //internal event
+        if (IPqueue[queueStepCount][0] == nodeIP[nodeDevice][0] && IPqueue[queueStepCount][1] == nodeIP[nodeDevice][1] && IPqueue[queueStepCount][2] == nodeIP[nodeDevice][2] && IPqueue[queueStepCount][3] == nodeIP[nodeDevice][3]) {  //internal event
           strcpy(receivedEvent, eventQueue[queueStepCount]);
           Serial.print(F("EtherEventQueue.availableEvent: internal event="));
           Serial.println(receivedEvent);
@@ -350,7 +350,7 @@ byte EtherEventQueueClass::queue(const byte targetIP[], unsigned int targetPort,
   //target is a node
   else  if (targetNode == nodeDevice) {  //send events to self regardless of timeout state
     Serial.println(F("EtherEventQueue.queue: self send"));
-    localEventQueueCount++;
+    internalEventQueueCount++;
   }
   else if (targetNode != nodeDevice && millis() - nodeTimestamp[targetNode] > nodeTimeoutDuration) {  //not self, is a node and is timed out
     Serial.println(F("EtherEventQueue.queue: timed out node"));
@@ -423,7 +423,7 @@ byte EtherEventQueueClass::queue(const byte targetIP[], unsigned int targetPort,
 //queueHandler - sends out the messages in the queue
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
-  if (queueSize > 0 && queueSize > localEventQueueCount) {  //there are events in the queue and there are non-local events
+  if (queueSize > 0 && queueSize > internalEventQueueCount) {  //there are events in the queue and there are non-internal events
     if (queueNewCount > 0 || millis() - queueSendTimestamp > resendDelay) {  //it is time(if there are new queue items then send immediately or if resend wait for the resendDelay)
       if (queueNewCount > queueSize) {  //sanity check - if the acks get messed up this can happen
         queueNewCount = queueSize;
@@ -527,7 +527,7 @@ void EtherEventQueueClass::flushQueue() {
   Serial.println(F("EtherEventQueue.flushQueue"));
   queueSize = 0;
   queueNewCount = 0;
-  localEventQueueCount = 0;
+  internalEventQueueCount = 0;
 }
 
 
@@ -915,9 +915,9 @@ byte EtherEventQueueClass::eventIDfind() {
 void EtherEventQueueClass::remove(byte removeQueueSlot) {
   Serial.print(F("EtherEventQueue.remove: queueSlot="));
   Serial.println(removeQueueSlot);
-  if (getNode(IPqueue[removeQueueSlot]) == nodeDevice) {  //the removed queue item is a local event
-    if (localEventQueueCount > 0) {  //sanity check
-      localEventQueueCount--;
+  if (IPqueue[removeQueueSlot][0] == nodeIP[nodeDevice][0] && IPqueue[removeQueueSlot][1] == nodeIP[nodeDevice][1] && IPqueue[removeQueueSlot][2] == nodeIP[nodeDevice][2] && IPqueue[removeQueueSlot][3] == nodeIP[nodeDevice][3]) {  //the queue item to remove is an internal event
+    if (internalEventQueueCount > 0) {  //sanity check
+      internalEventQueueCount--;
     }
   }
   if (queueSize > 1) {
