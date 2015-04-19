@@ -912,19 +912,19 @@ byte EtherEventQueueClass::eventIDfind() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //remove - remove the given item from the queue
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void EtherEventQueueClass::remove(byte queueSlot) {
+void EtherEventQueueClass::remove(byte removeQueueSlot) {
   Serial.print(F("EtherEventQueue.remove: queueSlot="));
-  Serial.println(queueSlot);
-  if (getNode(IPqueue[queueSlot]) == nodeDevice) {  //the removed queue item is a local event
+  Serial.println(removeQueueSlot);
+  if (getNode(IPqueue[removeQueueSlot]) == nodeDevice) {  //the removed queue item is a local event
     if (localEventQueueCount > 0) {  //sanity check
       localEventQueueCount--;
     }
   }
   if (queueSize > 1) {
     //find the priority level of the queueSlot to be removed
-    byte priorityLevel;
-    for (priorityLevel = 0; priorityLevel < queueSize; priorityLevel++) {
-      if (queueIndex[priorityLevel] == queueSlot) {
+    byte removeQueueSlotPriorityLevel;
+    for (removeQueueSlotPriorityLevel = 0; removeQueueSlotPriorityLevel < queueSize; removeQueueSlotPriorityLevel++) {
+      if (queueIndex[removeQueueSlotPriorityLevel] == removeQueueSlot) {
         break;
       }
     }
@@ -932,10 +932,20 @@ void EtherEventQueueClass::remove(byte queueSlot) {
     //move up all queue slots with a larger priority level value than the removed slot
     queueSize--;
     byte counter;
-    for (counter = priorityLevel; counter < queueSize; counter++) {
+    for (counter = removeQueueSlotPriorityLevel; counter < queueSize; counter++) {
       queueIndex[counter] = queueIndex[counter + 1];
     }
     queueIndex[counter + 1] = -1;  //clear the last slot
+
+    //adjust the removeQueueSlotPriorityLevel to account for the revised queueIndex
+    if (queuePriorityLevel >= removeQueueSlotPriorityLevel) {
+      if (queuePriorityLevel == 0) {
+        queuePriorityLevel = queueSize - 1;
+      }
+      else {
+        queuePriorityLevel--;
+      }
+    }
   }
   else {  //there is only one item in the queue so priority level == 0
     queueSize = 0;  //make sure that the queueSize will never negative overflow
