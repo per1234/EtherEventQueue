@@ -29,9 +29,7 @@ class EtherEventQueueClass {
     byte availablePayload();
     void readEvent(char eventBuffer[]);
     void readPayload(char payloadBuffer[]);
-#ifdef ethernetclientwithremoteIP_h
-    IPAddress senderIP();
-#endif
+
     byte receivedEventID();
     void flushReceiver();
 
@@ -252,9 +250,6 @@ class EtherEventQueueClass {
     char* receivedEvent;  //buffer to hold the received event
     byte receivedPayloadLengthMax;
     char* receivedPayload;  //buffer to hold the received payload
-#ifdef ethernetclientwithremoteIP_h
-    IPAddress receivedIP;
-#endif
     byte receivedEventLength;
     boolean receiveNodesOnlyState;  //restrict event receiving to nodes only
 

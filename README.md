@@ -79,11 +79,6 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
   - Type: char
 - Returns: none
 
-`EtherEventQueue.senderIP()` - Get the IP Address of the sender of the most recently received event. This function is only available if the modified Ethernet library is installed.
-- Parameter: none
-- Returns: IP Address of the sender of the most recent event.
-  - Type: IPAddress
-
 `EtherEventQueue.receivedEventID()` - Returns the event ID of the received event. This is needed for confirming receipt of queueTypeConfirm type events.
 - Parameter: none
 - Returns: Event ID of the received event.

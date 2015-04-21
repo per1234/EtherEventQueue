@@ -148,11 +148,6 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
           strcpy(receivedPayload, payloadQueue[queueStepCount]);
           Serial.print(F("EtherEventQueue.availableEvent: internal event payload="));
           Serial.println(receivedPayload);
-#ifdef ethernetclientwithremoteIP_h  //this function is only available if the modified Ethernet library is installed
-          receivedIP = IPAddress(IPqueue[queueStepCount]);
-          Serial.print(F("EtherEventQueue.availableEvent: receivedIP="));
-          Serial.println(receivedIP);
-#endif
           remove(queueStepCount);  //remove the event from the queue
           queueNewCount--;  //queueHandler doesn't handle internal events so they will always be new events
           return strlen(receivedEvent);
@@ -165,15 +160,14 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
       Serial.print(F("EtherEventQueue.availableEvent: EtherEvent.availableEvent()="));
       Serial.println(availableBytesEvent);
 #ifdef ethernetclientwithremoteIP_h  //this function is only available if the modified Ethernet library is installed
-      receivedIP = EtherEvent.senderIP();
       Serial.print(F("EtherEventQueue.availableEvent: remoteIP="));
-      Serial.println(receivedIP);
+      Serial.println(EtherEvent.senderIP());
 #endif
 
       nodeTimestamp[nodeDevice] = millis();  //set the device timestamp(using the nodeDevice because that part of the array is never used otherwise)
 #ifdef ethernetclientwithremoteIP_h  //this function is only available if the modified Ethernet library is installed
       //update timestamp of the event sender
-      byte senderNode = getNode(receivedIP);  //get the node of the senderIP
+      byte senderNode = getNode(EtherEvent.senderIP());  //get the node of the senderIP
       if (senderNode >= 0) {  //receivedIP is a node(-1 indicates no node match)
         nodeTimestamp[senderNode] = nodeTimestamp[nodeDevice];  //set the individual timestamp, any communication is considered to be a keepalive - the nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() twice for efficiency
         sendKeepaliveTimestamp[senderNode] = millis() - sendKeepaliveResendDelay;
@@ -278,18 +272,6 @@ void EtherEventQueueClass::readPayload(char payloadBuffer[]) {
   Serial.println(F("EtherEventQueue.readPayload"));
   strcpy(payloadBuffer, receivedPayload);
 }
-
-
-#ifdef ethernetclientwithremoteIP_h  //this function is only available if the modified Ethernet library is installed
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//senderIP - Returns the IP address of the sender of the last event.
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-IPAddress EtherEventQueueClass::senderIP() {
-  Serial.print(F("EtherEventQueue.senderIP: senderIP="));
-  Serial.println(receivedIP);
-  return receivedIP;
-}
-#endif
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
