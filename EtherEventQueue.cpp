@@ -670,6 +670,7 @@ IPAddress EtherEventQueueClass::getIP(byte nodeNumber) {
   Serial.println(F("EtherEventQueue.getIP"));
   if (nodeNumber >= nodeCount) {  //sanity check
     Serial.println(F("EtherEventQueue.getIP: invalid node number"));
+    return IPAddress(0, 0, 0, 0);
   }
   else {
     return IPAddress(nodeIP[nodeNumber][0], nodeIP[nodeNumber][1], nodeIP[nodeNumber][2], nodeIP[nodeNumber][3]);
