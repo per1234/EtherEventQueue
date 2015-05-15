@@ -5,7 +5,7 @@
 #include "Ethernet.h"
 //#include "Flash.h"  //uncomment this line if you have the Flash library installed
 
-#define DEBUG false  //(false == serial debug output off,  true == serial debug output on)The serial debug output will increase memory usage and communication latency so only enable when in use.
+#define DEBUG false  //(false == serial debug output off,  true == serial debug output on)The serial debug output will increase memory usage and communication latency so only enable when needed.
 #define ETHEREVENTQUEUE_SERIAL if(DEBUG)Serial  //I have to use a different name for Serial in this file otherwise the debug statement control also affects any other file that includes this file.
 
 
@@ -309,3 +309,4 @@ class EtherEventQueueClass {
 };
 extern EtherEventQueueClass EtherEventQueue;  //declare the class so it doesn't have to be done in the sketch
 #endif
+

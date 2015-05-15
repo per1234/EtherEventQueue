@@ -2,45 +2,44 @@ EtherEventQueue
 ==========
 
 Outgoing event queue for the EtherEvent Arduino library.
-EtherEvent provides easy to use password authenticated network communication between Arduinos and other devices running EventGhost, Girder, or any other program compatible with the EventGhost Network Event Sender and Receiver plugins.
+EtherEvent provides easy to use password authenticated network communication via Ethernet between Arduinos and other devices running EventGhost, Girder, or any other program compatible with the EventGhost Network Event Sender and Receiver plugins.
 
 This is an alpha release. It is not thoroughly tested. Feel free to make pull requests or issue reports. Thanks!
 
+
 #### Required Libraries
 - EtherEvent http://github.com/per1234/EtherEvent
+
 
 #### Related Programs
 - Modified Ethernet library - allows the event sender's IP address to be recorded: http://github.com/per1234/Ethernet - make sure to choose the correct branch for your Arduino IDE version. If this library is not installed then timestamp for external nodes will not be reset on received event, senderIP function is disabled, and receiveNodesOnly function is disabled.
 - UIPEthernet library for ENC28J60 ethernet chip: http://github.com/ntruchsess/arduino_uip
 - EventGhost free open source automation tool for Windows http://eventghost.com
 - TCP Events EventGhost plugin: http://www.eventghost.org/forum/viewtopic.php?p=16803 download link: http://docs.google.com/uc?id=0B3RTucUBY2bwVW5MQWdvRU90eTA - Improved network event sender/receiver allows sending events to multiple IP addresses
-- Flash library to allow passing payload strings stored in flash memory without a string length argument: http://github.com/rkhamilton/Flash 
+- Flash library to allow passing payload strings stored in flash memory without a string length argument: http://github.com/rkhamilton/Flash
+
 
 #### Installation
-- 64k is the minimum recommended flash memory capacity of the MCU
-- Download the most recent version of EtherEventQueue here: http://github.com/per1234/EtherEventQueue  - Click the "Download ZIP" button(or "Clone in Desktop" if you have GitHub Desktop installed)
-- Extract the EtherEventQueue-master folder from the downloaded zip file
-- Rename the folder EtherEventQueue
-- Move the folder to the libraries folder under your Arduino sketchbook folder as configured in Arduino IDE File>Preferences>Sketchbook location.
-- Repeat this process with the EtherEvent library and any other associated libraries you 
-- If you are using the Flash library then uncomment #include "Flash.h" in EtherEventQueue.cpp and EtherEventQueue.h
-- EtherEventQueue library configuration parameters
-  - EtherEventQueueNodes.h - IP addresses of nodes can be defined here, then events can be queued for sending to a node using just the node number and the status of the node will be monitored.
-  - EtherEventQueue.cpp
-    - DEBUG - Set this to true to enable debug output via serial. This will increase the sketch size dramatically so only enable when needed.
-  - EtherEventQueue.h
-    - eventKeepalive - The event that can be periodically send to keep nodes from being considered timed out. The default value is "100". This event will not be passed on via availableEvent(). Any event will reset the timeout timer so this event only needs to be used if no other event has been sent within the timeout duration.
-    - eventAck - The event that is sent back to the sender's IP address to acknowledge that an event has been received. The default value is "101". The payload of the ack is the ID number of the received event. When an ack is received it will not be passed on via availableEvent(). It is used to remove events that were queued with the resendFlag=2.
-- Restart the Arduino IDE
-- File>Examples>etherEventQueueExample
- - Set the device IP address, this can be any available IP address on the network. DHCP not currently implemented.
- - Set the device MAC address. This can be any address not already used on the network
- - Set the EtherEvent authentication password.
- - Set the EtherEvent TCP port.
-- Upload example sketch to device
-- Repeat with other connected devices. The serial monitor will show details of the test communications.
+- 64k is the minimum recommended flash memory capacity for use of this library.
+- Download the most recent version of EtherEventQueue here: https://github.com/per1234/EtherEventQueue/archive/master.zip
+- Extract the **EtherEventQueue-master** folder from the downloaded zip file.
+- Rename the folder **EtherEventQueue**.
+- Move the folder to the libraries folder under your Arduino sketchbook folder as configured in Arduino IDE **File > Preferences > Sketchbook** location.
+- Repeat this process with the EtherEvent library and any other associated libraries you wish to use.
+- Restart the Arduino IDE if it is open.
+- Running the example sketch:
+  - File > Examples > EtherEventQueueExample
+  - Set the configuration parameters.
+  - Upload to device.
+  - Repeat with other connected devices. The serial monitor will show details of the test communications.
+
+
+#### About Events and Payloads
+Events are used to trigger an action. The payload is information that accompanies the event. An example is an event code that triggers the display of the payload. Some events don't require a payload and in this case the payload may be left blank.
+
 
 #### Usage
+For demonstration of library usage see the example sketches.
 `EtherEventQueue.begin([deviceID, nodeCount][, queueSizeMax, sendEventLengthMax, sendPayloadLengthMax, receiveEventLengthMax, receivePayloadEventMax])` - Initialize EtherEventQueue.
 - Parameter(optional): deviceID - The node number of the device. The default value is 0.
   - Type: byte
@@ -101,19 +100,19 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
   - Type: char/int8_t/byte/int/unsigned int/long/unsigned long/_FLASH_STRING/__FlashStringHelper(F() macro)
 - Parameter: payloadLength:- length of the payload. This parameter should only be used if event is of type type __FlashStringHelper(F() macro).
   - Type: byte
-- Parameter: resendFlag - (EtherEventQueue.queueTypeOnce == no resend, EtherEventQueue.queueTypeResend == resend until successful send, 
+- Parameter: resendFlag - (EtherEventQueue.queueTypeOnce == no resend, EtherEventQueue.queueTypeResend == resend until successful send,
   - Values: EtherEventQueue.queueTypeOnce - Make one attempt at sending the event and then remove it from the queue.
             EtherEventQueue.queueTypeResend - Resend until successful send, then remove from queue.
             EtherEventQueue.queueTypeConfirm == Resend a message until the ack is received, the target IP times out, or the event overflows from the queue. The ack is the eventAck with the eventID of the event to confirm for a payload. Received acks are handled internally by EtherEventQueue and will not be passed on.
   - Type: byte
 - Returns: false == failure, true == successfully queued, EtherEventQueue.queueSuccessOverflow == successfully queued w/ queue overflow
   - Type: byte
-  
+
 `EtherEventQueue.queueHandler(ethernetClient)` - Send queued events.
 - Parameter: ethernetClient - The EthernetClient object created during the Ethernet library initialization.
   - Type: EthernetClient
 - Returns: none
-   
+
  `EtherEventQueue.flushQueue()` - Remove all events from the queue.
  - Returns: none
 
@@ -126,12 +125,12 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 - Parameter: resendDelay - (ms)The delay before resending resend or confirm type queued events.
   -Type: unsigned long
 - Returns: none
-  
+
 `EtherEventQueue.getResendDelay()` - Returns the value of the queued event resend delay.
 - Parameter: none
 - Returns: resendDelay - (ms)The delay before resending resend or confirm type queued events.
   -Type: unsigned long
-  
+
 `EtherEventQueue.setNode(nodeNumber, nodeIP)` - Set the IP address of a node.
 - Parameter: nodeNumber - The number of the node to set.
   - Type: byte
@@ -155,17 +154,17 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
   - Type: IPAddress or 4 byte array
 - Returns: node number, -1 == no match
   - Type: int8_t
-  
+
 `EtherEventQueue.checkTimeout()` - Check for newly timed out nodes.
 - Parameter: none
 - Returns: Node number of the tirst newly timed out node found or -1 if no timed out node found.
   - Type: int8_t
-  
+
 `EtherEventQueue.checkTimein()` - Check for newly timed in nodes.
 - Parameter: none
 - Returns: Node number of the tirst newly timed out node found or -1 if no timed out node found.
   - Type: int8_t
-  
+
 `EtherEventQueue.checkState(node)` - Check if no events have been received from the given node in longer than the timeout duration. The device is considered timed out when no events have received in longer than the timeout duration.
 - Parameter: node - The node number of the node to be checked.
   - Type: byte
@@ -176,7 +175,7 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 - Parameter: nodeTimeoutDuration - (ms)The amout of time without receiving an event from a node before it is considered timed out.
   -Type: unsigned long
 - Returns: none
-  
+
 `EtherEventQueue.getNodeTimeoutDuration()` - Returns the value of the node timeout duration.
 - Parameter: none
 - Returns: nodeTimeoutDuration - (ms)The amout of time without receiving an event from a node before it is considered timed out.
@@ -234,20 +233,26 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
   - Type: boolean
 
 
+#### Configuration Parameters
+There are a couple of flags that can be set in the source files to enable extra features:
+- Debug - set `#define DEBUG true` in **EtherEventQueue.h** to get debug output in the serial monitor, this will slow down communication so only enable debug output when needed.
+- If you are using the Flash library then uncomment `//#include "Flash.h"` in **EtherEventQueue.cpp** and **EtherEventQueue.h**.
+
 #### Process
 An overview of the event queue process:
-- queue() - put event in the queue
-  - non-keepalive events addressed to timed out nodes(other than self) are not queued
-  - events addressed to non-nodes are always queued unless non-node sending is disabled
-- queueHandler() - send event from queue
-  - newly queued events(haven't attempted to send yet) are sent first FIFO
-  - if there are no newly queued events then the sent events in the queue that have not been acked yet are resent FIFO
-  - events other than keepalive to timed out nodes are discarded
-  - send event
-  - if the send is successful then remove events from the queue that have the resendFlag parameter == 0 or 1
-  - if the send is not successful then remove events from the queue that have the resendFlag parameter == 0
-- availableEvent() - check for incoming events
-  - check the queue for internal events(addressed to self)
-  - check for external events(from network)
-  - if the event is from a node then the device and node timestamps are updated
-  - if incoming event is an ack then remove the message the ack refers to from the queue
+- queue() - Put event in the queue.
+  - Non-keepalive events addressed to timed out nodes(other than self) are not queued.
+  - Events addressed to non-nodes are always queued unless non-node sending is disabled.
+- queueHandler() - Send event from queue.
+  - Newly queued events(haven't attempted to send yet) are sent first FIFO.
+  - If there are no newly queued events then the sent events in the queue that have not been acked yet are resent FIFO.
+  - Events other than keepalive to timed out nodes are discarded.
+  - Send event.
+  - If the send is successful then remove events from the queue that have the resendFlag parameter == queueTypeOnce or queueTypeRepeat.
+  - If the send is not successful then remove events from the queue that have the resendFlag parameter == queueTypeOnce.
+- availableEvent() - Check for incoming events.
+  - Check the queue for internal events(addressed to self).
+  - Check for external events(from network).
+  - If the event is from a node then the device and node timestamps are updated.
+  - If incoming event is an ack then remove the message the ack refers to from the queue.
+

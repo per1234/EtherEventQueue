@@ -6,8 +6,7 @@
 #include "EtherEvent.h"
 //#include "Flash.h"  //uncomment this line if you have the Flash library installed
 
-#define DEBUG false  //(false == serial debug output off,  true == serial debug output on)The serial debug output will increase memory usage and communication latency so only enable when in use.
-#define Serial if(DEBUG)Serial
+#define Serial if(DEBUG)Serial  //DEBUG is defined in EtherEventQueue.h
 
 const unsigned long nodeTimeoutDurationDefault = 270000;  //(ms)the node is timed out if it has been longer than this duration since the last event was received from it
 const unsigned long sendKeepaliveMarginDefault = nodeTimeoutDurationDefault - 30000;
@@ -299,7 +298,7 @@ void EtherEventQueueClass::flushReceiver() {
 
 
 //convert IPAddress to 4 byte array
-byte EtherEventQueueClass::queue(const IPAddress &targetIPAddress, unsigned int port,  const char event[], const char payload[], byte resendFlag) {
+byte EtherEventQueueClass::queue(const IPAddress &targetIPAddress, unsigned int port, const char event[], const char payload[], byte resendFlag) {
   Serial.print(F("EtherEventQueue.queue(convert IPAddress): targetIPAddress="));
   Serial.println(targetIPAddress);
   byte targetIP[4];  //create buffer
@@ -954,3 +953,4 @@ boolean EtherEventQueueClass::nodeIsSet(byte nodeNumber) {
 
 
 EtherEventQueueClass EtherEventQueue;  //This sets up a single global instance of the library so the class doesn't need to be declared in the user sketch and multiple instances are not necessary in this case.
+
