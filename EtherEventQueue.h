@@ -237,7 +237,7 @@ class EtherEventQueueClass {
     const byte int16_tLengthMax = 1 + uint16_tLengthMax;  //sign + 5 digits
     const byte uint32_tLengthMax = 10;  //10 digits
     const byte int32_tLengthMax = 1 + uint32_tLengthMax;  //sign + 10 digits
-    const byte floatLengthMax = 1 + 7 + 1;  //sign + 7 digits + decimal
+
     const byte nodeStateTimedOut = 0;
     const byte nodeStateActive = 1;
     const byte nodeStateUnknown = 2;
