@@ -39,7 +39,7 @@ Events are used to trigger an action. The payload is information that accompanie
 
 
 #### Usage
-For demonstration of library usage see the example sketches.
+For demonstration of library usage see the example sketches and EventGhost tree.
 `EtherEventQueue.begin([deviceID, nodeCount][, queueSizeMax, sendEventLengthMax, sendPayloadLengthMax, receiveEventLengthMax, receivePayloadEventMax])` - Initialize EtherEventQueue.
 - Parameter(optional): deviceID - The node number of the device. The default value is 0.
   - Type: byte
