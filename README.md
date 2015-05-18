@@ -87,23 +87,23 @@ For demonstration of library usage see the example sketches.
 - Parameter: none
 - Returns: none
 
-`EtherEventQueue.queue(target[, port], event[, eventLength], payload[, payloadLength], resendFlag)` - Send an event and payload
+`EtherEventQueue.queue(target, port, resendFlag, event[, eventLength][, payload[, payloadLength]])` - Send an event and payload
 - Parameter: target - Takes either the IP address or node number of the target device. EtherEventQueue can also be used to send internal events by sending to the device IPAddress or node number.
   - Type: IPAddress/4 byte array/byte
 - Parameter: port: - Port to send the event to.
   - Type: unsigned int
-- Parameter: event: - string to send as the event
-  - Type: char/int8_t/byte/int/unsigned int/long/unsigned long/_FLASH_STRING/__FlashStringHelper(F() macro)
-- Parameter: eventLength - Length of the event. This parameter should only be used if event is of type __FlashStringHelper(F() macro).
-  - Type: byte
-- Parameter: payload - payload to send with the event. If you don't want a payload then just use "" for this parameter
-  - Type: char/int8_t/byte/int/unsigned int/long/unsigned long/_FLASH_STRING/__FlashStringHelper(F() macro)
-- Parameter: payloadLength:- length of the payload. This parameter should only be used if event is of type type __FlashStringHelper(F() macro).
-  - Type: byte
 - Parameter: resendFlag - (EtherEventQueue.queueTypeOnce == no resend, EtherEventQueue.queueTypeResend == resend until successful send,
   - Values: EtherEventQueue.queueTypeOnce - Make one attempt at sending the event and then remove it from the queue.
             EtherEventQueue.queueTypeResend - Resend until successful send, then remove from queue.
             EtherEventQueue.queueTypeConfirm == Resend a message until the ack is received, the target IP times out, or the event overflows from the queue. The ack is the eventAck with the eventID of the event to confirm for a payload. Received acks are handled internally by EtherEventQueue and will not be passed on.
+  - Type: byte
+- Parameter: event: - string to send as the event
+  - Type: char/int8_t/byte/int/unsigned int/long/unsigned long/_FLASH_STRING/__FlashStringHelper(F() macro)
+- Parameter(optional): eventLength - Length of the event. This parameter should only be used if event is of type __FlashStringHelper(F() macro).
+  - Type: byte
+- Parameter: payload - payload to send with the event. The payload is not optional when the event is of type __FlashStringHelper(F() macro).
+  - Type: char/int8_t/byte/int/unsigned int/long/unsigned long/_FLASH_STRING/__FlashStringHelper(F() macro)
+- Parameter: payloadLength:- length of the payload. This parameter should only be used if event is of type type __FlashStringHelper(F() macro).
   - Type: byte
 - Returns: false == failure, true == successfully queued, EtherEventQueue.queueSuccessOverflow == successfully queued w/ queue overflow
   - Type: byte

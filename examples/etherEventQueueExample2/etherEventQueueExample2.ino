@@ -83,7 +83,7 @@ void loop() {
   if (millis() - sendTimeStamp > queueEventInterval) {  //periodically send event
     sendTimeStamp = millis();  //reset the timestamp for the next event send
     Serial.println(F("Attempting event queue"));
-    if (EtherEventQueue.queue(sendIP, sendPort, F("123"), 3, F("test payload"), 12, EtherEventQueue.queueTypeRepeat)) {  //queue an event to be sent, EtherEventQueue will continue to attempt to send the event until it is successfully sent or the event overflows from the queue.
+    if (EtherEventQueue.queue(sendIP, sendPort, EtherEventQueue.queueTypeRepeat, F("123"), 3, F("test payload"))) {  //queue an event to be sent, EtherEventQueue will continue to attempt to send the event until it is successfully sent or the event overflows from the queue.
       Serial.println(F("Event queue successful"));
     }
     else {

@@ -298,28 +298,28 @@ void EtherEventQueueClass::flushReceiver() {
 
 
 //convert IPAddress to 4 byte array
-byte EtherEventQueueClass::queue(const IPAddress &targetIPAddress, unsigned int port, const char event[], const char payload[], byte resendFlag) {
+byte EtherEventQueueClass::queue(const IPAddress &targetIPAddress, unsigned int port, byte resendFlag, const char event[], const char payload[]) {
   Serial.print(F("EtherEventQueue.queue(convert IPAddress): targetIPAddress="));
   Serial.println(targetIPAddress);
   byte targetIP[4];  //create buffer
   IPcopy(targetIP, targetIPAddress);  //convert
-  return queue(targetIP, port, event, payload, resendFlag);
+  return queue(targetIP, port, resendFlag, event, payload);
 }
 
 
 //convert node to 4 byte array
-byte EtherEventQueueClass::queue(byte targetNode, unsigned int targetPort, const char event[], const char payload[], byte resendFlag) {
+byte EtherEventQueueClass::queue(byte targetNode, unsigned int port, byte resendFlag, const char event[], const char payload[]) {
   Serial.println(F("EtherEventQueue.queue(convert node)"));
   if (targetNode >= nodeCount || !nodeIsSet(targetNode)) {  //sanity check
     Serial.println(F("EtherEventQueue.queue(convert node): invalid node number"));
     return false;
   }
-  return queue(nodeIP[targetNode], targetPort, event, payload, resendFlag);
+  return queue(nodeIP[targetNode], port, resendFlag, event, payload);
 }
 
 
 //main queue() function
-byte EtherEventQueueClass::queue(const byte targetIP[], unsigned int targetPort, const char event[], const char payload[], byte resendFlag) {
+byte EtherEventQueueClass::queue(const byte targetIP[], unsigned int port, byte resendFlag, const char event[], const char payload[]) {
   Serial.println(F("EtherEventQueue.queue(main)"));
   int targetNode = getNode(targetIP);
   if (targetNode < 0) {  //target is not a node
@@ -370,7 +370,7 @@ byte EtherEventQueueClass::queue(const byte targetIP[], unsigned int targetPort,
   queueSize++;
   queueIndex[queueSize - 1] = queueSlot;
   IPcopy(IPqueue[queueSlot], targetIP);
-  portQueue[queueSlot] = targetPort;
+  portQueue[queueSlot] = port;
   strncpy(eventQueue[queueSlot], event, sendEventLengthMax);
   eventQueue[queueSlot][sendEventLengthMax] = 0;  //add null terminator in case event is longer than sendPayloadLengthMax
   eventIDqueue[queueSlot] = eventIDfind();
@@ -710,7 +710,7 @@ void EtherEventQueueClass::sendKeepalive(unsigned int port) {
     if (millis() - nodeTimestamp[node] > nodeTimeoutDuration - sendKeepaliveMargin && millis() - sendKeepaliveTimestamp[node] > sendKeepaliveResendDelay) {  //node is newly timed out(since the last time the function was run)
       Serial.print(F("EtherEventQueue.sendKeepalive: sending to node="));
       Serial.println(node);
-      queue(node, port, eventKeepalive, "", queueTypeOnce);
+      queue(node, port, queueTypeOnce, eventKeepalive);
     }
   }
   Serial.println(F("EtherEventQueue.sendKeepalive: no keepalive sent"));

@@ -36,102 +36,102 @@ class EtherEventQueueClass {
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //queue
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    byte queue(const byte targetIP[], unsigned int port, const char event[], const char payload[], byte resendFlag);  //main queue prototype
-    byte queue(byte targetNode, unsigned int targetPort, const char event[], const char payload[], byte resendFlag);
-    byte queue(const IPAddress &targetIPAddress, unsigned int port,  const char event[], const char payload[], byte resendFlag);
+    byte queue(const byte targetIP[], unsigned int port, byte resendFlag, const char event[], const char payload[] = ""); //main queue prototype
+    byte queue(byte targetNode, unsigned int port, byte resendFlag, const char event[], const char payload[] = "");
+    byte queue(const IPAddress &targetIPAddress, unsigned int port, byte resendFlag,  const char event[], const char payload[] = "");
 
     //convert event
-    template <typename targetType, typename payloadType>
-    byte queue(const targetType &target, unsigned int port, int16_t event, const payloadType payload, byte resendFlag) {
+    template <typename targetType>
+    byte queue(const targetType &target, unsigned int port, byte resendFlag, int16_t event, const char payload[] = "") {
       char eventChar[int16_tLengthMax + 1];
       itoa(event, eventChar, 10);
-      return queue(target, port, eventChar, payload, resendFlag);
+      return queue(target, port, resendFlag, eventChar, payload);
     }
-    template <typename targetType, typename payloadType>
-    byte queue(const targetType &target, unsigned int port, uint16_t event, const payloadType payload, byte resendFlag) {
+    template <typename targetType>
+    byte queue(const targetType &target, unsigned int port, byte resendFlag, uint16_t event, const char payload[] = "") {
       char eventChar[uint16_tLengthMax + 1];
       sprintf_P(eventChar, PSTR("%u"), event);
-      return queue(target, port, eventChar, payload, resendFlag);
+      return queue(target, port, resendFlag, eventChar, payload);
     }
-    template <typename targetType, typename payloadType>
-    byte queue(const targetType &target, unsigned int port, int32_t event, const payloadType payload, byte resendFlag) {
+    template <typename targetType>
+    byte queue(const targetType &target, unsigned int port, byte resendFlag, int32_t event, const char payload[] = "") {
       char eventChar[int32_tLengthMax + 1];
       ltoa(event, eventChar, 10);
-      return queue(target, port, eventChar, payload, resendFlag);
+      return queue(target, port, resendFlag, eventChar, payload);
     }
-    template <typename targetType, typename payloadType>
-    byte queue(const targetType &target, unsigned int port, uint32_t event, const payloadType payload, byte resendFlag) {
+    template <typename targetType>
+    byte queue(const targetType &target, unsigned int port, byte resendFlag, uint32_t event, const char payload[] = "") {
       char eventChar[uint32_tLengthMax + 1];
       ultoa(event, eventChar, 10);
-      return queue(target, port, eventChar, payload, resendFlag);
+      return queue(target, port, resendFlag, eventChar, payload);
     }
     template <typename targetType, typename payloadType>
-    byte queue(const targetType &target, unsigned int port, const __FlashStringHelper* event, byte eventLength, const payloadType payload, byte resendFlag) {
+    byte queue(const targetType &target, unsigned int port, byte resendFlag, const __FlashStringHelper* event, byte eventLength, const payloadType payload) {
       char eventChar[eventLength + 1];
       memcpy_P(eventChar, event, eventLength + 1);  //+1 for the null terminator
-      return queue(target, port, eventChar, payload, resendFlag);
+      return queue(target, port, resendFlag, eventChar, payload);
     }
 
     //convert payload
-    template <typename targetType>
-    byte queue(const targetType &target, unsigned int port, const char event[], int16_t payload, byte resendFlag) {
+    template <typename targetType, typename eventType>
+    byte queue(const targetType &target, unsigned int port, byte resendFlag, const eventType event, int16_t payload) {
       char payloadChar[int16_tLengthMax + 1];
       itoa(payload, payloadChar, 10);
-      return queue(target, port, event, payloadChar, resendFlag);
-    }
-    template <typename targetType>
-    byte queue(const targetType &target, unsigned int port, const char event[], uint16_t payload, byte resendFlag) {
-      char payloadChar[uint16_tLengthMax + 1];
-      sprintf_P(payloadChar, PSTR("%u"), payload);
-      return queue(target, port, event, payloadChar, resendFlag);
-    }
-    template <typename targetType>
-    byte queue(const targetType &target, unsigned int port, const char event[], int32_t payload, byte resendFlag) {
-      char payloadChar[int32_tLengthMax + 1];
-      ltoa(payload, payloadChar, 10);
-      return queue(target, port, event, payloadChar, resendFlag);
-    }
-    template <typename targetType>
-    byte queue(const targetType &target, unsigned int port, const char event[], uint32_t payload, byte resendFlag) {
-      char payloadChar[uint32_tLengthMax + 1];
-      ultoa(payload, payloadChar, 10);
-      return queue(target, port, event, payloadChar, resendFlag);
+      return queue(target, port, resendFlag, event, payloadChar);
     }
     template <typename targetType, typename eventType>
-    byte queue(const targetType &target, unsigned int port, eventType event, const __FlashStringHelper* payload, byte payloadLength, byte resendFlag) {
+    byte queue(const targetType &target, unsigned int port, byte resendFlag, const eventType event, uint16_t payload) {
+      char payloadChar[uint16_tLengthMax + 1];
+      sprintf_P(payloadChar, PSTR("%u"), payload);
+      return queue(target, port, resendFlag, event, payloadChar);
+    }
+    template <typename targetType, typename eventType>
+    byte queue(const targetType &target, unsigned int port, byte resendFlag, const eventType event, int32_t payload) {
+      char payloadChar[int32_tLengthMax + 1];
+      ltoa(payload, payloadChar, 10);
+      return queue(target, port, resendFlag, event, payloadChar);
+    }
+    template <typename targetType, typename eventType>
+    byte queue(const targetType &target, unsigned int port, byte resendFlag, const eventType event, uint32_t payload) {
+      char payloadChar[uint32_tLengthMax + 1];
+      ultoa(payload, payloadChar, 10);
+      return queue(target, port, resendFlag, event, payloadChar);
+    }
+    template <typename targetType, typename eventType>
+    byte queue(const targetType &target, unsigned int port, byte resendFlag, eventType event, const __FlashStringHelper* payload, byte payloadLength) {
       char payloadChar[payloadLength + 1];
       memcpy_P(payloadChar, payload, payloadLength + 1);  //+1 for the null terminator
-      return queue(target, port, event, payloadChar, resendFlag);
+      return queue(target, port, resendFlag, event, payloadChar);
     }
 
 
     //convert F() event and payload
     template <typename targetType>
-    byte queue(const targetType &target, unsigned int port, const __FlashStringHelper* event, byte eventLength, const __FlashStringHelper* payload, byte payloadLength, byte resendFlag) {
+    byte queue(const targetType &target, unsigned int port, byte resendFlag, const __FlashStringHelper* event, byte eventLength, const __FlashStringHelper* payload, byte payloadLength) {
       char eventChar[eventLength + 1];
       memcpy_P(eventChar, event, eventLength + 1);  //+1 for the null terminator
 
       char payloadChar[payloadLength + 1];
       memcpy_P(payloadChar, payload, payloadLength + 1);  //+1 for the null terminator
 
-      return queue(target, port, eventChar, payloadChar, resendFlag);
+      return queue(target, port, resendFlag, eventChar, payloadChar);
     }
 
     //Flash templates
 #ifdef __FLASH_H__
-    template <typename targetType, typename payloadType>
-    byte queue(const targetType &target, unsigned int port, const _FLASH_STRING event, const payloadType payload, byte resendFlag) {
+    template <typename targetType>
+    byte queue(const targetType &target, unsigned int port, byte resendFlag, const _FLASH_STRING event, const char payload[] = "") {
       byte stringLength = event.length();
       char eventChar[stringLength + 1];
       event.copy(eventChar, stringLength + 1, 0);  //+1 for null terminator
-      return queue(target, port, eventChar, payload, resendFlag);
+      return queue(target, port, resendFlag, eventChar, payload);
     }
-    template <typename targetType>
-    byte queue(const targetType &target, unsigned int port, const char event[], const _FLASH_STRING payload, byte resendFlag) {
+    template <typename targetType, typename eventType>
+    byte queue(const targetType &target, unsigned int port, byte resendFlag, const eventType event, const _FLASH_STRING payload) {
       byte stringLength = payload.length();
       char payloadChar[stringLength + 1];
       payload.copy(payloadChar, stringLength + 1, 0);  //+1 for null terminator
-      return queue(target, port, event, payloadChar, resendFlag);
+      return queue(target, port, resendFlag, event, payloadChar);
     }
 #endif
 
