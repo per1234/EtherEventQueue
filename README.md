@@ -38,6 +38,10 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 Events are used to trigger an action. The payload is information that accompanies the event. An example is an event code that triggers the display of the payload. Some events don't require a payload and in this case the payload may be left blank.
 
 
+#### Why Would I Want to Queue Events?
+Sometimes when your device tries to send an event the target might not be available to receive the event. This could be caused by the target being temporarily offline or busy. EtherEventQueue offers the option to place events in a queue to be resent later. Another benefit is that you can queue multiple events at the same time and then send them out one at a time so that your device will not be tied up by sending them all at one time. You can also define a list of "nodes", network addresses that are monitored. Events to nodes are only queued when they are online.
+
+
 #### Usage
 For demonstration of library usage see the example sketches and EventGhost tree.
 `EtherEventQueue.begin([deviceID, nodeCount][, queueSizeMax, sendEventLengthMax, sendPayloadLengthMax, receiveEventLengthMax, receivePayloadEventMax])` - Initialize EtherEventQueue.

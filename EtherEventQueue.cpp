@@ -199,7 +199,8 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
       Serial.print(F("EtherEventQueue.availableEvent: rawPayload="));
       Serial.println(receivedPayloadRaw);
 
-      //break the payload down into parts and convert the eventID, code, and target address to byte, the true payload stays as a char array
+      //break the payload down into parts and convert the eventID to byte, the true payload stays as a char array
+      //the first part of the raw payload is the eventID
       char receivedEventIDchar[eventIDlength + 1];
       for (byte count = 0; count < eventIDlength; count++) {
         receivedEventIDchar[count] = receivedPayloadRaw[count];
