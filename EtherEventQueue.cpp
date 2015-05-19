@@ -404,7 +404,7 @@ byte EtherEventQueueClass::queue(const byte targetIP[], unsigned int port, byte 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //queueHandler - sends out the messages in the queue
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
+boolean EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
   if (queueSize > 0 && queueSize > internalEventQueueCount) {  //there are events in the queue and there are non-internal events
     if (queueNewCount > 0 || millis() - queueSendTimestamp > resendDelay) {  //it is time(if there are new queue items then send immediately or if resend wait for the resendDelay)
       if (queueNewCount > queueSize) {  //sanity check - if the acks get messed up this can happen
@@ -455,7 +455,7 @@ void EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
         Serial.println(queueSlotSend);
         remove(queueSlotSend);  //dump messages for dead nodes from the queue
         if (queueSize == 0) {  //no events left to send
-          return;
+          return true;
         }
       }
 
@@ -491,14 +491,16 @@ void EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
           Serial.println(F("EtherEventQueue.queueHandler: resendFlag != queueTypeConfirm, event removed from queue"));
           remove(queueSlotSend);  //remove the message from the queue immediately
         }
-        return;
+        return true;  //indicate send success
       }
       Serial.println(F("EtherEventQueue.queueHandler: send failed"));
       if (resendFlagQueue[queueSlotSend] == queueTypeOnce) {  //the flag indicates not to resend even after failure
         remove(queueSlotSend);  //remove keepalives even when send was not successful. This is because the keepalives are sent even to timed out nodes so they shouldn't be queued.
       }
+      return false;  //indicate send failed
     }
   }
+  return true;  //indicate no send required
 }
 
 

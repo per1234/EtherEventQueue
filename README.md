@@ -115,7 +115,8 @@ For demonstration of library usage see the example sketches and EventGhost tree.
 `EtherEventQueue.queueHandler(ethernetClient)` - Send queued events.
 - Parameter: ethernetClient - The EthernetClient object created during the Ethernet library initialization.
   - Type: EthernetClient
-- Returns: none
+- Returns: true == event sent successfully or no send required, false == event send failed
+  - Type: boolean
 
  `EtherEventQueue.flushQueue()` - Remove all events from the queue.
  - Returns: none

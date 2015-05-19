@@ -41,7 +41,9 @@ void setup() {
 }
 
 void loop() {
-  EtherEventQueue.queueHandler(ethernetClient);  //this will send events from the queue
+  if (EtherEventQueue.queueHandler(ethernetClient) == false) { //this will send events from the queue
+    Serial.println(F("Event send failed"));
+  }
   if (byte length = EtherEventQueue.availableEvent(ethernetServer)) { //this checks for a new event and gets the length of the event including the null terminator
     Serial.print(F("Received event length="));
     Serial.println(length);

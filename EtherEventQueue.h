@@ -137,7 +137,7 @@ class EtherEventQueueClass {
 
 
 
-    void queueHandler(EthernetClient &ethernetClient);
+    boolean queueHandler(EthernetClient &ethernetClient);
     void flushQueue();
     int8_t checkTimeout();
     int8_t checkTimein();
