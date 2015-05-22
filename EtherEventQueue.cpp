@@ -228,6 +228,9 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
           if (receivedPayloadInt == eventIDqueue[count] && resendFlagQueue[count] == queueTypeConfirm) {  //the ack is for the eventID of this item in the queue and the resend flag indicates it is expecting an ack(non-ack events are not removed because obviously they haven't been sent yet if they're still in the queue so the ack can't possibly be for them)
             Serial.println(F("EtherEventQueue.availableEvent: ack eventID match"));
             remove(count);  //remove the message from the queue
+            if (queueNewCount > queueSize) {  //sanity check - if the ack incorrectly has the eventID of a new queue item then the queueNewCount value will be greater than the number of new queue items
+              queueNewCount = queueSize;
+            }
           }
         }
         flushReceiver();  //event and payload have been read so only have to flush EtherEventQueue
@@ -354,6 +357,8 @@ byte EtherEventQueueClass::queue(const byte targetIP[], unsigned int port, byte 
   }
   else {  //there are empty queue slots
     //find an empty queue slot
+    //the queueIndex is a list of the filled queue slots in order of least to most recently queued, a value of -1 in a queueSlot position indicates that the position is empty(and therefore all higher positions)
+    //the queuePriorityLevel is the queueIndex position of the next event to send
     for (queueSlot = 0; queueSlot < queueSizeMax; queueSlot++) {
       byte counter = 0;
       for (counter = 0; counter < queueSizeMax; counter++) {
@@ -405,94 +410,87 @@ byte EtherEventQueueClass::queue(const byte targetIP[], unsigned int port, byte 
 //queueHandler - sends out the messages in the queue
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 boolean EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
-  if (queueSize > 0 && queueSize > internalEventQueueCount) {  //there are events in the queue and there are non-internal events
-    if (queueNewCount > 0 || millis() - queueSendTimestamp > resendDelay) {  //it is time(if there are new queue items then send immediately or if resend wait for the resendDelay)
-      if (queueNewCount > queueSize) {  //sanity check - if the acks get messed up this can happen
-        queueNewCount = queueSize;
+  if (queueSize > internalEventQueueCount && (queueNewCount > 0 || millis() - queueSendTimestamp > resendDelay)) {  //there are events in the queue that are non-internal events and it is time(if there are new queue items then send immediately or if resend wait for the resendDelay)
+    Serial.print(F("EtherEventQueue.queueHandler: queueSize="));
+    Serial.println(queueSize);
+    Serial.print(F("EtherEventQueue.queueHandler: queueNewCount="));
+    Serial.println(queueNewCount);
+    byte queueSlotSend;  //this is used to store the slot
+    for (byte counter = 0; counter < queueSize; counter++) {  //the maximum number of iterations is the queueSize
+      if (queueNewCount == 0) {  //time to send the next one in the queue
+        //find the next largest priority level value
+        if (queuePriorityLevel == queueSize - 1 || queueIndex[queuePriorityLevel + 1] == -1) {  //the last sent item was already at the largest priority level value so send the queue item with smallest priority level value. The first statment(queuePriorityLevel == queueSize - 1) handles reaching the end of a full queue, the second statement(queueIndex[queuePriorityLevel + 1] == -1) handles reaching the empty portion of a partially filled queue
+          queuePriorityLevel = 0;  //start from the least recently queued item
+        }
+        else {
+          queuePriorityLevel++;  //go on to the next most recently queued item
+        }
+        queueSlotSend = queueIndex[queuePriorityLevel];
+        queueSendTimestamp = millis();  //reset the timestamp to delay the next queue resend
       }
-      Serial.print(F("EtherEventQueue.queueHandler: queueSize="));
-      Serial.println(queueSize);
-      Serial.print(F("EtherEventQueue.queueHandler: queueNewCount="));
-      Serial.println(queueNewCount);
-      int8_t queueSlotSend = -1;  //this is used to store the slot
-      for (byte counter = 0; counter < queueSize; counter++) {  //the maximum number of iterations is the queueSize
-        if (queueNewCount == 0) {  //time to send the next one in the queue
-          //find the next largest priority level value
-          if (queuePriorityLevel == queueSize - 1 || queueIndex[queuePriorityLevel + 1] == -1) {  //the last sent item was already at the largest priority level value so send the queue item with smallest priority level value
-            queuePriorityLevel = 0;
-          }
-          else {
-            queuePriorityLevel++;
-          }
-          queueSlotSend = queueIndex[queuePriorityLevel];
-          queueSendTimestamp = millis();  //reset the timestamp to delay the next queue resend
-        }
-        else {  //send the oldest new item in the queue
-          //find the (queueNewCount)th largest priority level value
-          queueSlotSend = queueIndex[queueSize - queueNewCount];
-          queueNewCount--;
-        }
-        Serial.print(F("EtherEventQueue.queueHandler: queueSlotSend="));
-        Serial.println(queueSlotSend);
-        int targetNode = getNode(IPqueue[queueSlotSend]);  //get the node of the target IP
-        Serial.print(F("EtherEventQueue.queueHandler: targetNode="));
-        Serial.println(targetNode);
-        Serial.print(F("EtherEventQueue.queueHandler: nodeDevice="));
-        Serial.println(nodeDevice);
-        if (targetNode == nodeDevice) {  //ignore internal events, they are sent in availableEvent()
-          Serial.println(F("EtherEventQueue.queueHandler: nodeDevice=targetNode"));
-          continue;  //move on to the next queue step
-        }
-        if (targetNode < 0) {  //-1 indicates no node match
-          Serial.println(F("EtherEventQueue.queueHandler: non-node targetIP"));
-          break;  //non-nodes never timeout
-        }
-
-        if (millis() - nodeTimestamp[targetNode] < nodeTimeoutDuration || (eventKeepalive != NULL && strcmp(eventQueue[queueSlotSend], eventKeepalive) == 0)) { //non-timed out node or keepalive
-          break;  //continue with the message send
-        }
-        Serial.print(F("EtherEventQueue.queueHandler: targetNode timed out for queue#="));
-        Serial.println(queueSlotSend);
-        remove(queueSlotSend);  //dump messages for dead nodes from the queue
-        if (queueSize == 0) {  //no events left to send
-          return true;
-        }
+      else {  //send the oldest new item in the queue
+        queueSlotSend = queueIndex[queueSize - queueNewCount];  //find the (queueNewCount)th largest priority level value
+        queueNewCount--;
+      }
+      Serial.print(F("EtherEventQueue.queueHandler: queueSlotSend="));
+      Serial.println(queueSlotSend);
+      int targetNode = getNode(IPqueue[queueSlotSend]);  //get the node of the target IP
+      Serial.print(F("EtherEventQueue.queueHandler: targetNode="));
+      Serial.println(targetNode);
+      Serial.print(F("EtherEventQueue.queueHandler: nodeDevice="));
+      Serial.println(nodeDevice);
+      if (targetNode == nodeDevice) {  //ignore internal events, they are sent in availableEvent()
+        Serial.println(F("EtherEventQueue.queueHandler: nodeDevice=targetNode"));
+        continue;  //move on to the next queue step
+      }
+      if (targetNode < 0) {  //-1 indicates no node match
+        Serial.println(F("EtherEventQueue.queueHandler: non-node targetIP"));
+        break;  //non-nodes never timeout
       }
 
-      //set up the raw payload
-      char eventID[3];
-      itoa(eventIDqueue[queueSlotSend], eventID, 10);  //put the message ID on the start of the payload
-      char payload[strlen(payloadQueue[queueSlotSend]) + eventIDlength + 1];
-      strcpy(payload, eventID);
-      strcat(payload, payloadQueue[queueSlotSend]);  //add the true payload to the payload string
-
-      Serial.print(F("EtherEventQueue.queueHandler: targetIP="));
-      Serial.println(IPAddress(IPqueue[queueSlotSend]));
-      Serial.print(F("EtherEventQueue.queueHandler: event="));
-      Serial.println(eventQueue[queueSlotSend]);
-      Serial.print(F("EtherEventQueue.queueHandler: payload="));
-      Serial.println(payload);
-
-      if (EtherEvent.send(ethernetClient, IPqueue[queueSlotSend], portQueue[queueSlotSend], eventQueue[queueSlotSend], payload) > 0) {
-        Serial.println(F("EtherEventQueue.queueHandler: send successful"));
-        nodeTimestamp[nodeDevice] = millis();  //set the device timestamp(using the nodeDevice because that part of the array is never used otherwise)
-        //update timestamp of the target node
-        byte targetNode = getNode(IPqueue[queueSlotSend]);  //get the node of the senderIP
-        if (targetNode >= 0) {  //receivedIP is a node(-1 indicates no node match)
-          nodeTimestamp[targetNode] = nodeTimestamp[nodeDevice];  //set the individual timestamp, any communication is considered to be a keepalive - the nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() twice for efficiency
-          sendKeepaliveTimestamp[targetNode] = millis() - sendKeepaliveResendDelay;
-          if (nodeState[targetNode] == nodeStateUnknown) {
-            nodeState[targetNode] = nodeStateActive;  //set the node state to active
-          }
-
-        }
-
-        if (resendFlagQueue[queueSlotSend] != queueTypeConfirm) {  //the flag indicates not to wait for an ack
-          Serial.println(F("EtherEventQueue.queueHandler: resendFlag != queueTypeConfirm, event removed from queue"));
-          remove(queueSlotSend);  //remove the message from the queue immediately
-        }
-        return true;  //indicate send success
+      if (millis() - nodeTimestamp[targetNode] < nodeTimeoutDuration || (eventKeepalive != NULL && strcmp(eventQueue[queueSlotSend], eventKeepalive) == 0)) { //non-timed out node or keepalive
+        break;  //continue with the message send
       }
+      Serial.print(F("EtherEventQueue.queueHandler: targetNode timed out for queue#="));
+      Serial.println(queueSlotSend);
+      remove(queueSlotSend);  //dump messages for dead nodes from the queue
+      if (queueSize == 0) {  //no events left to send
+        return true;
+      }
+    }
+
+    //set up the raw payload
+    char payload[strlen(payloadQueue[queueSlotSend]) + eventIDlength + 1];
+    itoa(eventIDqueue[queueSlotSend], payload, 10);  //put the message ID on the start of the payload
+    strcat(payload, payloadQueue[queueSlotSend]);  //add the true payload to the payload string
+
+    Serial.print(F("EtherEventQueue.queueHandler: targetIP="));
+    Serial.println(IPAddress(IPqueue[queueSlotSend]));
+    Serial.print(F("EtherEventQueue.queueHandler: event="));
+    Serial.println(eventQueue[queueSlotSend]);
+    Serial.print(F("EtherEventQueue.queueHandler: payload="));
+    Serial.println(payload);
+
+    if (EtherEvent.send(ethernetClient, IPqueue[queueSlotSend], portQueue[queueSlotSend], eventQueue[queueSlotSend], payload) > 0) {
+      Serial.println(F("EtherEventQueue.queueHandler: send successful"));
+      nodeTimestamp[nodeDevice] = millis();  //set the device timestamp(using the nodeDevice because that part of the array is never used otherwise)
+      //update timestamp of the target node
+      byte targetNode = getNode(IPqueue[queueSlotSend]);  //get the node of the senderIP
+      if (targetNode >= 0) {  //receivedIP is a node(-1 indicates no node match)
+        nodeTimestamp[targetNode] = nodeTimestamp[nodeDevice];  //set the individual timestamp, any communication is considered to be a keepalive - the nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() twice for efficiency
+        sendKeepaliveTimestamp[targetNode] = millis() - sendKeepaliveResendDelay;
+        if (nodeState[targetNode] == nodeStateUnknown) {
+          nodeState[targetNode] = nodeStateActive;  //set the node state to active
+        }
+      }
+
+      if (resendFlagQueue[queueSlotSend] != queueTypeConfirm) {  //the flag indicates not to wait for an ack
+        Serial.println(F("EtherEventQueue.queueHandler: resendFlag != queueTypeConfirm, event removed from queue"));
+        remove(queueSlotSend);  //remove the message from the queue immediately
+      }
+      return true;  //indicate send success
+    }
+    else { //send failed
       Serial.println(F("EtherEventQueue.queueHandler: send failed"));
       if (resendFlagQueue[queueSlotSend] == queueTypeOnce) {  //the flag indicates not to resend even after failure
         remove(queueSlotSend);  //remove keepalives even when send was not successful. This is because the keepalives are sent even to timed out nodes so they shouldn't be queued.
