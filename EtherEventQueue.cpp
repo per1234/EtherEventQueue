@@ -168,8 +168,8 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
       //update timestamp of the event sender
       byte senderNode = getNode(EtherEvent.senderIP());  //get the node of the senderIP
       if (senderNode >= 0) {  //receivedIP is a node(-1 indicates no node match)
-        nodeTimestamp[senderNode] = nodeTimestamp[nodeDevice];  //set the individual timestamp, any communication is considered to be a keepalive - the nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() twice for efficiency
-        sendKeepaliveTimestamp[senderNode] = millis() - sendKeepaliveResendDelay;
+        nodeTimestamp[senderNode] = nodeTimestamp[nodeDevice];  //set the individual timestamp, any communication is considered to be a received keepalive - the nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() twice for efficiency
+        sendKeepaliveTimestamp[senderNode] = nodeTimestamp[nodeDevice] - sendKeepaliveResendDelay; //Treat successful receive of any event as a sent keepalive so delay the send of the next keepalive. -sendKeepaliveResendDelay is so that sendKeepalive() will be able to queue the eventKeepalive according to "millis() - nodeTimestamp[node] > nodeTimeoutDuration - sendKeepaliveMargin" without being blocked by the "millis() - sendKeepaliveTimestamp[node] > sendKeepaliveResendDelay", it will not cause immediate queue of eventKeepalive because nodeTimestamp[targetNode] has just been set. The nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() again
         if (nodeState[senderNode] == nodeStateUnknown) {
           nodeState[senderNode] = nodeStateActive;  //set the node state to active
         }
@@ -476,9 +476,9 @@ boolean EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
       nodeTimestamp[nodeDevice] = millis();  //set the device timestamp(using the nodeDevice because that part of the array is never used otherwise)
       //update timestamp of the target node
       byte targetNode = getNode(IPqueue[queueSlotSend]);  //get the node of the senderIP
-      if (targetNode >= 0) {  //receivedIP is a node(-1 indicates no node match)
-        nodeTimestamp[targetNode] = nodeTimestamp[nodeDevice];  //set the individual timestamp, any communication is considered to be a keepalive - the nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() twice for efficiency
-        sendKeepaliveTimestamp[targetNode] = millis() - sendKeepaliveResendDelay;
+      if (targetNode >= 0) {  //the target IP is a node(-1 indicates no node match)
+        nodeTimestamp[targetNode] = nodeTimestamp[nodeDevice];  //set the individual timestamp, any communication is considered to be a received keepalive - the nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() twice for efficiency
+        sendKeepaliveTimestamp[targetNode] = nodeTimestamp[nodeDevice] - sendKeepaliveResendDelay;  //Treat successful send of any event as a sent keepalive so delay the send of the next keepalive. -sendKeepaliveResendDelay is so that sendKeepalive() will be able to queue the eventKeepalive according to "millis() - nodeTimestamp[node] > nodeTimeoutDuration - sendKeepaliveMargin" without being blocked by the "millis() - sendKeepaliveTimestamp[node] > sendKeepaliveResendDelay", it will not cause immediate queue of eventKeepalive because nodeTimestamp[targetNode] has just been set. The nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() again
         if (nodeState[targetNode] == nodeStateUnknown) {
           nodeState[targetNode] = nodeStateActive;  //set the node state to active
         }
@@ -712,6 +712,7 @@ void EtherEventQueueClass::sendKeepalive(unsigned int port) {
       Serial.print(F("EtherEventQueue.sendKeepalive: sending to node="));
       Serial.println(node);
       queue(node, port, queueTypeOnce, eventKeepalive);
+      sendKeepaliveTimestamp[node] = millis();
     }
   }
   Serial.println(F("EtherEventQueue.sendKeepalive: no keepalive sent"));
