@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<EventGhost Version="1694" Guid="{848770C1-EDBD-4FF1-94A5-34C47D93E388}" Time="1432452302.76">
+    <Autostart Name="Autostart" Expanded="True">
+        <Action Name="Demonstrates use of the TCPEvents EventGhost plugin.">
+            EventGhost.Comment()
+        </Action>
+        <Action Name="For use with the EtherEventQueue example sketches.">
+            EventGhost.Comment()
+        </Action>
+        <Action Name="Configure the TCP Events Plugin with your network settings:">
+            EventGhost.Comment()
+        </Action>
+        <Plugin Identifier="TCPEvents" Guid="{198090B7-0574-4F91-B2E7-1AF5BB37E2DE}" File="TCPEvents">
+            gAIoTQAEWAgAAABwYXNzd29yZHEAWAMAAABUQ1BxAYh0cQIu
+        </Plugin>
+    </Autostart>
+    <Macro Name="Send test event" Expanded="True">
+        <Event Name="TCP.test" />
+        <Action Name="This macro will send the test event every time the event TCP.test is received.">
+            EventGhost.Comment()
+        </Action>
+        <Action>
+            EventGhost.PythonCommand(u'targetIP="192.168.69.104"')
+        </Action>
+        <Action>
+            EventGhost.PythonCommand(u'event="test"')
+        </Action>
+        <Action>
+            EventGhost.PythonCommand(u'payload = "test payload"')
+        </Action>
+        <Action>
+            EventGhost.PythonCommand(u'eventID=42')
+        </Action>
+        <Action>
+            TCPEvents.SendEvent(u'{eg.globals.targetIP}', 1024, u'password', u'', u'{"payload " + str(eg.globals.eventID) + str(eg.globals.payload) + "\\n" + str(eg.globals.event)}', u'', None)
+        </Action>
+    </Macro>
+</EventGhost>

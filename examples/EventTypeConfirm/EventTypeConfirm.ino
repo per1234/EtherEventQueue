@@ -1,5 +1,7 @@
-//Example script for the EtherEventQueue library. Demonstrates advanced features.
-//Periodically queues a test event, sends queued events, receives events and prints them to the serial monitor.
+// Example script for the EtherEventQueue library. Demonstrates use of eventTypeConfirm.
+// Periodically queues a test event, sends queued events, receives events and prints them to the serial monitor.
+// Use with EventGhost-example-trees-EventTypeConfirm.
+
 #include <SPI.h>  //these libraries are required by EtherEvent
 #include "Ethernet.h"
 #include "MD5.h"
@@ -9,6 +11,7 @@
 #include <utility/w5100.h>  //Used for setting the ethernet send connect timeout
 //#include "Flash.h"  //uncomment this line if you are using the Flash library with EtherEventQueue
 
+
 //configuration parameters - modify these values to your desired settings
 #define DHCP false  //true==use DHCP to assign an IP address to the device, this will significantly increase memory usage. false==use static IP address.
 byte MACaddress[] = {0, 1, 2, 3, 4, 4};  //this can be anything you like as long as it's unique on your network
@@ -17,13 +20,16 @@ const IPAddress deviceIP = IPAddress(192, 168, 69, 104);  //IP address to use fo
 #endif
 const char password[] = "password";  //EtherEvent password. This must match the password set in EventGhost.
 const unsigned int port = 1024;  //TCP port to receive events.
+
 const byte maxQueueSize = 10;  //Maximum number of events to queue. Longer entries will be truncated to this length. If this parameter is not passed then the default will be used.
 const byte maxSendEventLength = 8;  //Maximum event length to send. Longer entries will be truncated to this length. If this parameter is not passed then the default will be used.
 const byte maxSendPayloadLength = 25;  //Maximum payload length to send. Longer entries will be truncated to this length. If this parameter is not passed then the default will be used.
 const byte maxReceivedEventLength = 8;  //Maximum event length to receive. Longer entries will be truncated to this length. If this parameter is not passed then the default will be used.
 const byte maxReceivedPayloadLength = 25;  //Maximum payload length to receive. Longer entries will be truncated to this length. If this parameter is not passed then the default will be used.
+
 const unsigned int resendDelay = 30000;  //(ms)Delay before resending repeat or confirm type queued events.
 const unsigned long nodeTimeoutDuration = 240000;  //(ms)If no event has been received from a node in greater than this duration then it is considered timed out.
+
 const byte etherEventTimeout = 20;  //(ms)The max time to wait for ethernet communication.
 const unsigned int W5100timeout = 400;  //(0.1ms)used to set the timeout for the w5100 module.
 const byte W5100retransmissionCount = 1;  //Retransmission count. 1 is the minimum value.
@@ -32,9 +38,11 @@ const unsigned int queueEventInterval = 4000;  //(ms)Delay between queueing the 
 const IPAddress sendIP = IPAddress(192, 168, 69, 100);  //The IP address to send the test events to.
 const unsigned int sendPort = 1024;  //The port to send the test events to.
 
+
 EthernetServer ethernetServer(port);  //TCP port to receive on
 EthernetClient ethernetClient;  //create the client object for ethernet communication
 unsigned long sendTimeStamp;  //used by the example to periodically send an event
+
 
 void setup() {
   Serial.begin(9600);  //the received event and other information will be displayed in your serial monitor while the sketch is running
@@ -44,12 +52,13 @@ void setup() {
   Ethernet.begin(MACaddress, deviceIP);  //use static IP address
 #endif
   ethernetServer.begin();  //begin the server that will be used to receive events
-  if (EtherEventQueue.begin(maxQueueSize, maxSendEventLength, maxSendPayloadLength, maxReceivedEventLength, maxReceivedPayloadLength) == false || EtherEvent.setPassword(password) == false) { //initialize EtherEventQueue
+  if (EtherEventQueue.begin(maxQueueSize, maxSendEventLength, maxSendPayloadLength, maxReceivedEventLength, maxReceivedPayloadLength) == false || EtherEvent.setPassword(password) == false) {  //initialize EtherEventQueue
     Serial.print(F("ERROR: Buffer size exceeds available memory, use smaller values."));
     while (1);  //abort execution of the rest of the program
   }
   EtherEventQueue.setResendDelay(resendDelay);
   EtherEventQueue.setNodeTimeoutDuration(nodeTimeoutDuration);
+  EtherEventQueue.setEventAck(F("ack"), 3);
 
   EtherEvent.setTimeout(etherEventTimeout);  //set timeout duration
 #ifdef ethernet_h
@@ -58,12 +67,14 @@ void setup() {
 #endif
 }
 
+
 void loop() {
-  if (EtherEventQueue.queueHandler(ethernetClient) == false) { //this will send events from the queue
-    Serial.println(F("Event send failed"));
+  if (EtherEventQueue.queueHandler(ethernetClient) == false) {  //this will send events from the queue
+    Serial.println(F("\nEvent send failed"));
   }
+
   if (byte length = EtherEventQueue.availableEvent(ethernetServer)) {  //this checks for a new event and gets the length of the event including the null terminator
-    Serial.print(F("Received event length="));
+    Serial.print(F("\nReceived event length="));
     Serial.println(length);
     char event[length];  //create the event buffer of the correct size
     EtherEventQueue.readEvent(event);  //read the event into the event buffer
@@ -84,8 +95,8 @@ void loop() {
 
   if (millis() - sendTimeStamp > queueEventInterval) {  //periodically send event
     sendTimeStamp = millis();  //reset the timestamp for the next event send
-    Serial.println(F("Attempting event queue"));
-    if (EtherEventQueue.queue(sendIP, sendPort, EtherEventQueue.eventTypeRepeat, F("123"), 3, F("test payload"), 12)) {  //queue an event to be sent, EtherEventQueue will continue to attempt to send the event until it is successfully sent or the event overflows from the queue.
+    Serial.println(F("\nAttempting event queue"));
+    if (EtherEventQueue.queue(sendIP, sendPort, EtherEventQueue.eventTypeConfirm, F("test"), 4, F("test payload"), 12)) {  //queue an event to be sent, EtherEventQueue will continue to attempt to send the event until it is successfully sent or the event overflows from the queue.
       Serial.println(F("Event queue successful"));
     }
     else {
@@ -93,3 +104,4 @@ void loop() {
     }
   }
 }
+

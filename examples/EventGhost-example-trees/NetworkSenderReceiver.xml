@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<EventGhost Version="1694" Guid="{8019F84E-F515-4ECF-8504-A43CB5ED8976}" Time="1432452288.42">
+    <Autostart Name="Autostart" Expanded="True">
+        <Action Name="Demonstrates use of the Network Sender and Receiver EventGhost plugins.">
+            EventGhost.Comment()
+        </Action>
+        <Action Name="For use with the EtherEventQueue example sketches.">
+            EventGhost.Comment()
+        </Action>
+        <Action Name="Configure the Network Event Sender/Receiver Plugins with your network settings:">
+            EventGhost.Comment()
+        </Action>
+        <Plugin Identifier="NetworkSender" Guid="{B4F0DAFE-2E0B-47F3-A155-ED72C7A4E270}" File="NetworkSender">
+            gAJYDgAAADE5Mi4xNjguNjkuMTA0cQBNAARYCAAAAHBhc3N3b3JkcQGHcQIu
+        </Plugin>
+        <Plugin Identifier="NetworkReceiver" Guid="{8F35AE6D-AF12-4A94-AA91-4B63F0CBBE1C}" File="NetworkReceiver">
+            gAJNAARYCAAAAHBhc3N3b3JkcQBYAwAAAFRDUHEBh3ECLg==
+        </Plugin>
+    </Autostart>
+    <Macro Name="Send test event" Expanded="True">
+        <Event Name="TCP.test" />
+        <Action Name="This macro will send a test event every time the event TCP.test is received.">
+            EventGhost.Comment()
+        </Action>
+        <Action>
+            EventGhost.PythonCommand(u'event = "test"')
+        </Action>
+        <Action>
+            EventGhost.PythonCommand(u'eventID = 42')
+        </Action>
+        <Action>
+            EventGhost.PythonCommand(u'payload = "test payload"')
+        </Action>
+        <Action>
+            NetworkSender.Map(u'{"payload " + str(eg.globals.eventID) +  eg.globals.payload + "\\n" + eg.globals.event + "\\n"}')
+        </Action>
+    </Macro>
+</EventGhost>
