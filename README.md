@@ -82,7 +82,7 @@ For demonstration of library usage see the example sketches and EventGhost tree.
   - Type: char array
 - Returns: none
 
-`EtherEventQueue.receivedEventID()` - Returns the event ID of the received event. This is needed for confirming receipt of queueTypeConfirm type events(ack).
+`EtherEventQueue.receivedEventID()` - Returns the event ID of the received event. This is needed for confirming receipt of eventTypeConfirm type events(ack).
 - Parameter: none
 - Returns: Event ID of the received event.
   - Type: byte
@@ -91,15 +91,15 @@ For demonstration of library usage see the example sketches and EventGhost tree.
 - Parameter: none
 - Returns: none
 
-`EtherEventQueue.queue(target, port, resendFlag, event[, eventLength][, payload[, payloadLength]])` - Send an event and payload
+`EtherEventQueue.queue(target, port, eventType, event[, eventLength][, payload[, payloadLength]])` - Send an event and payload
 - Parameter: target - Takes either the IP address or node number of the target device. EtherEventQueue can also be used to send internal events by sending to the device IPAddress or node number.
   - Type: IPAddress/4 byte array/byte
 - Parameter: port: - Port to send the event to.
   - Type: unsigned int
-- Parameter: resendFlag - (EtherEventQueue.queueTypeOnce == no resend, EtherEventQueue.queueTypeResend == resend until successful send,
-  - Values: EtherEventQueue.queueTypeOnce - Make one attempt at sending the event and then remove it from the queue.
-            EtherEventQueue.queueTypeResend - Resend until successful send, then remove from queue.
-            EtherEventQueue.queueTypeConfirm - Resend a message until the ack is received, the target IP times out, or the event overflows from the queue. The ack is the eventAck with the eventID of the event to confirm for a payload. Received acks are handled internally by EtherEventQueue and will not be passed on.
+- Parameter: eventType
+  - Values: EtherEventQueue.eventTypeOnce - Make one attempt at sending the event and then remove it from the queue.
+            EtherEventQueue.eventTypeResend - Resend until successful send, then remove from queue.
+            EtherEventQueue.eventTypeConfirm - Resend a message until the ack is received, the target IP times out, or the event overflows from the queue. The ack is the eventAck with the eventID of the event to confirm for a payload. Received acks are handled internally by EtherEventQueue and will not be passed on.
   - Type: byte
 - Parameter: event: - string to send as the event
   - Type: char array/int8_t/byte/int/unsigned int/long/unsigned long/_FLASH_STRING/__FlashStringHelper(F() macro)
@@ -229,7 +229,7 @@ For demonstration of library usage see the example sketches and EventGhost tree.
 - Returns: true == success, false == memory allocation failure.
   - Type: boolean
 
-`EtherEventQueue.setEventAck(eventAck[, eventAckLength])` - Defines the event receipt confirmation event for use with queueTypeConfirm type events.
+`EtherEventQueue.setEventAck(eventAck[, eventAckLength])` - Defines the event receipt confirmation event for use with eventTypeConfirm type events.
 - Parameter: eventAckInput - The event that is used as an ack.
   - Type: char array, int, unsigned int, long, unsigned long, F()/__FlashStringHelper, _FLASH_STRING
 - Parameter: eventKeepaliveInputLength - The length of the event - use this parameter only if eventAck is of type __FlashStringHelper(F() macro).
@@ -253,8 +253,8 @@ An overview of the event queue process:
   - If there are no newly queued events then the sent events in the queue that have not been acked yet are resent FIFO.
   - Events other than keepalive to timed out nodes are discarded.
   - Send event.
-  - If the send is successful then remove events from the queue that have the resendFlag parameter == queueTypeOnce or queueTypeRepeat.
-  - If the send is not successful then remove events from the queue that have the resendFlag parameter == queueTypeOnce.
+  - If the send is successful then remove events from the queue that have the eventType parameter == eventTypeOnce or eventTypeRepeat.
+  - If the send is not successful then remove events from the queue that have the eventType parameter == eventTypeOnce.
 - availableEvent() - Check for incoming events.
   - Check the queue for internal events(addressed to self).
   - Check for external events(from network).

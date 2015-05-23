@@ -113,7 +113,7 @@ boolean EtherEventQueueClass::begin(byte nodeDeviceInput, byte nodeCountInput, b
     payloadQueue[counter] = (char*)malloc((sendPayloadLengthMax + 1) * sizeof(char));
   }
 
-  resendFlagQueue = (byte*)realloc(resendFlagQueue, queueSizeMaxInput * sizeof(byte));
+  eventTypeQueue = (byte*)realloc(eventTypeQueue, queueSizeMaxInput * sizeof(byte));
 
   queueSizeMax = queueSizeMaxInput;  //save the new queueSizeMax, this is done at the end of begin() because it needs to remember the previous value for freeing the array items
 
@@ -124,7 +124,7 @@ boolean EtherEventQueueClass::begin(byte nodeDeviceInput, byte nodeCountInput, b
   receivedPayloadLengthMax = receivedPayloadLengthMaxInput;
   receivedPayload = (char*)realloc(receivedPayload, (receivedPayloadLengthMax + 1) * sizeof(char));
   receivedPayload[0] = 0;  //clear buffer - realloc does not zero initialize so the buffer could contain anything
-  if (IPqueue == NULL || portQueue == NULL || eventQueue == NULL || eventIDqueue == NULL || payloadQueue == NULL || resendFlagQueue == NULL || receivedEvent == NULL || receivedPayload == NULL || EtherEvent.begin(receivedEventLengthMax, eventIDlength + receivedPayloadLengthMax) == false) {
+  if (IPqueue == NULL || portQueue == NULL || eventQueue == NULL || eventIDqueue == NULL || payloadQueue == NULL || eventTypeQueue == NULL || receivedEvent == NULL || receivedPayload == NULL || EtherEvent.begin(receivedEventLengthMax, eventIDlength + receivedPayloadLengthMax) == false) {
     Serial.println(F("memory allocation failed"));
     return false;
   }
@@ -224,7 +224,7 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
         Serial.println(F("EtherEventQueue.availableEvent: ack received"));
         byte receivedPayloadInt = atoi(receivedPayload);  //convert to a byte
         for (byte count = 0; count < queueSize; count++) {  //step through the currently occupied section of the eventIDqueue[]
-          if (receivedPayloadInt == eventIDqueue[count] && resendFlagQueue[count] == queueTypeConfirm) {  //the ack is for the eventID of this item in the queue and the resend flag indicates it is expecting an ack(non-ack events are not removed because obviously they haven't been sent yet if they're still in the queue so the ack can't possibly be for them)
+          if (receivedPayloadInt == eventIDqueue[count] && eventTypeQueue[count] == eventTypeConfirm) {  //the ack is for the eventID of this item in the queue and the resend flag indicates it is expecting an ack(non-ack events are not removed because obviously they haven't been sent yet if they're still in the queue so the ack can't possibly be for them)
             Serial.println(F("EtherEventQueue.availableEvent: ack eventID match"));
             remove(count);  //remove the message from the queue
             if (queueNewCount > queueSize) {  //sanity check - if the ack incorrectly has the eventID of a new queue item then the queueNewCount value will be greater than the number of new queue items
@@ -301,30 +301,30 @@ void EtherEventQueueClass::flushReceiver() {
 
 
 //convert IPAddress to 4 byte array
-byte EtherEventQueueClass::queue(const IPAddress &targetIPAddress, unsigned int port, byte resendFlag, const char event[], const char payload[]) {
+byte EtherEventQueueClass::queue(const IPAddress &targetIPAddress, unsigned int port, byte eventType, const char event[], const char payload[]) {
   Serial.print(F("EtherEventQueue.queue(convert IPAddress): targetIPAddress="));
   Serial.println(targetIPAddress);
   byte targetIP[4];  //create buffer
   IPcopy(targetIP, targetIPAddress);  //convert
-  return queue(targetIP, port, resendFlag, event, payload);
+  return queue(targetIP, port, eventType, event, payload);
 }
 
 
 //convert node to 4 byte array
-byte EtherEventQueueClass::queue(byte targetNode, unsigned int port, byte resendFlag, const char event[], const char payload[]) {
+byte EtherEventQueueClass::queue(byte targetNode, unsigned int port, byte eventType, const char event[], const char payload[]) {
   Serial.println(F("EtherEventQueue.queue(convert node)"));
   if (targetNode >= nodeCount || !nodeIsSet(targetNode)) {  //sanity check
     Serial.println(F("EtherEventQueue.queue(convert node): invalid node number"));
     return false;
   }
-  return queue(nodeIP[targetNode], port, resendFlag, event, payload);
+  return queue(nodeIP[targetNode], port, eventType, event, payload);
 }
 
 
 //main queue() function
-byte EtherEventQueueClass::queue(const byte targetIP[], unsigned int port, byte resendFlag, const char event[], const char payload[]) {
+byte EtherEventQueueClass::queue(const byte targetIP[], unsigned int port, byte eventType, const char event[], const char payload[]) {
   Serial.println(F("EtherEventQueue.queue(main)"));
-  if (resendFlag != queueTypeOnce && resendFlag != queueTypeRepeat && resendFlag != queueTypeConfirm) {  //resendFlag sanity check
+  if (eventType != eventTypeOnce && eventType != eventTypeRepeat && eventType != eventTypeConfirm) {  //eventType sanity check
     return false;
   }
   int targetNode = getNode(targetIP);
@@ -384,7 +384,7 @@ byte EtherEventQueueClass::queue(const byte targetIP[], unsigned int port, byte 
   eventIDqueue[queueSlot] = eventIDfind();
   strncpy(payloadQueue[queueSlot], payload, sendPayloadLengthMax);
   payloadQueue[queueSlot][sendPayloadLengthMax] = 0;  //add null terminator in case payload is longer than sendPayloadLengthMax
-  resendFlagQueue[queueSlot] = resendFlag;
+  eventTypeQueue[queueSlot] = eventType;
 
   queueNewCount++;
 
@@ -402,8 +402,8 @@ byte EtherEventQueueClass::queue(const byte targetIP[], unsigned int port, byte 
   Serial.println(payloadQueue[queueSlot]);
   Serial.print(F("EtherEventQueue.queue: eventID="));
   Serial.println(eventIDqueue[queueSlot]);
-  Serial.print(F("EtherEventQueue.queue: resendFlag="));
-  Serial.println(resendFlagQueue[queueSlot]);
+  Serial.print(F("EtherEventQueue.queue: eventType="));
+  Serial.println(eventTypeQueue[queueSlot]);
   return success;
 }
 
@@ -486,15 +486,15 @@ boolean EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
         }
       }
 
-      if (resendFlagQueue[queueSlotSend] != queueTypeConfirm) {  //the flag indicates not to wait for an ack
-        Serial.println(F("EtherEventQueue.queueHandler: resendFlag != queueTypeConfirm, event removed from queue"));
+      if (eventTypeQueue[queueSlotSend] != eventTypeConfirm) {  //the flag indicates not to wait for an ack
+        Serial.println(F("EtherEventQueue.queueHandler: eventType != eventTypeConfirm, event removed from queue"));
         remove(queueSlotSend);  //remove the message from the queue immediately
       }
       return true;  //indicate send success
     }
     else {  //send failed
       Serial.println(F("EtherEventQueue.queueHandler: send failed"));
-      if (resendFlagQueue[queueSlotSend] == queueTypeOnce) {  //the flag indicates not to resend even after failure
+      if (eventTypeQueue[queueSlotSend] == eventTypeOnce) {  //the flag indicates not to resend even after failure
         remove(queueSlotSend);  //remove keepalives even when send was not successful. This is because the keepalives are sent even to timed out nodes so they shouldn't be queued.
       }
       return false;  //indicate send failed
@@ -713,7 +713,7 @@ void EtherEventQueueClass::sendKeepalive(unsigned int port) {
     if (millis() - nodeTimestamp[node] > nodeTimeoutDuration - sendKeepaliveMargin && millis() - sendKeepaliveTimestamp[node] > sendKeepaliveResendDelay) {  //node is newly timed out(since the last time the function was run)
       Serial.print(F("EtherEventQueue.sendKeepalive: sending to node="));
       Serial.println(node);
-      queue(node, port, queueTypeOnce, eventKeepalive);
+      queue(node, port, eventTypeOnce, eventKeepalive);
       sendKeepaliveTimestamp[node] = millis();
     }
   }
