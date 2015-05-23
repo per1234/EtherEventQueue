@@ -1,4 +1,4 @@
-//EtherEventQueue outgoing event queue for the EtherEvent authenticated network communication arduino library: http://github.com/per1234/EtherEvent
+//EtherEventQueue - outgoing event queue for the EtherEvent authenticated network communication Arduino library: http://github.com/per1234/EtherEvent
 #include "EtherEventQueue.h"
 #include <SPI.h>  //for the ethernet library
 #include "Ethernet.h"
@@ -168,7 +168,7 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
       byte senderNode = getNode(EtherEvent.senderIP());  //get the node of the senderIP
       if (senderNode >= 0) {  //receivedIP is a node(-1 indicates no node match)
         nodeTimestamp[senderNode] = nodeTimestamp[nodeDevice];  //set the individual timestamp, any communication is considered to be a received keepalive - the nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() twice for efficiency
-        sendKeepaliveTimestamp[senderNode] = nodeTimestamp[nodeDevice] - sendKeepaliveResendDelay; //Treat successful receive of any event as a sent keepalive so delay the send of the next keepalive. -sendKeepaliveResendDelay is so that sendKeepalive() will be able to queue the eventKeepalive according to "millis() - nodeTimestamp[node] > nodeTimeoutDuration - sendKeepaliveMargin" without being blocked by the "millis() - sendKeepaliveTimestamp[node] > sendKeepaliveResendDelay", it will not cause immediate queue of eventKeepalive because nodeTimestamp[targetNode] has just been set. The nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() again
+        sendKeepaliveTimestamp[senderNode] = nodeTimestamp[nodeDevice] - sendKeepaliveResendDelay;  //Treat successful receive of any event as a sent keepalive so delay the send of the next keepalive. -sendKeepaliveResendDelay is so that sendKeepalive() will be able to queue the eventKeepalive according to "millis() - nodeTimestamp[node] > nodeTimeoutDuration - sendKeepaliveMargin" without being blocked by the "millis() - sendKeepaliveTimestamp[node] > sendKeepaliveResendDelay", it will not cause immediate queue of eventKeepalive because nodeTimestamp[targetNode] has just been set. The nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() again
         if (nodeState[senderNode] == nodeStateUnknown) {
           nodeState[senderNode] = nodeStateActive;  //set the node state to active
         }
@@ -184,7 +184,7 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
       Serial.print(F("EtherEventQueue.availableEvent: event="));
       Serial.println(receivedEvent);
 
-      if (eventKeepalive != NULL && strcmp(receivedEvent, eventKeepalive) == 0) { //keepalive received
+      if (eventKeepalive != NULL && strcmp(receivedEvent, eventKeepalive) == 0) {  //keepalive received
         Serial.println(F("EtherEventQueue.availableEvent: keepalive received"));
         flushReceiver();  //the event has been read so EtherEventQueue has to be flushed
         return 0;  //receive keepalive silently
@@ -220,7 +220,7 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
         receivedPayload[0] = 0;  //clear the payload buffer
       }
 
-      if (eventAck != NULL && strcmp(receivedEvent, eventAck) == 0) { //ack handler
+      if (eventAck != NULL && strcmp(receivedEvent, eventAck) == 0) {  //ack handler
         Serial.println(F("EtherEventQueue.availableEvent: ack received"));
         byte receivedPayloadInt = atoi(receivedPayload);  //convert to a byte
         for (byte count = 0; count < queueSize; count++) {  //step through the currently occupied section of the eventIDqueue[]
@@ -450,7 +450,7 @@ boolean EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
         break;  //non-nodes never timeout
       }
 
-      if (millis() - nodeTimestamp[targetNode] < nodeTimeoutDuration || (eventKeepalive != NULL && strcmp(eventQueue[queueSlotSend], eventKeepalive) == 0)) { //non-timed out node or keepalive
+      if (millis() - nodeTimestamp[targetNode] < nodeTimeoutDuration || (eventKeepalive != NULL && strcmp(eventQueue[queueSlotSend], eventKeepalive) == 0)) {  //non-timed out node or keepalive
         break;  //continue with the message send
       }
       Serial.print(F("EtherEventQueue.queueHandler: targetNode timed out for queue#="));
@@ -492,7 +492,7 @@ boolean EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
       }
       return true;  //indicate send success
     }
-    else { //send failed
+    else {  //send failed
       Serial.println(F("EtherEventQueue.queueHandler: send failed"));
       if (resendFlagQueue[queueSlotSend] == queueTypeOnce) {  //the flag indicates not to resend even after failure
         remove(queueSlotSend);  //remove keepalives even when send was not successful. This is because the keepalives are sent even to timed out nodes so they shouldn't be queued.

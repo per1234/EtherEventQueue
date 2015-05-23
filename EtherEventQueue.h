@@ -1,4 +1,4 @@
-//EtherEventQueue outgoing event queue for the EtherEvent authenticated network communication arduino library: http://github.com/per1234/EtherEvent
+//EtherEventQueue - outgoing event queue for the EtherEvent authenticated network communication Arduino library: http://github.com/per1234/EtherEvent
 #ifndef EtherEventQueue_h
 #define EtherEventQueue_h
 
@@ -38,7 +38,7 @@ class EtherEventQueueClass {
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //queue
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    byte queue(const byte targetIP[], unsigned int port, byte resendFlag, const char event[], const char payload[] = ""); //main queue prototype
+    byte queue(const byte targetIP[], unsigned int port, byte resendFlag, const char event[], const char payload[] = "");  //main queue prototype
     byte queue(byte targetNode, unsigned int port, byte resendFlag, const char event[], const char payload[] = "");
     byte queue(const IPAddress &targetIPAddress, unsigned int port, byte resendFlag,  const char event[], const char payload[] = "");
 

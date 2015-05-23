@@ -4,7 +4,7 @@ EtherEventQueue
 Outgoing event queue for the EtherEvent Arduino library.
 EtherEvent provides easy to use password authenticated network communication via Ethernet between Arduinos and other devices running EventGhost, Girder, or any other program compatible with the EventGhost Network Event Sender and Receiver plugins.
 
-This is an alpha release. It is not thoroughly tested. Feel free to make pull requests or issue reports. Thanks!
+This is a beta release. I have been using it in my home automation system constantly for the last five months but some functions have not been thoroughly tested. Pull requests and issue reports are welcome.
 
 
 #### Required Libraries
@@ -20,7 +20,7 @@ This is an alpha release. It is not thoroughly tested. Feel free to make pull re
 
 
 #### Installation
-- 64k is the minimum recommended flash memory capacity for use of this library.
+- 64KB is the minimum recommended flash memory capacity for use of this library.
 - Download the most recent version of EtherEventQueue here: https://github.com/per1234/EtherEventQueue/archive/master.zip
 - Extract the **EtherEventQueue-master** folder from the downloaded zip file.
 - Rename the folder **EtherEventQueue**.
@@ -74,15 +74,15 @@ For demonstration of library usage see the example sketches and EventGhost tree.
 
 `EtherEventQueue.readEvent(eventBuffer)` - Puts the event in the passed array. availableEvent() must be called first.
 - Parameter: eventBuffer - Size a char array according to the result of availableEvent () and pass it to the readEvent  function. After that it will contain the event.
-  - Type: char
+  - Type: char array
 - Returns: none
 
 `EtherEventQueue.readPayload(payloadBuffer)` - Puts the payload string in the passed array. availableEvent() must be called first.
 - Parameter: payloadBuffer - Size a char array according to the result of availablePayload () and pass it to the readPayload  function. After that it will contain the payload.
-  - Type: char
+  - Type: char array
 - Returns: none
 
-`EtherEventQueue.receivedEventID()` - Returns the event ID of the received event. This is needed for confirming receipt of queueTypeConfirm type events.
+`EtherEventQueue.receivedEventID()` - Returns the event ID of the received event. This is needed for confirming receipt of queueTypeConfirm type events(ack).
 - Parameter: none
 - Returns: Event ID of the received event.
   - Type: byte
@@ -99,14 +99,14 @@ For demonstration of library usage see the example sketches and EventGhost tree.
 - Parameter: resendFlag - (EtherEventQueue.queueTypeOnce == no resend, EtherEventQueue.queueTypeResend == resend until successful send,
   - Values: EtherEventQueue.queueTypeOnce - Make one attempt at sending the event and then remove it from the queue.
             EtherEventQueue.queueTypeResend - Resend until successful send, then remove from queue.
-            EtherEventQueue.queueTypeConfirm == Resend a message until the ack is received, the target IP times out, or the event overflows from the queue. The ack is the eventAck with the eventID of the event to confirm for a payload. Received acks are handled internally by EtherEventQueue and will not be passed on.
+            EtherEventQueue.queueTypeConfirm - Resend a message until the ack is received, the target IP times out, or the event overflows from the queue. The ack is the eventAck with the eventID of the event to confirm for a payload. Received acks are handled internally by EtherEventQueue and will not be passed on.
   - Type: byte
 - Parameter: event: - string to send as the event
-  - Type: char/int8_t/byte/int/unsigned int/long/unsigned long/_FLASH_STRING/__FlashStringHelper(F() macro)
+  - Type: char array/int8_t/byte/int/unsigned int/long/unsigned long/_FLASH_STRING/__FlashStringHelper(F() macro)
 - Parameter(optional): eventLength - Length of the event. This parameter should only be used if event is of type __FlashStringHelper(F() macro).
   - Type: byte
 - Parameter: payload - payload to send with the event. The payload is not optional when the event is of type __FlashStringHelper(F() macro).
-  - Type: char/int8_t/byte/int/unsigned int/long/unsigned long/_FLASH_STRING/__FlashStringHelper(F() macro)
+  - Type: char array/int8_t/byte/int/unsigned int/long/unsigned long/_FLASH_STRING/__FlashStringHelper(F() macro)
 - Parameter: payloadLength:- length of the payload. This parameter should only be used if event is of type type __FlashStringHelper(F() macro).
   - Type: byte
 - Returns: false == failure, true == successfully queued, EtherEventQueue.queueSuccessOverflow == successfully queued w/ queue overflow
@@ -196,13 +196,13 @@ For demonstration of library usage see the example sketches and EventGhost tree.
   - Type: boolean
 - Returns: none
 
-`EtherEventQueue.sendKeepalive(port)` - Sends keepalive to the first node that is within the keepalive margin of being timed out. The keepalive is an event that is used only to keep nodes from timing out, it is handled internally update the node timestamp and will not be passed on by EtherEventQueue.
+`EtherEventQueue.sendKeepalive(port)` - Sends keepalive to the first node that is within the keepalive margin of being timed out. The keepalive is an event that is used only to keep nodes from timing out. It is handled internally to update the node timestamp and will not be passed on by EtherEventQueue.
 - Parameter: port - The port to send keepalive to.
   - Type: unsigned int
 - Returns: none
 
 `EtherEventQueue.setSendKeepaliveMargin(keepaliveMargin)` - Sets the keepalive margin value.
-- Parameter: keepaliveMargin - (ms)the amount of time before the end of the timeout duration to send the keepalive.
+- Parameter: keepaliveMargin - (ms)the amount of time before the end of the timeout duration to send the keepalive. Note this function will not allow keepaliveMargin to be set to a value greater than nodeTimeoutDuration.
   - Type: unsigned long
 - Returns: none
 
@@ -224,7 +224,7 @@ For demonstration of library usage see the example sketches and EventGhost tree.
 `EtherEventQueue.setEventKeepalive(eventKeepalive[, eventKeepaliveLength])` - Defines the keepalive event.
 - Parameter: eventKeepaliveInput - The event that is used as a keepalive.
   - Type: char array, int, unsigned int, long, unsigned long, F()/__FlashStringHelper, _FLASH_STRING
-- Parameter: eventKeepaliveInputLength - The length of the event - use this parameter only if using F()/__FlashStringHelper type eventKeepalive.
+- Parameter: eventKeepaliveInputLength - The length of the event - use this parameter only if eventKeepalive is of type __FlashStringHelper(F() macro).
   - Type: byte
 - Returns: true == success, false == memory allocation failure.
   - Type: boolean
@@ -232,7 +232,7 @@ For demonstration of library usage see the example sketches and EventGhost tree.
 `EtherEventQueue.setEventAck(eventAck[, eventAckLength])` - Defines the event receipt confirmation event for use with queueTypeConfirm type events.
 - Parameter: eventAckInput - The event that is used as an ack.
   - Type: char array, int, unsigned int, long, unsigned long, F()/__FlashStringHelper, _FLASH_STRING
-- Parameter: eventKeepaliveInputLength - The length of the event - use this parameter only if using F()/__FlashStringHelper type eventAck.
+- Parameter: eventKeepaliveInputLength - The length of the event - use this parameter only if eventAck is of type __FlashStringHelper(F() macro).
   - Type: byte
 - Returns: true == success, false == memory allocation failure.
   - Type: boolean
