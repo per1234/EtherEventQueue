@@ -324,6 +324,9 @@ byte EtherEventQueueClass::queue(byte targetNode, unsigned int port, byte resend
 //main queue() function
 byte EtherEventQueueClass::queue(const byte targetIP[], unsigned int port, byte resendFlag, const char event[], const char payload[]) {
   Serial.println(F("EtherEventQueue.queue(main)"));
+  if (resendFlag != queueTypeOnce && resendFlag != queueTypeRepeat && resendFlag != queueTypeConfirm) {  //resendFlag sanity check
+    return false;
+  }
   int targetNode = getNode(targetIP);
   if (targetNode < 0) {  //target is not a node
     if (sendNodesOnlyState == 1) {
@@ -341,7 +344,7 @@ byte EtherEventQueueClass::queue(const byte targetIP[], unsigned int port, byte 
     return false;  //don't queue events to timed out nodes
   }
 
-  byte success = true;  //indicate event successfully queued in return
+  byte success = true;  //set default success value to indicate event successfully queued in return
 
   Serial.print(F("EtherEventQueue.queue: queueSize="));
   Serial.println(queueSize);
@@ -682,7 +685,7 @@ IPAddress EtherEventQueueClass::getIP(byte nodeNumber) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EtherEventQueueClass::setSendKeepaliveMargin(unsigned long sendKeepaliveMarginInput) {
   Serial.println(F("EtherEventQueue.setSendKeepaliveMargin"));
-  sendKeepaliveMargin = min(sendKeepaliveMarginInput, nodeTimeoutDuration);
+  sendKeepaliveMargin = min(sendKeepaliveMarginInput, nodeTimeoutDuration);  //sendKeepaliveMargin can't be greater than nodeTimeoutDuration
 }
 
 
