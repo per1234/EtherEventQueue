@@ -8,7 +8,7 @@
 #define Serial if(DEBUG)Serial  //DEBUG is defined in EtherEventQueue.h
 
 const unsigned long nodeTimeoutDurationDefault = 270000;  //(ms)the node is timed out if it has been longer than this duration since the last event was received from it
-const unsigned long sendKeepaliveMarginDefault = nodeTimeoutDurationDefault - 30000;
+const unsigned long sendKeepaliveMarginDefault = 30000;
 const unsigned long sendKeepaliveResendDelayDefault = 60000;
 const unsigned int resendDelayDefault = 45000;  //(ms)delay between resends of messages
 const byte eventIDlength = 2;  //number of characters of the message ID that is appended to the start of the raw payload, the event ID must be exactly this length
