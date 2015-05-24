@@ -566,12 +566,12 @@ int8_t EtherEventQueueClass::checkState(byte node) {
     Serial.println(F("invalid node number"));
     return -1;
   }
-  if (nodeTimestamp[node] > nodeTimeoutDuration) {  //node is not this device, not already timed out, and is timed out
+  if (millis() - nodeTimestamp[node] > nodeTimeoutDuration) {  //node is not this device, not already timed out, and is timed out
     Serial.println(F("timed out"));
-    return nodeStateTimedOut;
+    return false;
   }
   Serial.println(F("not timed out"));
-  return nodeStateActive;
+  return true;
 }
 
 
