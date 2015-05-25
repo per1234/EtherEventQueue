@@ -37,17 +37,17 @@ boolean EtherEventQueueClass::begin() {  //no nodes, default buffer length versi
 }
 
 
-boolean EtherEventQueueClass::begin(byte queueSizeMaxInput, byte sendEventLengthMaxInput, byte sendPayloadLengthMaxInput, byte receivedEventLengthMaxInput, byte receivedPayloadLengthMaxInput) {  //no nodes version - the deviceNode is 0
+boolean EtherEventQueueClass::begin(const byte queueSizeMaxInput, const byte sendEventLengthMaxInput, const byte sendPayloadLengthMaxInput, const byte receivedEventLengthMaxInput, const byte receivedPayloadLengthMaxInput) {  //no nodes version - the deviceNode is 0
   return begin(0, 1, queueSizeMaxInput, sendEventLengthMaxInput, sendPayloadLengthMaxInput, receivedEventLengthMaxInput, receivedPayloadLengthMaxInput);
 }
 
 
-boolean EtherEventQueueClass::begin(byte nodeDeviceInput, byte nodeCountInput) {  //default buffer length version - the deviceNode is 0
+boolean EtherEventQueueClass::begin(const byte nodeDeviceInput, const byte nodeCountInput) {  //default buffer length version - the deviceNode is 0
   return begin(nodeDeviceInput, nodeCountInput, queueSizeMaxDefault, eventLengthMaxDefault, payloadLengthMaxDefault, eventLengthMaxDefault, payloadLengthMaxDefault);
 }
 
 
-boolean EtherEventQueueClass::begin(byte nodeDeviceInput, byte nodeCountInput, byte queueSizeMaxInput, byte sendEventLengthMaxInput, byte sendPayloadLengthMaxInput, byte receivedEventLengthMaxInput, byte receivedPayloadLengthMaxInput) {
+boolean EtherEventQueueClass::begin(const byte nodeDeviceInput, byte nodeCountInput, byte queueSizeMaxInput, const byte sendEventLengthMaxInput, const byte sendPayloadLengthMaxInput, const byte receivedEventLengthMaxInput, const byte receivedPayloadLengthMaxInput) {
 #if DEBUG == true
   delay(20);  //There needs to be a delay between the calls to Serial.begin() in sketch setup() and here or garbage will be printed to the serial monitor
 #endif
@@ -165,7 +165,7 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
       nodeTimestamp[nodeDevice] = millis();  //set the device timestamp(using the nodeDevice because that part of the array is never used otherwise)
 #ifdef ethernetclientwithremoteIP_h  //this function is only available if the modified Ethernet library is installed
       //update timestamp of the event sender
-      byte senderNode = getNode(EtherEvent.senderIP());  //get the node of the senderIP
+      const byte senderNode = getNode(EtherEvent.senderIP());  //get the node of the senderIP
       if (senderNode >= 0) {  //receivedIP is a node(-1 indicates no node match)
         nodeTimestamp[senderNode] = nodeTimestamp[nodeDevice];  //set the individual timestamp, any communication is considered to be a received keepalive - the nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() twice for efficiency
         sendKeepaliveTimestamp[senderNode] = nodeTimestamp[nodeDevice] - sendKeepaliveResendDelay;  //Treat successful receive of any event as a sent keepalive so delay the send of the next keepalive. -sendKeepaliveResendDelay is so that sendKeepalive() will be able to queue the eventKeepalive according to "millis() - nodeTimestamp[node] > nodeTimeoutDuration - sendKeepaliveMargin" without being blocked by the "millis() - sendKeepaliveTimestamp[node] > sendKeepaliveResendDelay", it will not cause immediate queue of eventKeepalive because nodeTimestamp[targetNode] has just been set. The nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() again
@@ -190,7 +190,7 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
         return 0;  //receive keepalive silently
       }
 
-      byte payloadLength = EtherEvent.availablePayload();
+      const byte payloadLength = EtherEvent.availablePayload();
       Serial.print(F("EtherEventQueue.availableEvent: EtherEvent.availablePayload()="));
       Serial.println(payloadLength);
       char receivedPayloadRaw[payloadLength];
@@ -222,7 +222,7 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
 
       if (eventAck != NULL && strcmp(receivedEvent, eventAck) == 0) {  //ack handler
         Serial.println(F("EtherEventQueue.availableEvent: ack received"));
-        byte receivedPayloadInt = atoi(receivedPayload);  //convert to a byte
+        const byte receivedPayloadInt = atoi(receivedPayload);  //convert to a byte
         for (byte count = 0; count < queueSize; count++) {  //step through the currently occupied section of the eventIDqueue[]
           if (receivedPayloadInt == eventIDqueue[count] && eventTypeQueue[count] == eventTypeConfirm) {  //the ack is for the eventID of this item in the queue and the resend flag indicates it is expecting an ack(non-ack events are not removed because obviously they haven't been sent yet if they're still in the queue so the ack can't possibly be for them)
             Serial.println(F("EtherEventQueue.availableEvent: ack eventID match"));
@@ -248,7 +248,7 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 byte EtherEventQueueClass::availablePayload() {
   Serial.print(F("EtherEventQueue.availablePayload: length="));
-  if (byte length = strlen(receivedPayload)) {  //strlen(receivedPayload)>0
+  if (const byte length = strlen(receivedPayload)) {  //strlen(receivedPayload)>0
     Serial.println(length + 1);
     return length + 1;  //length of the payload + null terminator
   }
@@ -301,7 +301,7 @@ void EtherEventQueueClass::flushReceiver() {
 
 
 //convert IPAddress to 4 byte array
-byte EtherEventQueueClass::queue(const IPAddress &targetIPAddress, unsigned int port, byte eventType, const char event[], const char payload[]) {
+byte EtherEventQueueClass::queue(const IPAddress &targetIPAddress, const unsigned int port, const byte eventType, const char event[], const char payload[]) {
   Serial.print(F("EtherEventQueue.queue(convert IPAddress): targetIPAddress="));
   Serial.println(targetIPAddress);
   byte targetIP[4];  //create buffer
@@ -311,7 +311,7 @@ byte EtherEventQueueClass::queue(const IPAddress &targetIPAddress, unsigned int 
 
 
 //convert node to 4 byte array
-byte EtherEventQueueClass::queue(byte targetNode, unsigned int port, byte eventType, const char event[], const char payload[]) {
+byte EtherEventQueueClass::queue(const byte targetNode, const unsigned int port, const byte eventType, const char event[], const char payload[]) {
   Serial.println(F("EtherEventQueue.queue(convert node)"));
   if (targetNode >= nodeCount || !nodeIsSet(targetNode)) {  //sanity check
     Serial.println(F("EtherEventQueue.queue(convert node): invalid node number"));
@@ -322,12 +322,12 @@ byte EtherEventQueueClass::queue(byte targetNode, unsigned int port, byte eventT
 
 
 //main queue() function
-byte EtherEventQueueClass::queue(const byte targetIP[], unsigned int port, byte eventType, const char event[], const char payload[]) {
+byte EtherEventQueueClass::queue(const byte targetIP[], const unsigned int port, const byte eventType, const char event[], const char payload[]) {
   Serial.println(F("EtherEventQueue.queue(main)"));
   if (eventType != eventTypeOnce && eventType != eventTypeRepeat && eventType != eventTypeConfirm && eventType != eventTypeOverrideTimeout || (eventType != eventTypeConfirm && eventAck == NULL)) { //eventType sanity check
     return false;
   }
-  int targetNode = getNode(targetIP);
+  const int targetNode = getNode(targetIP);
   if (targetNode < 0) {  //target is not a node
     if (sendNodesOnlyState == 1) {
       Serial.println(F("EtherEventQueue.queue: not a node"));
@@ -418,6 +418,7 @@ boolean EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
     Serial.print(F("EtherEventQueue.queueHandler: queueNewCount="));
     Serial.println(queueNewCount);
     byte queueSlotSend;  //this is used to store the slot
+    int8_t targetNode;
     for (byte counter = 0; counter < queueSize; counter++) {  //the maximum number of iterations is the queueSize
       if (queueNewCount == 0) {  //time to send the next one in the queue
         //find the next largest priority level value
@@ -436,7 +437,7 @@ boolean EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
       }
       Serial.print(F("EtherEventQueue.queueHandler: queueSlotSend="));
       Serial.println(queueSlotSend);
-      int targetNode = getNode(IPqueue[queueSlotSend]);  //get the node of the target IP
+      targetNode = getNode(IPqueue[queueSlotSend]);  //get the node of the target IP
       Serial.print(F("EtherEventQueue.queueHandler: targetNode="));
       Serial.println(targetNode);
       Serial.print(F("EtherEventQueue.queueHandler: nodeDevice="));
@@ -477,7 +478,7 @@ boolean EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
       Serial.println(F("EtherEventQueue.queueHandler: send successful"));
       nodeTimestamp[nodeDevice] = millis();  //set the device timestamp(using the nodeDevice because that part of the array is never used otherwise)
       //update timestamp of the target node
-      byte targetNode = getNode(IPqueue[queueSlotSend]);  //get the node of the senderIP
+      targetNode = getNode(IPqueue[queueSlotSend]);  //get the node of the senderIP
       if (targetNode >= 0) {  //the target IP is a node(-1 indicates no node match)
         nodeTimestamp[targetNode] = nodeTimestamp[nodeDevice];  //set the individual timestamp, any communication is considered to be a received keepalive - the nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() twice for efficiency
         sendKeepaliveTimestamp[targetNode] = nodeTimestamp[nodeDevice] - sendKeepaliveResendDelay;  //Treat successful send of any event as a sent keepalive so delay the send of the next keepalive. -sendKeepaliveResendDelay is so that sendKeepalive() will be able to queue the eventKeepalive according to "millis() - nodeTimestamp[node] > nodeTimeoutDuration - sendKeepaliveMargin" without being blocked by the "millis() - sendKeepaliveTimestamp[node] > sendKeepaliveResendDelay", it will not cause immediate queue of eventKeepalive because nodeTimestamp[targetNode] has just been set. The nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() again
@@ -558,7 +559,7 @@ int8_t EtherEventQueueClass::checkTimein() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //checkState - checks if the given node is timed out. Note that this doesn't update the nodeState like checkTimeout()/checkTimein().
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-int8_t EtherEventQueueClass::checkState(byte node) {
+int8_t EtherEventQueueClass::checkState(const byte node) {
   Serial.print(F("EtherEventQueue.checkTimeoutNode: nodeState for node "));
   Serial.print(node);
   Serial.print(F("="));
@@ -581,7 +582,7 @@ int8_t EtherEventQueueClass::checkState(byte node) {
 boolean EtherEventQueueClass::checkQueueOverflow() {
   Serial.print(F("EtherEventQueue.checkQueueOverflow: queueOverflowFlag="));
   Serial.println(queueOverflowFlag);
-  byte queueOverflowFlagValue = queueOverflowFlag;  //save the value before resetting it
+  const byte queueOverflowFlagValue = queueOverflowFlag;  //save the value before resetting it
   queueOverflowFlag = false;  //reset the flag
   return queueOverflowFlagValue;
 }
@@ -590,7 +591,7 @@ boolean EtherEventQueueClass::checkQueueOverflow() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //setResendDelay
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void EtherEventQueueClass::setResendDelay(unsigned long resendDelayValue) {
+void EtherEventQueueClass::setResendDelay(const unsigned long resendDelayValue) {
   Serial.print(F("EtherEventQueue.setResendDelay: resendDelay="));
   Serial.println(resendDelayValue);
   resendDelay = resendDelayValue;
@@ -610,7 +611,7 @@ unsigned long EtherEventQueueClass::getResendDelay() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //setNodeTimeoutDuration
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void EtherEventQueueClass::setNodeTimeoutDuration(unsigned long nodeTimeoutDurationValue) {
+void EtherEventQueueClass::setNodeTimeoutDuration(const unsigned long nodeTimeoutDurationValue) {
   Serial.print(F("EtherEventQueue.setNodeTimeoutDuration: nodeTimeoutDuration="));
   Serial.println(nodeTimeoutDurationValue);
   nodeTimeoutDuration = nodeTimeoutDurationValue;
@@ -631,7 +632,7 @@ unsigned long EtherEventQueueClass::getNodeTimeoutDuration() {
 //receiveNodesOnly
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef ethernetclientwithremoteIP_h
-void EtherEventQueueClass::receiveNodesOnly(boolean receiveNodesOnlyValue) {
+void EtherEventQueueClass::receiveNodesOnly(const boolean receiveNodesOnlyValue) {
   receiveNodesOnlyState = receiveNodesOnlyValue;
   Serial.print(F("EtherEventQueue.receiveNodesOnly: new state="));
   Serial.println(receiveNodesOnlyState);
@@ -642,7 +643,7 @@ void EtherEventQueueClass::receiveNodesOnly(boolean receiveNodesOnlyValue) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //sendNodesOnly
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void EtherEventQueueClass::sendNodesOnly(boolean sendNodesOnlyValue) {
+void EtherEventQueueClass::sendNodesOnly(const boolean sendNodesOnlyValue) {
   sendNodesOnlyState = sendNodesOnlyValue;
   Serial.print(F("EtherEventQueue.receiveNodesOnly: new state="));
   Serial.println(sendNodesOnlyState);
@@ -652,7 +653,7 @@ void EtherEventQueueClass::sendNodesOnly(boolean sendNodesOnlyValue) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //removeNode
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void EtherEventQueueClass::removeNode(byte nodeNumber) {
+void EtherEventQueueClass::removeNode(const byte nodeNumber) {
   Serial.println(F("EtherEventQueue.removeNode"));
   if (nodeNumber >= nodeCount) {  //sanity check
     Serial.println(F("EtherEventQueue.removeNode: invalid node number"));
@@ -668,7 +669,7 @@ void EtherEventQueueClass::removeNode(byte nodeNumber) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //getIP
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-IPAddress EtherEventQueueClass::getIP(byte nodeNumber) {
+IPAddress EtherEventQueueClass::getIP(const byte nodeNumber) {
   Serial.println(F("EtherEventQueue.getIP"));
   if (nodeNumber >= nodeCount) {  //sanity check
     Serial.println(F("EtherEventQueue.getIP: invalid node number"));
@@ -683,7 +684,7 @@ IPAddress EtherEventQueueClass::getIP(byte nodeNumber) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //setSendKeepaliveMargin
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void EtherEventQueueClass::setSendKeepaliveMargin(unsigned long sendKeepaliveMarginInput) {
+void EtherEventQueueClass::setSendKeepaliveMargin(const unsigned long sendKeepaliveMarginInput) {
   Serial.println(F("EtherEventQueue.setSendKeepaliveMargin"));
   sendKeepaliveMargin = min(sendKeepaliveMarginInput, nodeTimeoutDuration);  //sendKeepaliveMargin can't be greater than nodeTimeoutDuration
 }
@@ -701,7 +702,7 @@ unsigned long EtherEventQueueClass::getSendKeepaliveMargin() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //sendKeepalive
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void EtherEventQueueClass::sendKeepalive(unsigned int port) {
+void EtherEventQueueClass::sendKeepalive(const unsigned int port) {
   if (eventKeepalive == NULL) {
     Serial.println(F("EtherEventQueue.sendKeepalive: eventKeepalive not set"));
     return;
@@ -724,7 +725,7 @@ void EtherEventQueueClass::sendKeepalive(unsigned int port) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //setSendKeepaliveResendDelay
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void EtherEventQueueClass::setSendKeepaliveResendDelay(unsigned long sendKeepaliveResendDelayInput) {
+void EtherEventQueueClass::setSendKeepaliveResendDelay(const unsigned long sendKeepaliveResendDelayInput) {
   Serial.print(F("EtherEventQueue.setSendKeepaliveResendDelay: sendKeepaliveResendDelayInput="));
   Serial.println(sendKeepaliveResendDelayInput);
   sendKeepaliveResendDelay = sendKeepaliveResendDelayInput;
@@ -746,7 +747,7 @@ unsigned long EtherEventQueueClass::getSendKeepaliveResendDelay() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 boolean EtherEventQueueClass::setEventKeepalive(const char eventKeepaliveInput[]) {
   Serial.println(F("EtherEventQueue.setEventKeepalive"));
-  byte eventKeepaliveLength = strlen(eventKeepaliveInput);
+  const byte eventKeepaliveLength = strlen(eventKeepaliveInput);
   eventKeepalive = (char*)realloc(eventKeepalive, (eventKeepaliveLength + 1) * sizeof(*eventKeepalive));  //allocate memory for the password
   strcpy(eventKeepalive, eventKeepaliveInput);  //store the password
   if (eventKeepalive == NULL) {
@@ -757,35 +758,35 @@ boolean EtherEventQueueClass::setEventKeepalive(const char eventKeepaliveInput[]
 }
 
 
-boolean EtherEventQueueClass::setEventKeepalive(int16_t eventKeepaliveInput) {
+boolean EtherEventQueueClass::setEventKeepalive(const int16_t eventKeepaliveInput) {
   char eventKeepaliveInputChar[int16_tLengthMax + 1];
   itoa(eventKeepaliveInput, eventKeepaliveInputChar, 10);
   return setEventKeepalive(eventKeepaliveInputChar);
 }
 
 
-boolean EtherEventQueueClass::setEventKeepalive(uint16_t eventKeepaliveInput) {
+boolean EtherEventQueueClass::setEventKeepalive(const uint16_t eventKeepaliveInput) {
   char eventKeepaliveInputChar[uint16_tLengthMax + 1];
   sprintf_P(eventKeepaliveInputChar, PSTR("%u"), eventKeepaliveInput);
   return setEventKeepalive(eventKeepaliveInputChar);
 }
 
 
-boolean EtherEventQueueClass::setEventKeepalive(int32_t eventKeepaliveInput) {
+boolean EtherEventQueueClass::setEventKeepalive(const int32_t eventKeepaliveInput) {
   char eventKeepaliveInputChar[int32_tLengthMax + 1];
   ltoa(eventKeepaliveInput, eventKeepaliveInputChar, 10);
   return setEventKeepalive(eventKeepaliveInputChar);
 }
 
 
-boolean EtherEventQueueClass::setEventKeepalive(uint32_t eventKeepaliveInput) {
+boolean EtherEventQueueClass::setEventKeepalive(const uint32_t eventKeepaliveInput) {
   char eventKeepaliveInputChar[uint32_tLengthMax + 1];
   ultoa(eventKeepaliveInput, eventKeepaliveInputChar, 10);
   return setEventKeepalive(eventKeepaliveInputChar);
 }
 
 
-boolean EtherEventQueueClass::setEventKeepalive(const __FlashStringHelper* eventKeepaliveInput, byte eventKeepaliveInputLength) {
+boolean EtherEventQueueClass::setEventKeepalive(const __FlashStringHelper* eventKeepaliveInput, const byte eventKeepaliveInputLength) {
   char eventKeepaliveInputChar[eventKeepaliveInputLength + 1];
   memcpy_P(eventKeepaliveInputChar, eventKeepaliveInput, eventKeepaliveInputLength + 1);  //+1 for the null terminator
   return setEventKeepalive(eventKeepaliveInputChar);
@@ -794,7 +795,7 @@ boolean EtherEventQueueClass::setEventKeepalive(const __FlashStringHelper* event
 
 #ifdef __FLASH_H__
 boolean EtherEventQueueClass::setEventKeepalive(const _FLASH_STRING eventKeepaliveInput) {
-  byte stringLength = eventKeepaliveInput.length();
+  const byte stringLength = eventKeepaliveInput.length();
   char eventKeepaliveInputChar[stringLength + 1];
   eventKeepaliveInput.copy(eventKeepaliveInputChar, stringLength + 1, 0);  //+1 for null terminator
   return setEventKeepalive(eventKeepaliveInputChar);
@@ -806,7 +807,7 @@ boolean EtherEventQueueClass::setEventKeepalive(const _FLASH_STRING eventKeepali
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 boolean EtherEventQueueClass::setEventAck(const char eventAckInput[]) {
   Serial.println(F("EtherEventQueue.setEventAck"));
-  byte eventAckLength = strlen(eventAckInput);
+  const byte eventAckLength = strlen(eventAckInput);
   eventAck = (char*)realloc(eventAck, (eventAckLength + 1) * sizeof(*eventAck));  //allocate memory for the password
   strcpy(eventAck, eventAckInput);  //store the password
   if (eventAck == NULL) {
@@ -817,35 +818,35 @@ boolean EtherEventQueueClass::setEventAck(const char eventAckInput[]) {
 }
 
 
-boolean EtherEventQueueClass::setEventAck(int16_t eventAckInput) {
+boolean EtherEventQueueClass::setEventAck(const int16_t eventAckInput) {
   char eventAckInputChar[int16_tLengthMax + 1];
   itoa(eventAckInput, eventAckInputChar, 10);
   return setEventAck(eventAckInputChar);
 }
 
 
-boolean EtherEventQueueClass::setEventAck(uint16_t eventAckInput) {
+boolean EtherEventQueueClass::setEventAck(const uint16_t eventAckInput) {
   char eventAckInputChar[uint16_tLengthMax + 1];
   sprintf_P(eventAckInputChar, PSTR("%u"), eventAckInput);
   return setEventAck(eventAckInputChar);
 }
 
 
-boolean EtherEventQueueClass::setEventAck(int32_t eventAckInput) {
+boolean EtherEventQueueClass::setEventAck(const int32_t eventAckInput) {
   char eventAckInputChar[int32_tLengthMax + 1];
   ltoa(eventAckInput, eventAckInputChar, 10);
   return setEventAck(eventAckInputChar);
 }
 
 
-boolean EtherEventQueueClass::setEventAck(uint32_t eventAckInput) {
+boolean EtherEventQueueClass::setEventAck(const uint32_t eventAckInput) {
   char eventAckInputChar[uint32_tLengthMax + 1];
   ultoa(eventAckInput, eventAckInputChar, 10);
   return setEventAck(eventAckInputChar);
 }
 
 
-boolean EtherEventQueueClass::setEventAck(const __FlashStringHelper* eventAckInput, byte eventAckInputLength) {
+boolean EtherEventQueueClass::setEventAck(const __FlashStringHelper* eventAckInput, const byte eventAckInputLength) {
   char eventAckInputChar[eventAckInputLength + 1];
   memcpy_P(eventAckInputChar, eventAckInput, eventAckInputLength + 1);  //+1 for the null terminator
   return setEventAck(eventAckInputChar);
@@ -854,7 +855,7 @@ boolean EtherEventQueueClass::setEventAck(const __FlashStringHelper* eventAckInp
 
 #ifdef __FLASH_H__
 boolean EtherEventQueueClass::setEventAck(const _FLASH_STRING eventAckInput) {
-  byte stringLength = eventAckInput.length();
+  const byte stringLength = eventAckInput.length();
   char eventAckInputChar[stringLength + 1];
   eventAckInput.copy(eventAckInputChar, stringLength + 1, 0);  //+1 for null terminator
   return setEventAck(eventAckInputChar);
@@ -898,7 +899,7 @@ byte EtherEventQueueClass::eventIDfind() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //remove - remove the given item from the queue
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void EtherEventQueueClass::remove(byte removeQueueSlot) {
+void EtherEventQueueClass::remove(const byte removeQueueSlot) {
   Serial.print(F("EtherEventQueue.remove: queueSlot="));
   Serial.println(removeQueueSlot);
   if (IPqueue[removeQueueSlot][0] == nodeIP[nodeDevice][0] && IPqueue[removeQueueSlot][1] == nodeIP[nodeDevice][1] && IPqueue[removeQueueSlot][2] == nodeIP[nodeDevice][2] && IPqueue[removeQueueSlot][3] == nodeIP[nodeDevice][3]) {  //the queue item to remove is an internal event
@@ -945,7 +946,7 @@ void EtherEventQueueClass::remove(byte removeQueueSlot) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //nodeIsSet - check if the node has been set
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-boolean EtherEventQueueClass::nodeIsSet(byte nodeNumber) {
+boolean EtherEventQueueClass::nodeIsSet(const byte nodeNumber) {
   Serial.print(F("EtherEventQueue.nodeIsSet: result="));
   if (nodeIP[nodeNumber][0] == 0 && nodeIP[nodeNumber][1] == 0 && nodeIP[nodeNumber][2] == 0 && nodeIP[nodeNumber][3] == 0) {
     Serial.println(F("false"));
