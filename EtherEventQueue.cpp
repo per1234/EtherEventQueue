@@ -324,7 +324,7 @@ byte EtherEventQueueClass::queue(byte targetNode, unsigned int port, byte eventT
 //main queue() function
 byte EtherEventQueueClass::queue(const byte targetIP[], unsigned int port, byte eventType, const char event[], const char payload[]) {
   Serial.println(F("EtherEventQueue.queue(main)"));
-  if (eventType != eventTypeOnce && eventType != eventTypeRepeat && eventType != eventTypeConfirm && eventType != eventTypeOverrideTimeout) {  //eventType sanity check
+  if (eventType != eventTypeOnce && eventType != eventTypeRepeat && eventType != eventTypeConfirm && eventType != eventTypeOverrideTimeout || (eventType != eventTypeConfirm && eventAck == NULL)) { //eventType sanity check
     return false;
   }
   int targetNode = getNode(targetIP);
