@@ -1,4 +1,4 @@
-//EtherEventQueue - outgoing event queue for the EtherEvent authenticated network communication Arduino library: http://github.com/per1234/EtherEvent
+// EtherEventQueue - outgoing event queue for the EtherEvent authenticated network communication Arduino library: http://github.com/per1234/EtherEvent
 #include "EtherEventQueue.h"
 #include <SPI.h>  //for the ethernet library
 #include "Ethernet.h"
@@ -324,7 +324,7 @@ byte EtherEventQueueClass::queue(byte targetNode, unsigned int port, byte eventT
 //main queue() function
 byte EtherEventQueueClass::queue(const byte targetIP[], unsigned int port, byte eventType, const char event[], const char payload[]) {
   Serial.println(F("EtherEventQueue.queue(main)"));
-  if (eventType != eventTypeOnce && eventType != eventTypeRepeat && eventType != eventTypeConfirm) {  //eventType sanity check
+  if (eventType != eventTypeOnce && eventType != eventTypeRepeat && eventType != eventTypeConfirm && eventType != eventTypeOverrideTimeout) {  //eventType sanity check
     return false;
   }
   int targetNode = getNode(targetIP);
@@ -339,7 +339,7 @@ byte EtherEventQueueClass::queue(const byte targetIP[], unsigned int port, byte 
     Serial.println(F("EtherEventQueue.queue: self send"));
     internalEventQueueCount++;
   }
-  else if (targetNode != nodeDevice && millis() - nodeTimestamp[targetNode] > nodeTimeoutDuration) {  //not self, is a node and is timed out
+  else if (millis() - nodeTimestamp[targetNode] > nodeTimeoutDuration && eventType != eventTypeOverrideTimeout) {  //is a node, not self, is timed out, and is not eventTypeOverrideTimeout
     Serial.println(F("EtherEventQueue.queue: timed out node"));
     return false;  //don't queue events to timed out nodes
   }
@@ -450,7 +450,7 @@ boolean EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
         break;  //non-nodes never timeout
       }
 
-      if (millis() - nodeTimestamp[targetNode] < nodeTimeoutDuration || (eventKeepalive != NULL && strcmp(eventQueue[queueSlotSend], eventKeepalive) == 0)) {  //non-timed out node or keepalive
+      if (millis() - nodeTimestamp[targetNode] < nodeTimeoutDuration || eventTypeQueue[queueSlotSend] == eventTypeOverrideTimeout) { //non-timed out node or eventTypeOverrideTimeout
         break;  //continue with the message send
       }
       Serial.print(F("EtherEventQueue.queueHandler: targetNode timed out for queue#="));
@@ -494,7 +494,7 @@ boolean EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
     }
     else {  //send failed
       Serial.println(F("EtherEventQueue.queueHandler: send failed"));
-      if (eventTypeQueue[queueSlotSend] == eventTypeOnce) {  //the flag indicates not to resend even after failure
+      if (eventTypeQueue[queueSlotSend] == eventTypeOnce || eventTypeQueue[queueSlotSend] == eventTypeOverrideTimeout) {  //the flag indicates not to resend even after failure
         remove(queueSlotSend);  //remove keepalives even when send was not successful. This is because the keepalives are sent even to timed out nodes so they shouldn't be queued.
       }
       return false;  //indicate send failed
@@ -713,7 +713,7 @@ void EtherEventQueueClass::sendKeepalive(unsigned int port) {
     if (millis() - nodeTimestamp[node] > nodeTimeoutDuration - sendKeepaliveMargin && millis() - sendKeepaliveTimestamp[node] > sendKeepaliveResendDelay) {  //node is newly timed out(since the last time the function was run)
       Serial.print(F("EtherEventQueue.sendKeepalive: sending to node="));
       Serial.println(node);
-      queue(node, port, eventTypeOnce, eventKeepalive);
+      queue(node, port, eventTypeOverrideTimeout, eventKeepalive);
       sendKeepaliveTimestamp[node] = millis();
     }
   }

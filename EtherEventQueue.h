@@ -1,4 +1,4 @@
-//EtherEventQueue - outgoing event queue for the EtherEvent authenticated network communication Arduino library: http://github.com/per1234/EtherEvent
+// EtherEventQueue - outgoing event queue for the EtherEvent authenticated network communication Arduino library: http://github.com/per1234/EtherEvent
 #ifndef EtherEventQueue_h
 #define EtherEventQueue_h
 
@@ -17,6 +17,7 @@ class EtherEventQueueClass {
     const byte eventTypeOnce = 0;
     const byte eventTypeRepeat = 1;
     const byte eventTypeConfirm = 2;
+    const byte eventTypeOverrideTimeout = 3;
 
     const byte queueSuccessOverflow = 2;
 

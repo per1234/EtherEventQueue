@@ -100,6 +100,7 @@ For demonstration of library usage see the example sketches and EventGhost tree.
   - Values: EtherEventQueue.eventTypeOnce - Make one attempt at sending the event and then remove it from the queue.
             EtherEventQueue.eventTypeResend - Resend until successful send, then remove from queue.
             EtherEventQueue.eventTypeConfirm - Resend a message until the ack is received, the target IP times out, or the event overflows from the queue. The ack is the eventAck with the eventID of the event to confirm for a payload. Received acks are handled internally by EtherEventQueue and will not be passed on.
+            EtherEventQueue.eventTypeOverrideTimeout - Similar to eventTypeOnce but the event will be sent to nodes even if they are timed out.
   - Type: byte
 - Parameter: event: - string to send as the event
   - Type: char array/int8_t/byte/int/unsigned int/long/unsigned long/_FLASH_STRING/__FlashStringHelper(F() macro)
