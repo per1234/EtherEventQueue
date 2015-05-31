@@ -4,11 +4,11 @@
 
 #include <SPI.h>  //these libraries are required by EtherEvent
 #include "Ethernet.h"
+#include <utility/w5100.h>  //Used for setting the ethernet send connect timeout
 #include "MD5.h"
 //#include "Entropy.h"  //uncomment this line if you are using the Entropy library with EtherEvent
 #include "EtherEvent.h"  //include the EtherEvent library so its functions can be accessed
 #include "EtherEventQueue.h"  //include the EtherEvent library so its functions can be accessed
-#include <utility/w5100.h>  //Used for setting the ethernet send connect timeout
 //#include "Flash.h"  //uncomment this line if you are using the Flash library with EtherEventQueue
 
 //configuration parameters - modify these values to your desired settings
@@ -57,10 +57,8 @@ void setup() {
   EtherEventQueue.setNodeTimeoutDuration(nodeTimeoutDuration);
 
   EtherEvent.setTimeout(etherEventTimeout);  //set timeout duration
-#ifdef ethernet_h
   W5100.setRetransmissionTime(W5100timeout);  //set W5100 timeout duration
   W5100.setRetransmissionCount(W5100retransmissionCount);  //Set W5100 retransmission count
-#endif
 }
 
 void loop() {

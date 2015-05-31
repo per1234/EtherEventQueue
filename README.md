@@ -13,7 +13,6 @@ This is a beta release. I have been using it in my home automation system consta
 
 #### Related Programs
 - Modified Ethernet library - allows the event sender's IP address to be recorded: http://github.com/per1234/Ethernet - make sure to choose the correct branch for your Arduino IDE version. If this library is not installed then timestamp for external nodes will not be reset on received event, senderIP function is disabled, and receiveNodesOnly function is disabled.
-- UIPEthernet library for ENC28J60 ethernet chip: http://github.com/ntruchsess/arduino_uip
 - EventGhost free open source automation tool for Windows http://eventghost.com
 - TCP Events EventGhost plugin: http://www.eventghost.org/forum/viewtopic.php?p=16803 download link: http://docs.google.com/uc?id=0B3RTucUBY2bwVW5MQWdvRU90eTA - Improved network event sender/receiver allows sending events to multiple IP addresses
 - Flash library to allow passing payload strings stored in flash memory without a string length argument: http://github.com/rkhamilton/Flash

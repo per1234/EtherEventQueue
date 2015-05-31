@@ -5,11 +5,11 @@
 
 #include <SPI.h>  //these libraries are required by EtherEvent
 #include "Ethernet.h"
+#include <utility/w5100.h>  //Used for setting the ethernet send connect timeout
 #include "MD5.h"
 //#include "Entropy.h"  //uncomment this line if you are using the Entropy library with EtherEvent
 #include "EtherEvent.h"  //include the EtherEvent library so its functions can be accessed
 #include "EtherEventQueue.h"  //include the EtherEvent library so its functions can be accessed
-#include <utility/w5100.h>  //Used for setting the ethernet send connect timeout
 //#include "Flash.h"  //uncomment this line if you are using the Flash library with EtherEventQueue
 
 
@@ -26,9 +26,9 @@ const byte etherEventTimeout = 20;  //(ms)The max time to wait for ethernet comm
 const unsigned int W5100timeout = 400;  //(0.1ms)used to set the timeout for the w5100 module.
 const byte W5100retransmissionCount = 1;  //Retransmission count. 1 is the minimum value.
 
-const byte numberOfNodes=2;
-const byte deviceNode=0;
-const byte targetNode=1;
+const byte numberOfNodes = 2;
+const byte deviceNode = 0;
+const byte targetNode = 1;
 const IPAddress targetNodeIP = IPAddress(192, 168, 69, 100);  //The IP address to set as node 1, this is where the keepalive event will be sent.
 const unsigned int nodeTimeoutDuration = 25000;  //(ms)If no event has been received from a node in greater than this duration then it is considered timed out.
 const unsigned int sendPort = 1024;
@@ -64,10 +64,8 @@ void setup() {
   EtherEventQueue.setSendKeepaliveResendDelay(keepaliveResendDelay);
 
   EtherEvent.setTimeout(etherEventTimeout);  //set timeout duration
-#ifdef ethernet_h
   W5100.setRetransmissionTime(W5100timeout);  //set W5100 timeout duration
   W5100.setRetransmissionCount(W5100retransmissionCount);  //Set W5100 retransmission count
-#endif
 }
 
 
