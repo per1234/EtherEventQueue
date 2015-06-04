@@ -1,8 +1,8 @@
 EtherEventQueue
 ==========
 
-Outgoing event queue for the EtherEvent Arduino library.
-EtherEvent provides easy to use password authenticated network communication via Ethernet between Arduinos and other devices running EventGhost, Girder, or any other program compatible with the EventGhost Network Event Sender and Receiver plugins.
+Outgoing event queue for the EtherEvent [Arduino](http://arduino.cc/) library.
+EtherEvent provides easy to use password authenticated network communication via Ethernet between Arduinos and [EventGhost](http://eventghost.com), or any other program compatible with the EventGhost Network Event Sender and Receiver plugins.
 
 This is a beta release. I have been using it in my home automation system constantly for the last five months but some functions have not been thoroughly tested. Pull requests and issue reports are welcome.
 
@@ -12,17 +12,13 @@ This is a beta release. I have been using it in my home automation system consta
 
 
 #### Related Programs
-- Modified Ethernet library - allows the event sender's IP address to be recorded: http://github.com/per1234/Ethernet - make sure to choose the correct branch for your Arduino IDE version. If this library is not installed then timestamp for external nodes will not be reset on received event, senderIP function is disabled, and receiveNodesOnly function is disabled.
 - EventGhost free open source automation tool for Windows http://eventghost.com
-- TCP Events EventGhost plugin: http://www.eventghost.org/forum/viewtopic.php?p=16803 download link: http://docs.google.com/uc?id=0B3RTucUBY2bwVW5MQWdvRU90eTA - Improved network event sender/receiver allows sending events to multiple IP addresses
-- Flash library to allow passing payload strings stored in flash memory without a string length argument: http://github.com/rkhamilton/Flash
 
 
 #### Installation
 - 64KB is the minimum recommended flash memory capacity for use of this library.
 - Download the most recent version of EtherEventQueue here: https://github.com/per1234/EtherEventQueue/archive/master.zip
 - Extract the **EtherEventQueue-master** folder from the downloaded zip file.
-- Rename the folder **EtherEventQueue**.
 - Move the folder to the libraries folder under your Arduino sketchbook folder as configured in Arduino IDE **File > Preferences > Sketchbook** location.
 - Repeat this process with the EtherEvent library and any other associated libraries you wish to use.
 - Restart the Arduino IDE if it is open.
@@ -239,9 +235,9 @@ For demonstration of library usage see the example sketches and EventGhost tree.
 
 
 #### Configuration Parameters
-There are a couple of flags that can be set in the source files to enable extra features:
-- Debug - set `#define DEBUG true` in **EtherEventQueue.h** to get debug output in the serial monitor, this will slow down communication so only enable debug output when needed.
-- If you are using the Flash library then uncomment `//#include "Flash.h"` in **EtherEventQueue.cpp** and **EtherEventQueue.h**.
+There are a couple of parameters that can be set in the source files to enable extra features:
+- Debug output: Set `#define DEBUG true` in **EtherEventQueue.h** to get debug output in the serial monitor, this will slow down communication so only enable debug output when needed.
+- Flash library: If you are using the Flash library then uncomment `//#include "Flash.h"` in **EtherEventQueue.cpp** and **EtherEventQueue.h**.
 
 #### Process
 An overview of the event queue process:

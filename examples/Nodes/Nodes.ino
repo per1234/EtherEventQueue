@@ -3,14 +3,16 @@
 // The keepalive is an event that is used only to keep nodes from timing out. It is handled internally to update the node timestamp and will not be passed on by EtherEventQueue.
 // Use with the EventGhost-example-trees.
 
-#include <SPI.h>  //these libraries are required by EtherEvent
-#include "Ethernet.h"
-#include <utility/w5100.h>  //Used for setting the ethernet send connect timeout
+//These libraries are required by EtherEventQueue:
+#include <SPI.h>
+#include <Ethernet.h>
+#include <utility/w5100.h>  //Used for setting the Ethernet timeout
 #include "MD5.h"
-//#include "Entropy.h"  //uncomment this line if you are using the Entropy library with EtherEvent
-#include "EtherEvent.h"  //include the EtherEvent library so its functions can be accessed
-#include "EtherEventQueue.h"  //include the EtherEvent library so its functions can be accessed
-//#include "Flash.h"  //uncomment this line if you are using the Flash library with EtherEventQueue
+#include "EtherEvent.h"
+#include "EtherEventQueue.h"
+
+//#include "Flash.h"  //Uncomment this line if you are using the Flash library.
+//#include "Entropy.h"  //Uncomment this line if you are using the Entropy library.
 
 //configuration parameters - modify these values to your desired settings
 #define DHCP false  //true==use DHCP to assign an IP address to the device, this will significantly increase memory usage. false==use static IP address.
