@@ -135,7 +135,7 @@ boolean EtherEventQueueClass::begin(const byte nodeDeviceInput, byte nodeCountIn
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //availableEvent - check for new incoming events, process and buffer them and return the length of the event string
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
+byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer, int cookieInput) {
   if (receivedEventLength == 0) {  //there is no event buffered
     if (internalEventQueueCount > 0) {
       for (int8_t queueStepCount = queueSize - 1; queueStepCount >= 0; queueStepCount--) {  //internal event system: step through the queue from the newest to oldest
@@ -153,7 +153,7 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer) {
       }
     }
 
-    if (const byte availableBytesEvent = EtherEvent.availableEvent(ethernetServer)) {  //there is a new event
+    if (const byte availableBytesEvent = EtherEvent.availableEvent(ethernetServer, cookieInput)) {  //there is a new event
       Serial.println(F("---------------------------"));
       Serial.print(F("EtherEventQueue.availableEvent: EtherEvent.availableEvent()="));
       Serial.println(availableBytesEvent);

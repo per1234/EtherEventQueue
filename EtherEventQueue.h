@@ -28,7 +28,7 @@ class EtherEventQueueClass {
     boolean begin(const byte nodeDeviceInput, const byte nodeCountInput);
     boolean begin(const byte nodeDeviceInput, byte nodeCountInput, byte queueSizeMaxInput, const byte sendEventLengthMaxInput, const byte sendPayloadLengthMaxInput, const byte receivedEventLengthMaxInput, const byte receivedPayloadLengthMaxInput);
 
-    byte availableEvent(EthernetServer &ethernetServer);
+    byte availableEvent(EthernetServer &ethernetServer, int cookieInput = false);
     byte availablePayload();
     void readEvent(char eventBuffer[]);
     void readPayload(char payloadBuffer[]);

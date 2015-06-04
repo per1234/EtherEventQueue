@@ -56,9 +56,11 @@ For demonstration of library usage see the example sketches and EventGhost tree.
   - Type: byte
 - Returns: boolean - true = success, false = memory allocation failure
 
-`EtherEventQueue.availableEvent(ethernetServer)` - Returns the number of chars of event including null terminator available to read. availableEvent() will not receive a new event until the last event has been read(via readEvent()) or flushed(via flushReceiver()).
+`EtherEventQueue.availableEvent(ethernetServer, cookie)` - Returns the number of chars of event including null terminator available to read. availableEvent() will not receive a new event until the last event has been read(via readEvent()) or flushed(via flushReceiver()).
 - Parameter: ethernetServer - The EthernetServer object created in the Ethernet setup of the user's sketch.
   - Type: EthernetServer
+- Parameter(optional): cookie - Cookie value to use in the authentication process. This can be used to provide a truly random cookie for enhanced security. If this parameter is not specified then a pseudorandom cookie will be generated with the random() function.
+  - Type: int  
 - Returns: Number of chars in the event including the null terminator at the end of the string.
   - Type: byte
 
