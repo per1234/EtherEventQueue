@@ -53,7 +53,7 @@ class EtherEventQueueClass {
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const uint16_t event, const char payload[] = "") {
       char eventChar[uint16_tLengthMax + 1];
-      sprintf_P(eventChar, PSTR("%u"), event);
+      utoa(event, eventChar, 10);
       return queue(target, port, eventType, eventChar, payload);
     }
     template <typename target_t>
@@ -85,7 +85,7 @@ class EtherEventQueueClass {
     template <typename target_t, typename event_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const event_t event, const uint16_t payload) {
       char payloadChar[uint16_tLengthMax + 1];
-      sprintf_P(payloadChar, PSTR("%u"), payload);
+      utoa(payload, payloadChar, 10);
       return queue(target, port, eventType, event, payloadChar);
     }
     template <typename target_t, typename event_t>
