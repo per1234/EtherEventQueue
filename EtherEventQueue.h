@@ -123,14 +123,14 @@ class EtherEventQueueClass {
     //Flash templates
 #ifdef __FLASH_H__
     template <typename target_t>
-    byte queue(const target_t &target, const unsigned int port, const byte eventType, const _FLASH_STRING event, const char payload[] = "") {
+    byte queue(const target_t &target, const unsigned int port, const byte eventType, const _FLASH_STRING &event, const char payload[] = "") {
       const byte stringLength = event.length();
       char eventChar[stringLength + 1];
       event.copy(eventChar, stringLength + 1, 0);  //+1 for null terminator
       return queue(target, port, eventType, eventChar, payload);
     }
     template <typename target_t, typename event_t>
-    byte queue(const target_t &target, const unsigned int port, const byte eventType, const event_t event, const _FLASH_STRING payload) {
+    byte queue(const target_t &target, const unsigned int port, const byte eventType, const event_t event, const _FLASH_STRING &payload) {
       const byte stringLength = payload.length();
       char payloadChar[stringLength + 1];
       payload.copy(payloadChar, stringLength + 1, 0);  //+1 for null terminator
@@ -227,8 +227,8 @@ class EtherEventQueueClass {
     boolean setEventAck(const uint32_t eventAckInput);
     boolean setEventAck(const __FlashStringHelper* eventAckInput, const byte eventAckInputLength);
 #ifdef __FLASH_H__
-    boolean setEventKeepalive(const _FLASH_STRING eventKeepaliveInput);
-    boolean setEventAck(const _FLASH_STRING eventKeepaliveInput);
+    boolean setEventKeepalive(const _FLASH_STRING &eventKeepaliveInput);
+    boolean setEventAck(const _FLASH_STRING &eventKeepaliveInput);
 #endif
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////

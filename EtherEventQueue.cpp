@@ -795,7 +795,7 @@ boolean EtherEventQueueClass::setEventKeepalive(const __FlashStringHelper* event
 
 
 #ifdef __FLASH_H__
-boolean EtherEventQueueClass::setEventKeepalive(const _FLASH_STRING eventKeepaliveInput) {
+boolean EtherEventQueueClass::setEventKeepalive(const _FLASH_STRING &eventKeepaliveInput) {
   const byte stringLength = eventKeepaliveInput.length();
   char eventKeepaliveInputChar[stringLength + 1];
   eventKeepaliveInput.copy(eventKeepaliveInputChar, stringLength + 1, 0);  //+1 for null terminator
@@ -855,7 +855,7 @@ boolean EtherEventQueueClass::setEventAck(const __FlashStringHelper* eventAckInp
 
 
 #ifdef __FLASH_H__
-boolean EtherEventQueueClass::setEventAck(const _FLASH_STRING eventAckInput) {
+boolean EtherEventQueueClass::setEventAck(const _FLASH_STRING &eventAckInput) {
   const byte stringLength = eventAckInput.length();
   char eventAckInputChar[stringLength + 1];
   eventAckInput.copy(eventAckInputChar, stringLength + 1, 0);  //+1 for null terminator
