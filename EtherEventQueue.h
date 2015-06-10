@@ -39,43 +39,59 @@ class EtherEventQueueClass {
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //queue
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    byte queue(const byte targetIP[], const unsigned int port, const byte eventType, const char event[], const char payload[] = "");  //main queue prototype
-    byte queue(const byte targetNode, const unsigned int port, const byte eventType, const char event[], const char payload[] = "");
-    byte queue(const IPAddress &targetIPAddress, const unsigned int port, const byte eventType,  const char event[], const char payload[] = "");
+    byte queue(const byte targetIP[], const unsigned int port, const byte eventType, const char event[], const char payload[] = "");  //convert IPAddress to 4 byte array
+    byte queue(const byte targetNode, const unsigned int port, const byte eventType, const char event[], const char payload[] = "");  //convert node number to 4 byte array
+    byte queue(const IPAddress &targetIPAddress, const unsigned int port, const byte eventType,  const char event[], const char payload[] = "");  //main queue prototype
 
     //convert event
+    template <typename target_t>
+    byte queue(const target_t &target, const unsigned int port, const byte eventType, char event[], const char payload[] = "") {
+      return queue(target, port, eventType, (const char*)event, payload);
+    }
+    template <typename target_t>
+    byte queue(const target_t &target, const unsigned int port, const byte eventType, const int8_t event, const char payload[] = "") {
+      return queue(target, port, eventType, (int)event, payload);  //Convert event to int. Needed to fix ambiguous overload warning.
+    }
+    template <typename target_t>
+    byte queue(const target_t &target, const unsigned int port, const byte eventType, const byte event, const char payload[] = "") {
+      return queue(target, port, eventType, (int)event, payload);  //Convert event to int. Needed to fix ambiguous overload warning.
+    }
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const int16_t event, const char payload[] = "") {
       char eventChar[int16_tLengthMax + 1];
       itoa(event, eventChar, 10);
-      return queue(target, port, eventType, eventChar, payload);
+      return queue(target, port, eventType, (const char*)eventChar, payload);
     }
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const uint16_t event, const char payload[] = "") {
       char eventChar[uint16_tLengthMax + 1];
       utoa(event, eventChar, 10);
-      return queue(target, port, eventType, eventChar, payload);
+      return queue(target, port, eventType, (const char*)eventChar, payload);
     }
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const int32_t event, const char payload[] = "") {
       char eventChar[int32_tLengthMax + 1];
       ltoa(event, eventChar, 10);
-      return queue(target, port, eventType, eventChar, payload);
+      return queue(target, port, eventType, (const char*)eventChar, payload);
     }
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const uint32_t event, const char payload[] = "") {
       char eventChar[uint32_tLengthMax + 1];
       ultoa(event, eventChar, 10);
-      return queue(target, port, eventType, eventChar, payload);
+      return queue(target, port, eventType, (const char*)eventChar, payload);
     }
     template <typename target_t, typename payload_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const __FlashStringHelper* event, const byte eventLength, const payload_t payload) {
       char eventChar[eventLength + 1];
       memcpy_P(eventChar, event, eventLength + 1);  //+1 for the null terminator
-      return queue(target, port, eventType, eventChar, payload);
+      return queue(target, port, eventType, (const char*)eventChar, payload);
     }
 
     //convert payload
+    template <typename target_t>
+    byte queue(const target_t &target, const unsigned int port, const byte eventType, const char event[], char payload[]) {
+      return queue(target, port, eventType, event, (const char*)payload);
+    }
     template <typename target_t, typename event_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const event_t event, const int16_t payload) {
       char payloadChar[int16_tLengthMax + 1];
@@ -108,7 +124,7 @@ class EtherEventQueueClass {
     }
 
 
-    //convert F() event and payload
+    //convert event and payload
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const __FlashStringHelper* event, const byte eventLength, const __FlashStringHelper* payload, const byte payloadLength) {
       char eventChar[eventLength + 1];
@@ -117,8 +133,13 @@ class EtherEventQueueClass {
       char payloadChar[payloadLength + 1];
       memcpy_P(payloadChar, payload, payloadLength + 1);  //+1 for the null terminator
 
-      return queue(target, port, eventType, eventChar, payloadChar);
+      return queue(target, port, eventType, (const char*)eventChar, payloadChar);
     }
+    template <typename target_t>
+    byte queue(const target_t &target, const unsigned int port, const byte eventType, char event[], char payload[]) {
+      return queue(target, port, eventType, (const char*)event, (const char*)payload);
+    }
+
 
     //Flash templates
 #ifdef __FLASH_H__
@@ -127,7 +148,7 @@ class EtherEventQueueClass {
       const byte stringLength = event.length();
       char eventChar[stringLength + 1];
       event.copy(eventChar, stringLength + 1, 0);  //+1 for null terminator
-      return queue(target, port, eventType, eventChar, payload);
+      return queue(target, port, eventType, (const char*)eventChar, payload);
     }
     template <typename target_t, typename event_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const event_t event, const _FLASH_STRING &payload) {
@@ -218,7 +239,6 @@ class EtherEventQueueClass {
     boolean setEventKeepalive(const int32_t eventKeepaliveInput);
     boolean setEventKeepalive(const uint32_t eventKeepaliveInput);
     boolean setEventKeepalive(const __FlashStringHelper* eventKeepaliveInput, const byte eventKeepaliveInputLength);
-
 
     boolean setEventAck(const char eventAckInput[]);
     boolean setEventAck(const int16_t eventAckInput);

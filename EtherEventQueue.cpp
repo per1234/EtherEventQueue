@@ -306,7 +306,7 @@ byte EtherEventQueueClass::queue(const IPAddress &targetIPAddress, const unsigne
   Serial.println(targetIPAddress);
   byte targetIP[4];  //create buffer
   IPcopy(targetIP, targetIPAddress);  //convert
-  return queue(targetIP, port, eventType, event, payload);
+  return queue((const byte*)targetIP, port, eventType, (const char*)event, payload);
 }
 
 
@@ -317,7 +317,7 @@ byte EtherEventQueueClass::queue(const byte targetNode, const unsigned int port,
     Serial.println(F("EtherEventQueue.queue(convert node): invalid node number"));
     return false;
   }
-  return queue(nodeIP[targetNode], port, eventType, event, payload);
+  return queue((const byte*)nodeIP[targetNode], port, eventType, (const char*)event, payload);
 }
 
 
@@ -475,7 +475,7 @@ boolean EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
     Serial.print(F("EtherEventQueue.queueHandler: payload="));
     Serial.println(payload);
 
-    if (EtherEvent.send(ethernetClient, IPqueue[queueSlotSend], portQueue[queueSlotSend], eventQueue[queueSlotSend], payload) > 0) {
+    if (EtherEvent.send(ethernetClient, (const byte*)IPqueue[queueSlotSend], portQueue[queueSlotSend], (const char*)eventQueue[queueSlotSend], payload) > 0) {
       Serial.println(F("EtherEventQueue.queueHandler: send successful"));
       nodeTimestamp[nodeDevice] = millis();  //set the device timestamp(using the nodeDevice because that part of the array is never used otherwise)
       //update timestamp of the target node
