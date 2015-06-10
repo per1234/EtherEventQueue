@@ -46,42 +46,50 @@ class EtherEventQueueClass {
     //convert event
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, char event[], const char payload[] = "") {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(char event)"));
       return queue(target, port, eventType, (const char*)event, payload);
     }
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const int8_t event, const char payload[] = "") {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(int8_t event)"));
       return queue(target, port, eventType, (int)event, payload);  //Convert event to int. Needed to fix ambiguous overload warning.
     }
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const byte event, const char payload[] = "") {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(byte event)"));
       return queue(target, port, eventType, (int)event, payload);  //Convert event to int. Needed to fix ambiguous overload warning.
     }
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const int16_t event, const char payload[] = "") {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(int event)"));
       char eventChar[int16_tLengthMax + 1];
       itoa(event, eventChar, 10);
       return queue(target, port, eventType, (const char*)eventChar, payload);
     }
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const uint16_t event, const char payload[] = "") {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(uint event)"));
       char eventChar[uint16_tLengthMax + 1];
       utoa(event, eventChar, 10);
       return queue(target, port, eventType, (const char*)eventChar, payload);
     }
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const int32_t event, const char payload[] = "") {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(long event)"));
       char eventChar[int32_tLengthMax + 1];
       ltoa(event, eventChar, 10);
       return queue(target, port, eventType, (const char*)eventChar, payload);
     }
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const uint32_t event, const char payload[] = "") {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(ulong event)"));
       char eventChar[uint32_tLengthMax + 1];
       ultoa(event, eventChar, 10);
       return queue(target, port, eventType, (const char*)eventChar, payload);
     }
     template <typename target_t, typename payload_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const __FlashStringHelper* event, const byte eventLength, const payload_t payload) {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(F() event w/ length)"));
       char eventChar[eventLength + 1];
       memcpy_P(eventChar, event, eventLength + 1);  //+1 for the null terminator
       return queue(target, port, eventType, (const char*)eventChar, payload);
@@ -90,34 +98,40 @@ class EtherEventQueueClass {
     //convert payload
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const char event[], char payload[]) {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(char payload)"));
       return queue(target, port, eventType, event, (const char*)payload);
     }
     template <typename target_t, typename event_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const event_t event, const int16_t payload) {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(int payload)"));
       char payloadChar[int16_tLengthMax + 1];
       itoa(payload, payloadChar, 10);
       return queue(target, port, eventType, event, payloadChar);
     }
     template <typename target_t, typename event_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const event_t event, const uint16_t payload) {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(uint payload)"));
       char payloadChar[uint16_tLengthMax + 1];
       utoa(payload, payloadChar, 10);
       return queue(target, port, eventType, event, payloadChar);
     }
     template <typename target_t, typename event_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const event_t event, const int32_t payload) {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(long payload)"));
       char payloadChar[int32_tLengthMax + 1];
       ltoa(payload, payloadChar, 10);
       return queue(target, port, eventType, event, payloadChar);
     }
     template <typename target_t, typename event_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const event_t event, const uint32_t payload) {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(ulong payload)"));
       char payloadChar[uint32_tLengthMax + 1];
       ultoa(payload, payloadChar, 10);
       return queue(target, port, eventType, event, payloadChar);
     }
     template <typename target_t, typename event_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, event_t event, const __FlashStringHelper* payload, const byte payloadLength) {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(F() payload w/ length)"));
       char payloadChar[payloadLength + 1];
       memcpy_P(payloadChar, payload, payloadLength + 1);  //+1 for the null terminator
       return queue(target, port, eventType, event, payloadChar);
@@ -127,6 +141,7 @@ class EtherEventQueueClass {
     //convert event and payload
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const __FlashStringHelper* event, const byte eventLength, const __FlashStringHelper* payload, const byte payloadLength) {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(F() event+payload w/ length)"));
       char eventChar[eventLength + 1];
       memcpy_P(eventChar, event, eventLength + 1);  //+1 for the null terminator
 
