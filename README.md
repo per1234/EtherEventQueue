@@ -234,7 +234,7 @@ For demonstration of library usage see the example sketches and EventGhost tree.
 <a id="configuration"></a>
 #### Configuration
 There are a couple of configurations options that can be set in the source files to enable extra features:
-- Debug output: Set `#define DEBUG true` in **EtherEventQueue.h** to get debug output in the serial monitor, this will slow down communication so only enable debug output when needed.
+- Debug output: Set `#define ETHEREVENTQUEUE_DEBUG true` in **EtherEventQueue.h** to get debug output in the serial monitor, this will slow down communication so only enable debug output when needed.
 - Flash library: If you are using the Flash library then uncomment `//#include "Flash.h"` in **EtherEventQueue.cpp** and **EtherEventQueue.h**.
 
 
