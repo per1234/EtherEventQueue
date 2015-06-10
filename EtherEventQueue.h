@@ -14,12 +14,12 @@
 class EtherEventQueueClass {
   public:
     //public constants
-    const byte eventTypeOnce = 0;
-    const byte eventTypeRepeat = 1;
-    const byte eventTypeConfirm = 2;
-    const byte eventTypeOverrideTimeout = 3;
+    static const byte eventTypeOnce = 0;
+    static const byte eventTypeRepeat = 1;
+    static const byte eventTypeConfirm = 2;
+    static const byte eventTypeOverrideTimeout = 3;
 
-    const byte queueSuccessOverflow = 2;
+    static const byte queueSuccessOverflow = 2;
 
     EtherEventQueueClass();
 
@@ -236,14 +236,14 @@ class EtherEventQueueClass {
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     //private constants - these are constants that need to be accessed in this file so they can't be defined in EtherEventQueue.cpp
-    const byte uint16_tLengthMax = 5;  //5 digits
-    const byte int16_tLengthMax = 1 + uint16_tLengthMax;  //sign + 5 digits
-    const byte uint32_tLengthMax = 10;  //10 digits
-    const byte int32_tLengthMax = 1 + uint32_tLengthMax;  //sign + 10 digits
+    static const byte uint16_tLengthMax = 5;  //5 digits
+    static const byte int16_tLengthMax = 1 + uint16_tLengthMax;  //sign + 5 digits
+    static const byte uint32_tLengthMax = 10;  //10 digits
+    static const byte int32_tLengthMax = 1 + uint32_tLengthMax;  //sign + 10 digits
 
-    const byte nodeStateTimedOut = 0;
-    const byte nodeStateActive = 1;
-    const byte nodeStateUnknown = 2;
+    static const byte nodeStateTimedOut = 0;
+    static const byte nodeStateActive = 1;
+    static const byte nodeStateUnknown = 2;
 
     //private global variables
     byte nodeDevice;
