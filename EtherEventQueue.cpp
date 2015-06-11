@@ -418,7 +418,7 @@ boolean EtherEventQueueClass::queueHandler(EthernetClient &ethernetClient) {
     Serial.println(queueSize);
     Serial.print(F("EtherEventQueue.queueHandler: queueNewCount="));
     Serial.println(queueNewCount);
-    byte queueSlotSend;  //this is used to store the slot
+    byte queueSlotSend = 0;  //This is used to store the slot. Initialized to 0 to fix "may be uninitialized" compiler warning.
     int8_t targetNode;
     for (byte counter = 0; counter < queueSize; counter++) {  //the maximum number of iterations is the queueSize
       if (queueNewCount == 0) {  //time to send the next one in the queue
