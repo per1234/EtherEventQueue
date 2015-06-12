@@ -6,7 +6,7 @@
 //These libraries are required by EtherEventQueue:
 #include <SPI.h>
 #include <Ethernet.h>
-#include <utility/w5100.h>  //Used for setting the Ethernet timeout
+#include <utility/w5100.h>  //Used for setting the W5x00 retransmission time and count.
 #include "MD5.h"
 #include "EtherEvent.h"
 #include "EtherEventQueue.h"
@@ -32,8 +32,8 @@ const unsigned int resendDelay = 30000;  //(ms)Delay before resending repeat or 
 const unsigned long nodeTimeoutDuration = 240000;  //(ms)If no event has been received from a node in greater than this duration then it is considered timed out.
 
 const byte etherEventTimeout = 20;  //(ms)The max time to wait for ethernet communication.
-const unsigned int W5100timeout = 400;  //(0.1ms)used to set the timeout for the w5100 module.
-const byte W5100retransmissionCount = 1;  //Retransmission count. 1 is the minimum value.
+const unsigned int W5x00timeout = 400;  //(0.1ms)used to set the timeout for the W5x00 module.
+const byte W5x00retransmissionCount = 1;  //Retransmission count. 1 is the minimum value.
 
 const unsigned int queueEventInterval = 4000;  //(ms)Delay between queueing the test events.
 const byte numberOfNodes = 2;
@@ -70,8 +70,8 @@ void setup() {
 
 
   EtherEvent.setTimeout(etherEventTimeout);  //set timeout duration
-  W5100.setRetransmissionTime(W5100timeout);  //set W5100 timeout duration
-  W5100.setRetransmissionCount(W5100retransmissionCount);  //Set W5100 retransmission count
+  W5100.setRetransmissionTime(W5x00timeout);  //set W5x00 timeout duration
+  W5100.setRetransmissionCount(W5x00retransmissionCount);  //Set W5x00 retransmission count
 }
 
 void loop() {
