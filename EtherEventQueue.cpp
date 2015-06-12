@@ -1,9 +1,6 @@
 // EtherEventQueue - outgoing event queue for the EtherEvent authenticated network communication Arduino library: http://github.com/per1234/EtherEvent
-#include "EtherEventQueue.h"
-#include <SPI.h>  //for the ethernet library
-#include "Ethernet.h"
 #include "EtherEvent.h"
-//#include "Flash.h"  //uncomment this line if you have the Flash library installed
+#include "EtherEventQueue.h"
 
 #define Serial if(ETHEREVENTQUEUE_DEBUG)Serial  //DEBUG is defined in EtherEventQueue.h
 

@@ -3,8 +3,9 @@
 #define EtherEventQueue_h
 
 #include <Arduino.h>
-#include <SPI.h>  //for the ethernet library
-#include "Ethernet.h"
+#include "EtherEvent.h"
+
+
 //#include "Flash.h"  //uncomment this line if you have the Flash library installed
 
 #define ETHEREVENTQUEUE_DEBUG false  //(false == serial debug output off,  true == serial debug output on)The serial debug output will increase memory usage and communication latency so only enable when needed.
