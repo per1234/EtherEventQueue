@@ -746,12 +746,12 @@ unsigned long EtherEventQueueClass::getSendKeepaliveResendDelay() {
 boolean EtherEventQueueClass::setEventKeepalive(const char eventKeepaliveInput[]) {
   Serial.println(F("EtherEventQueue.setEventKeepalive"));
   const byte eventKeepaliveLength = strlen(eventKeepaliveInput);
-  eventKeepalive = (char*)realloc(eventKeepalive, (eventKeepaliveLength + 1) * sizeof(*eventKeepalive));  //allocate memory for the password
-  strcpy(eventKeepalive, eventKeepaliveInput);  //store the password
+  eventKeepalive = (char*)realloc(eventKeepalive, (eventKeepaliveLength + 1) * sizeof(*eventKeepalive));  //allocate memory
   if (eventKeepalive == NULL) {
     Serial.println(F("EtherEventQueue.setEventKeepalive: memory allocation failed"));
     return false;
   }
+  strcpy(eventKeepalive, eventKeepaliveInput);  //store the event
   return true;
 }
 
@@ -784,21 +784,13 @@ boolean EtherEventQueueClass::setEventKeepalive(const uint32_t eventKeepaliveInp
 }
 
 
-boolean EtherEventQueueClass::setEventKeepalive(const __FlashStringHelper* eventKeepaliveInput, const byte eventKeepaliveInputLength) {
-  char eventKeepaliveInputChar[eventKeepaliveInputLength + 1];
-  memcpy_P(eventKeepaliveInputChar, eventKeepaliveInput, eventKeepaliveInputLength + 1);  //+1 for the null terminator
-  return setEventKeepalive(eventKeepaliveInputChar);
+boolean EtherEventQueueClass::setEventKeepalive(const __FlashStringHelper* eventKeepaliveFSH) {
+  byte stringLength = EtherEvent.FSHlength(eventKeepaliveFSH);
+  char eventKeepaliveChar[stringLength + 1];
+  memcpy_P(eventKeepaliveChar, eventKeepaliveFSH, stringLength + 1);  //+1 for the null terminator
+  return setEventKeepalive(eventKeepaliveChar);
 }
 
-
-#ifdef __FLASH_H__
-boolean EtherEventQueueClass::setEventKeepalive(const _FLASH_STRING &eventKeepaliveInput) {
-  const byte stringLength = eventKeepaliveInput.length();
-  char eventKeepaliveInputChar[stringLength + 1];
-  eventKeepaliveInput.copy(eventKeepaliveInputChar, stringLength + 1, 0);  //+1 for null terminator
-  return setEventKeepalive(eventKeepaliveInputChar);
-}
-#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //setEventAck
@@ -806,12 +798,12 @@ boolean EtherEventQueueClass::setEventKeepalive(const _FLASH_STRING &eventKeepal
 boolean EtherEventQueueClass::setEventAck(const char eventAckInput[]) {
   Serial.println(F("EtherEventQueue.setEventAck"));
   const byte eventAckLength = strlen(eventAckInput);
-  eventAck = (char*)realloc(eventAck, (eventAckLength + 1) * sizeof(*eventAck));  //allocate memory for the password
-  strcpy(eventAck, eventAckInput);  //store the password
+  eventAck = (char*)realloc(eventAck, (eventAckLength + 1) * sizeof(*eventAck));  //allocate memory
   if (eventAck == NULL) {
     Serial.println(F("EtherEventQueue.setEventAck: memory allocation failed"));
     return false;
   }
+  strcpy(eventAck, eventAckInput);  //store the event
   return true;
 }
 
@@ -844,21 +836,15 @@ boolean EtherEventQueueClass::setEventAck(const uint32_t eventAckInput) {
 }
 
 
-boolean EtherEventQueueClass::setEventAck(const __FlashStringHelper* eventAckInput, const byte eventAckInputLength) {
-  char eventAckInputChar[eventAckInputLength + 1];
-  memcpy_P(eventAckInputChar, eventAckInput, eventAckInputLength + 1);  //+1 for the null terminator
-  return setEventAck(eventAckInputChar);
+boolean EtherEventQueueClass::setEventAck(const __FlashStringHelper* eventAckFSH) {
+  byte stringLength = EtherEvent.FSHlength(eventAckFSH);
+  char eventAckChar[stringLength + 1];
+  memcpy_P(eventAckChar, eventAckFSH, stringLength + 1);  //+1 for the null terminator
+  return setEventAck(eventAckChar);
 }
 
 
-#ifdef __FLASH_H__
-boolean EtherEventQueueClass::setEventAck(const _FLASH_STRING &eventAckInput) {
-  const byte stringLength = eventAckInput.length();
-  char eventAckInputChar[stringLength + 1];
-  eventAckInput.copy(eventAckInputChar, stringLength + 1, 0);  //+1 for null terminator
-  return setEventAck(eventAckInputChar);
 }
-#endif
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -952,6 +938,22 @@ boolean EtherEventQueueClass::nodeIsSet(const byte nodeNumber) {
   }
   Serial.println(F("true"));
   return true;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//FSHtoa - convert __FlashStringHelper to char and put it in the passed buffer
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EtherEventQueueClass::FSHtoa(const __FlashStringHelper* FlashString, char charBuffer[], byte maxLength) {
+  PGM_P FlashString_P = reinterpret_cast<PGM_P>(FlashString);
+  for (byte arrayPosition = 0; arrayPosition < maxLength; arrayPosition++) {
+    unsigned char character = pgm_read_byte(FlashString_P++);
+    charBuffer[arrayPosition] = character;
+    if (character == 0) {
+      return;
+    }
+  }
+  charBuffer[maxLength] = 0;
 }
 
 

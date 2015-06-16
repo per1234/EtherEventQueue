@@ -11,7 +11,6 @@
 #include "EtherEvent.h"
 #include "EtherEventQueue.h"
 
-//#include "Flash.h"  //Uncomment this line if you are using the Flash library.
 
 //configuration parameters - modify these values to your desired settings
 #define DHCP false  //true==use DHCP to assign an IP address to the device, this will significantly increase memory usage. false==use static IP address.
@@ -46,9 +45,11 @@ const char eventKeepalive[] = "yo";
 const unsigned int keepaliveMargin = 5000;
 const unsigned int keepaliveResendDelay = 15000;
 
+
 EthernetServer ethernetServer(port);  //TCP port to receive on
 EthernetClient ethernetClient;  //create the client object for ethernet communication
 unsigned long sendTimeStamp;  //used by the example to periodically send an event
+
 
 void setup() {
   Serial.begin(9600);  //the received event and other information will be displayed in your serial monitor while the sketch is running
@@ -73,6 +74,7 @@ void setup() {
   W5100.setRetransmissionTime(W5x00timeout);  //set W5x00 timeout duration
   W5100.setRetransmissionCount(W5x00retransmissionCount);  //Set W5x00 retransmission count
 }
+
 
 void loop() {
   EtherEventQueue.sendKeepalive(sendPort);  //send the keepalive event when it is time to do so
@@ -127,7 +129,7 @@ void loop() {
       Serial.println(F("Timed Out"));
     }
 
-    if (EtherEventQueue.queue(targetNode, sendPort, EtherEventQueue.eventTypeRepeat, F("test"), 4, F("test payload"), 12)) {  //queue an event to be sent, EtherEventQueue will continue to attempt to send the event until it is successfully sent or the event overflows from the queue.
+    if (EtherEventQueue.queue(targetNode, sendPort, EtherEventQueue.eventTypeRepeat, F("test"), F("test payload"))) {  //queue an event to be sent, EtherEventQueue will continue to attempt to send the event until it is successfully sent or the event overflows from the queue.
       Serial.println(F("Event queue successful"));
     }
     else {
@@ -147,8 +149,5 @@ void loop() {
     Serial.print(F("\nNewly timed in node: "));
     Serial.println(timedInNode);
   }
-
-
-
 }
 

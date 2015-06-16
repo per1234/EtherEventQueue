@@ -89,7 +89,7 @@ For demonstration of library usage see the example sketches and EventGhost tree.
 `EtherEventQueue.flushReceiver()` - Clear any buffered event and payload data so a new event can be received.
 - Returns: none
 
-`EtherEventQueue.queue(target, port, eventType, event[, eventLength][, payload[, payloadLength]])` - Send an event and payload
+`EtherEventQueue.queue(target, port, eventType, event[, payload])` - Send an event and payload
 - Parameter: **target** - Takes either the IP address or node number of the target device. EtherEventQueue can also be used to send internal events by sending to the device IPAddress or node number.
   - Type: IPAddress/4 byte array/byte
 - Parameter: **port** - Port to send the event to.
@@ -101,13 +101,9 @@ For demonstration of library usage see the example sketches and EventGhost tree.
             EtherEventQueue.eventTypeOverrideTimeout - Similar to eventTypeOnce but the event will be sent to nodes even if they are timed out.
   - Type: byte
 - Parameter: **event** - string to send as the event
-  - Type: char array/int8_t/byte/int/unsigned int/long/unsigned long/_FLASH_STRING/__FlashStringHelper(F() macro)
-- Parameter(optional): **eventLength** - Length of the event. This parameter should only be used if event is of type __FlashStringHelper(F() macro).
-  - Type: byte
+  - Type: char array/int8_t/byte/int/unsigned int/long/unsigned long/__FlashStringHelper(F() macro)
 - Parameter: **payload** - payload to send with the event. The payload is not optional when the event is of type __FlashStringHelper(F() macro).
-  - Type: char array/int8_t/byte/int/unsigned int/long/unsigned long/_FLASH_STRING/__FlashStringHelper(F() macro)
-- Parameter: **payloadLength** - length of the payload. This parameter should only be used if event is of type type __FlashStringHelper(F() macro).
-  - Type: byte
+  - Type: char array/int8_t/byte/int/unsigned int/long/unsigned long/__FlashStringHelper(F() macro)
 - Returns: `false` = failure, `true` = successfully queued, EtherEventQueue.queueSuccessOverflow == successfully queued w/ queue overflow
   - Type: byte
 
@@ -214,28 +210,22 @@ For demonstration of library usage see the example sketches and EventGhost tree.
 - Returns: The sendKeepaliveResendDelay value
   - Type: unsigned long
 
-`EtherEventQueue.setEventKeepalive(eventKeepalive[, eventKeepaliveLength])` - Defines the keepalive event.
+`EtherEventQueue.setEventKeepalive(eventKeepalive)` - Defines the keepalive event.
 - Parameter: **eventKeepaliveInput** - The event that is used as a keepalive.
-  - Type: char array, int, unsigned int, long, unsigned long, F()/__FlashStringHelper, _FLASH_STRING
-- Parameter: **eventKeepaliveInputLength** - The length of the keepalive event. Use this parameter only if eventKeepalive is of type __FlashStringHelper(F() macro).
-  - Type: byte
+  - Type: char array, int, unsigned int, long, unsigned long, __FlashStringHelper(F() macro)
 - Returns: `true` = success, `false` = memory allocation failure.
   - Type: boolean
 
-`EtherEventQueue.setEventAck(eventAck[, eventAckLength])` - Defines the event receipt confirmation event for use with eventTypeConfirm type events.
+`EtherEventQueue.setEventAck(eventAck)` - Defines the event receipt confirmation event for use with eventTypeConfirm type events.
 - Parameter: **eventAckInput** - The event that is used as an ack.
-  - Type: char array, int, unsigned int, long, unsigned long, F()/__FlashStringHelper, _FLASH_STRING
-- Parameter: **eventKeepaliveInputLength** - The length of the confirmation event. Use this parameter only if eventAck is of type __FlashStringHelper(F() macro).
-  - Type: byte
+  - Type: char array, int, unsigned int, long, unsigned long, __FlashStringHelper(F() macro)
 - Returns: `true` = success, `false` = memory allocation failure.
   - Type: boolean
 
 
-<a id="configuration"></a>
-#### Configuration
-There are a couple of configurations options that can be set in the source files to enable extra features:
+<a id="troubleshooting"></a>
+#### Troubleshooting
 - Debug output: Set `#define ETHEREVENTQUEUE_DEBUG true` in **EtherEventQueue.h** to get debug output in the serial monitor, this will slow down communication so only enable debug output when needed.
-- Flash library: If you are using the Flash library then uncomment `//#include "Flash.h"` in **EtherEventQueue.cpp** and **EtherEventQueue.h**.
 
 
 <a id="process"></a>

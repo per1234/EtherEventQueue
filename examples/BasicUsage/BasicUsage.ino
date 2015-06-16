@@ -9,7 +9,6 @@
 #include "EtherEvent.h"
 #include "EtherEventQueue.h"
 
-//#include "Flash.h"  //Uncomment this line if you are using the Flash library.
 
 //configuration parameters - modify these values to your desired settings
 #define DHCP false  //true==use DHCP to assign an IP address to the device, this will significantly increase memory usage. false==use static IP address.
@@ -29,6 +28,7 @@ EthernetServer ethernetServer(port);  //TCP port to receive on
 EthernetClient ethernetClient;  //create the client object for ethernet communication
 unsigned long sendTimeStamp;  //used by the example to periodically send an event
 
+
 void setup() {
   Serial.begin(9600);  //the received event and other information will be displayed in your serial monitor while the sketch is running
 #if DHCP == true
@@ -42,6 +42,7 @@ void setup() {
     while (1);  //abort execution of the rest of the program
   }
 }
+
 
 void loop() {
   if (EtherEventQueue.queueHandler(ethernetClient) == false) {  //this will send events from the queue

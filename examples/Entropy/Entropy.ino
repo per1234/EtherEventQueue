@@ -12,7 +12,6 @@
 #include "EtherEventQueue.h"
 #include "Entropy.h"
 
-//#include "Flash.h"  //Uncomment this line if you are using the Flash library.
 
 //configuration parameters - modify these values to your desired settings
 #define DHCP false  //true==use DHCP to assign an IP address to the device, this will significantly increase memory usage. false==use static IP address.
@@ -36,15 +35,15 @@ const byte etherEventTimeout = 20;  //(ms)The max time to wait for ethernet comm
 const unsigned int W5x00timeout = 400;  //(0.1ms)used to set the timeout for the W5x00 module.
 const byte W5x00retransmissionCount = 1;  //Retransmission count. 1 is the minimum value.
 
-const byte randomSeedPin = A0; //analog pin to use to seed the random() function
-
 const unsigned int queueEventInterval = 4000;  //(ms)Delay between queueing the test events.
 const IPAddress sendIP = IPAddress(192, 168, 69, 100);  //The IP address to send the test events to.
 const unsigned int sendPort = 1024;  //The port to send the test events to.
 
+
 EthernetServer ethernetServer(port);  //TCP port to receive on
 EthernetClient ethernetClient;  //create the client object for ethernet communication
 unsigned long sendTimeStamp;  //used by the example to periodically send an event
+
 
 void setup() {
   Serial.begin(9600);  //the received event and other information will be displayed in your serial monitor while the sketch is running
@@ -68,6 +67,7 @@ void setup() {
   //By using a random cookie in the authentication process, event sending can be made more secure.
   Entropy.initialize();  //gets truly random numbers from the timer jitter
 }
+
 
 void loop() {
   if (EtherEventQueue.queueHandler(ethernetClient) == false) {  //this will send events from the queue
@@ -97,7 +97,7 @@ void loop() {
   if (millis() - sendTimeStamp > queueEventInterval) {  //periodically send event
     sendTimeStamp = millis();  //reset the timestamp for the next event send
     Serial.println(F("\nAttempting event queue"));
-    if (EtherEventQueue.queue(sendIP, sendPort, EtherEventQueue.eventTypeRepeat, F("test"), 4, F("test payload"), 12)) {  //queue an event to be sent, EtherEventQueue will continue to attempt to send the event until it is successfully sent or the event overflows from the queue.
+    if (EtherEventQueue.queue(sendIP, sendPort, EtherEventQueue.eventTypeRepeat, F("test"), F("test payload"))) {  //queue an event to be sent, EtherEventQueue will continue to attempt to send the event until it is successfully sent or the event overflows from the queue.
       Serial.println(F("Event queue successful"));
     }
     else {

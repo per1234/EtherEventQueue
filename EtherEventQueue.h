@@ -1,12 +1,9 @@
 // EtherEventQueue - outgoing event queue for the EtherEvent authenticated network communication Arduino library: http://github.com/per1234/EtherEvent
 #ifndef EtherEventQueue_h
 #define EtherEventQueue_h
-
 #include <Arduino.h>
 #include "EtherEvent.h"
 
-
-//#include "Flash.h"  //uncomment this line if you have the Flash library installed
 
 #define ETHEREVENTQUEUE_DEBUG false  //(false == serial debug output off,  true == serial debug output on)The serial debug output will increase memory usage and communication latency so only enable when needed.
 #define ETHEREVENTQUEUE_SERIAL if(ETHEREVENTQUEUE_DEBUG)Serial  //I have to use a different name for Serial in this file otherwise the debug statement control also affects any other file that includes this file.
@@ -88,11 +85,11 @@ class EtherEventQueueClass {
       ultoa(event, eventChar, 10);
       return queue(target, port, eventType, (const char*)eventChar, payload);
     }
-    template <typename target_t, typename payload_t>
-    byte queue(const target_t &target, const unsigned int port, const byte eventType, const __FlashStringHelper* event, const byte eventLength, const payload_t payload) {
-      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(F() event w/ length)"));
-      char eventChar[eventLength + 1];
-      memcpy_P(eventChar, event, eventLength + 1);  //+1 for the null terminator
+    template <typename target_t>
+    byte queue(const target_t &target, const unsigned int port, const byte eventType, const __FlashStringHelper* event, const char payload[] = "") {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(F() event)"));
+      char eventChar[sendEventLengthMax + 1];
+      FSHtoa(event, eventChar, sendEventLengthMax);
       return queue(target, port, eventType, (const char*)eventChar, payload);
     }
 
@@ -131,50 +128,18 @@ class EtherEventQueueClass {
       return queue(target, port, eventType, event, payloadChar);
     }
     template <typename target_t, typename event_t>
-    byte queue(const target_t &target, const unsigned int port, const byte eventType, event_t event, const __FlashStringHelper* payload, const byte payloadLength) {
-      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(F() payload w/ length)"));
-      char payloadChar[payloadLength + 1];
-      memcpy_P(payloadChar, payload, payloadLength + 1);  //+1 for the null terminator
+    byte queue(const target_t &target, const unsigned int port, const byte eventType, event_t event, const __FlashStringHelper* payload) {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(F() payload"));
+      char payloadChar[sendPayloadLengthMax + 1];
+      FSHtoa(payload, payloadChar, sendPayloadLengthMax);
       return queue(target, port, eventType, event, payloadChar);
     }
 
-
     //convert event and payload
-    template <typename target_t>
-    byte queue(const target_t &target, const unsigned int port, const byte eventType, const __FlashStringHelper* event, const byte eventLength, const __FlashStringHelper* payload, const byte payloadLength) {
-      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(F() event+payload w/ length)"));
-      char eventChar[eventLength + 1];
-      memcpy_P(eventChar, event, eventLength + 1);  //+1 for the null terminator
-
-      char payloadChar[payloadLength + 1];
-      memcpy_P(payloadChar, payload, payloadLength + 1);  //+1 for the null terminator
-
-      return queue(target, port, eventType, (const char*)eventChar, payloadChar);
-    }
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, char event[], char payload[]) {
       return queue(target, port, eventType, (const char*)event, (const char*)payload);
     }
-
-
-    //Flash templates
-#ifdef __FLASH_H__
-    template <typename target_t>
-    byte queue(const target_t &target, const unsigned int port, const byte eventType, const _FLASH_STRING &event, const char payload[] = "") {
-      const byte stringLength = event.length();
-      char eventChar[stringLength + 1];
-      event.copy(eventChar, stringLength + 1, 0);  //+1 for null terminator
-      return queue(target, port, eventType, (const char*)eventChar, payload);
-    }
-    template <typename target_t, typename event_t>
-    byte queue(const target_t &target, const unsigned int port, const byte eventType, const event_t event, const _FLASH_STRING &payload) {
-      const byte stringLength = payload.length();
-      char payloadChar[stringLength + 1];
-      payload.copy(payloadChar, stringLength + 1, 0);  //+1 for null terminator
-      return queue(target, port, eventType, event, payloadChar);
-    }
-#endif
-
 
 
     boolean queueHandler(EthernetClient &ethernetClient);
@@ -254,18 +219,15 @@ class EtherEventQueueClass {
     boolean setEventKeepalive(const uint16_t eventKeepaliveInput);
     boolean setEventKeepalive(const int32_t eventKeepaliveInput);
     boolean setEventKeepalive(const uint32_t eventKeepaliveInput);
-    boolean setEventKeepalive(const __FlashStringHelper* eventKeepaliveInput, const byte eventKeepaliveInputLength);
+    boolean setEventKeepalive(const __FlashStringHelper* eventKeepaliveFSH);
 
     boolean setEventAck(const char eventAckInput[]);
     boolean setEventAck(const int16_t eventAckInput);
     boolean setEventAck(const uint16_t eventAckInput);
     boolean setEventAck(const int32_t eventAckInput);
     boolean setEventAck(const uint32_t eventAckInput);
-    boolean setEventAck(const __FlashStringHelper* eventAckInput, const byte eventAckInputLength);
-#ifdef __FLASH_H__
-    boolean setEventKeepalive(const _FLASH_STRING &eventKeepaliveInput);
-    boolean setEventAck(const _FLASH_STRING &eventKeepaliveInput);
-#endif
+    boolean setEventAck(const __FlashStringHelper* eventAckFSH);
+
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
   private:
@@ -345,6 +307,7 @@ class EtherEventQueueClass {
 
 
     boolean nodeIsSet(const byte nodeNumber);
+    void FSHtoa(const __FlashStringHelper* FlashString, char charBuffer[], byte maxLength);
 };
 extern EtherEventQueueClass EtherEventQueue;  //declare the class so it doesn't have to be done in the sketch
 #endif
