@@ -101,9 +101,9 @@ For demonstration of library usage see the example sketches and EventGhost tree.
             EtherEventQueue.eventTypeOverrideTimeout - Similar to eventTypeOnce but the event will be sent to nodes even if they are timed out.
   - Type: byte
 - Parameter: **event** - string to send as the event
-  - Type: char array/int8_t/byte/int/unsigned int/long/unsigned long/__FlashStringHelper(F() macro)
+  - Type: char array/int8_t/byte/int/unsigned int/long/unsigned long/__FlashStringHelper(F() macro)/String
 - Parameter: **payload** - payload to send with the event. The payload is not optional when the event is of type __FlashStringHelper(F() macro).
-  - Type: char array/int8_t/byte/int/unsigned int/long/unsigned long/__FlashStringHelper(F() macro)
+  - Type: char array/int8_t/byte/int/unsigned int/long/unsigned long/__FlashStringHelper(F() macro)/String
 - Returns: `false` = failure, `true` = successfully queued, EtherEventQueue.queueSuccessOverflow == successfully queued w/ queue overflow
   - Type: byte
 
