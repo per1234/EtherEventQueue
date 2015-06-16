@@ -110,6 +110,18 @@ class EtherEventQueueClass {
       EtherEvent.IPtoa(event, eventChar);
       return queue(target, port, eventType, (const char*)eventChar, payload);
     }
+    template <typename target_t>
+    byte queue(const target_t &target, const unsigned int port, const byte eventType, const double event, const char payload[] = "") {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(double event)"));
+      char eventChar[doubleIntegerLengthMax + 1 + queueDoubleDecimalPlaces + 1];  //max integer length + decimal point + decimal places setting + null terminator
+      dtostrf(event, queueDoubleDecimalPlaces + 2, queueDoubleDecimalPlaces, eventChar);
+      return queue(target, port, eventType, (const char*)eventChar, payload);
+    }
+    template <typename target_t>
+    byte queue(const target_t &target, const unsigned int port, const byte eventType, const float event, const char payload[] = "") {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(float event)"));
+      return queue(target, port, eventType, (double)event, payload);  //needed to fix ambiguous compiler warning
+    }
 
     //convert payload
     template <typename target_t>
@@ -168,6 +180,13 @@ class EtherEventQueueClass {
       ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(String payload)"));
       char payloadChar[IPAddressLengthMax + 1];
       EtherEvent.IPtoa(payload, payloadChar);
+      return queue(target, port, eventType, event, payloadChar);
+    }
+    template <typename target_t, typename event_t>
+    byte queue(const target_t &target, const unsigned int port, const byte eventType, event_t event, const double payload) {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(double payload)"));
+      char payloadChar[doubleIntegerLengthMax + 1 + queueDoubleDecimalPlaces + 1];  //max integer length + decimal point + decimal places setting + null terminator
+      dtostrf(payload, queueDoubleDecimalPlaces + 2, queueDoubleDecimalPlaces, payloadChar);
       return queue(target, port, eventType, event, payloadChar);
     }
 
@@ -263,6 +282,7 @@ class EtherEventQueueClass {
     boolean setEventAck(const int32_t eventAckInput);
     boolean setEventAck(const uint32_t eventAckInput);
     boolean setEventAck(const __FlashStringHelper* eventAckFSH);
+    void setQueueDoubleDecimalPlaces(byte decimalPlaces);
 
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -275,6 +295,7 @@ class EtherEventQueueClass {
     static const byte uint32_tLengthMax = 10;  //10 digits
     static const byte int32_tLengthMax = 1 + uint32_tLengthMax;  //sign + 10 digits
     static const byte IPAddressLengthMax = 3 + 1 + 3 + 1 + 3 + 1 + 3;  //4 x octet + 3 x dot
+    static const byte doubleIntegerLengthMax = 40;  //sign + 39 digits max (-1000000000000000000000000000000000000000 gives me "floating constant exceeds range of 'double'" warning)
 
     static const byte nodeStateTimedOut = 0;
     static const byte nodeStateActive = 1;
@@ -322,6 +343,8 @@ class EtherEventQueueClass {
 
     char* eventKeepalive;
     char* eventAck;
+
+    byte queueDoubleDecimalPlaces;
 
 
     byte eventIDfind();

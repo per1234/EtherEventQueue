@@ -35,5 +35,6 @@ nodeIsSet	KEYWORD2
 setEventKeepalive	KEYWORD2
 setEventAck	KEYWORD2
 checkQueueOverflow	KEYWORD2
+setQueueDoubleDecimalPlaces KEYWORD2
 FSHtoa KEYWORD2
 

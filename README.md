@@ -101,11 +101,16 @@ For demonstration of library usage see the example sketches and EventGhost tree.
             EtherEventQueue.eventTypeOverrideTimeout - Similar to eventTypeOnce but the event will be sent to nodes even if they are timed out.
   - Type: byte
 - Parameter: **event** - string to send as the event
-  - Type: char array, int8_t, byte, int, unsigned int, long, unsigned long, __FlashStringHelper(F() macro), String, IPAddress
+  - Type: char array, int8_t, byte, int, unsigned int, long, unsigned long, __FlashStringHelper(F() macro), String, IPAddress, float, double
 - Parameter: **payload** - payload to send with the event. The payload is not optional when the event is of type __FlashStringHelper(F() macro).
-  - Type: char array, int8_t, byte, int, unsigned int, long, unsigned long, __FlashStringHelper(F() macro), String, IPAddress
+  - Type: char array, int8_t, byte, int, unsigned int, long, unsigned long, __FlashStringHelper(F() macro), String, IPAddress, float, double
 - Returns: `false` = failure, `true` = successfully queued, EtherEventQueue.queueSuccessOverflow == successfully queued w/ queue overflow
   - Type: byte
+
+`EtherEventQueue.setQueueDoubleDecimalPlaces(decimalPlaces)` - Set the number of decimal places when queueing double or float type events and payloads.
+- Parameter: **decimalPlaces** - The default value is 3.
+  - Type: byte
+- Returns: none
 
 `EtherEventQueue.queueHandler(ethernetClient)` - Send queued events.
 - Parameter: **ethernetClient** - The EthernetClient object created during the Ethernet library initialization.

@@ -14,6 +14,8 @@ const byte queueSizeMaxDefault = 5;
 const byte eventLengthMaxDefault = 15;
 const byte payloadLengthMaxDefault = 80;
 
+const byte queueDoubleDecimalPlacesDefault=3;
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //constructor
@@ -23,6 +25,7 @@ EtherEventQueueClass::EtherEventQueueClass() {
   sendKeepaliveMargin = sendKeepaliveMarginDefault;
   sendKeepaliveResendDelay = sendKeepaliveResendDelayDefault;
   resendDelay = resendDelayDefault;
+  queueDoubleDecimalPlaces = queueDoubleDecimalPlacesDefault;
 }
 
 
@@ -844,6 +847,11 @@ boolean EtherEventQueueClass::setEventAck(const __FlashStringHelper* eventAckFSH
 }
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//setQueueDoubleDecimalPlaces - set the number of decimal places to queue of double/float event/payload
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EtherEventQueueClass::setQueueDoubleDecimalPlaces(byte decimalPlaces){
+  queueDoubleDecimalPlaces=decimalPlaces;
 }
 
 
