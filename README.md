@@ -217,13 +217,13 @@ For demonstration of library usage see the example sketches and EventGhost tree.
 
 `EtherEventQueue.setEventKeepalive(eventKeepalive)` - Defines the keepalive event.
 - Parameter: **eventKeepaliveInput** - The event that is used as a keepalive.
-  - Type: char array, int, unsigned int, long, unsigned long, __FlashStringHelper(F() macro)
+  - Type: char array, byte, int, unsigned int, long, unsigned long, __FlashStringHelper(F() macro)
 - Returns: `true` = success, `false` = memory allocation failure.
   - Type: boolean
 
 `EtherEventQueue.setEventAck(eventAck)` - Defines the event receipt confirmation event for use with eventTypeConfirm type events.
 - Parameter: **eventAckInput** - The event that is used as an ack.
-  - Type: char array, int, unsigned int, long, unsigned long, __FlashStringHelper(F() macro)
+  - Type: char array, byte, int, unsigned int, long, unsigned long, __FlashStringHelper(F() macro)
 - Returns: `true` = success, `false` = memory allocation failure.
   - Type: boolean
 
