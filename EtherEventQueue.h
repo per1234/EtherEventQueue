@@ -66,7 +66,7 @@ class EtherEventQueueClass {
     }
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const uint16_t event, const char payload[] = "") {
-      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(uint event)"));
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(unsigned int event)"));
       char eventChar[uint16_tLengthMax + 1];
       utoa(event, eventChar, 10);
       return queue(target, port, eventType, (const char*)eventChar, payload);
@@ -80,7 +80,7 @@ class EtherEventQueueClass {
     }
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const uint32_t event, const char payload[] = "") {
-      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(ulong event)"));
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(unsigned long event)"));
       char eventChar[uint32_tLengthMax + 1];
       ultoa(event, eventChar, 10);
       return queue(target, port, eventType, (const char*)eventChar, payload);
@@ -103,6 +103,13 @@ class EtherEventQueueClass {
       eventChar[stringLength] = 0;
       return queue(target, port, eventType, (const char*)eventChar, payload);
     }
+    template <typename target_t>
+    byte queue(const target_t &target, const unsigned int port, const byte eventType, const IPAddress &event, const char payload[] = "") {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(IPAddress event)"));
+      char eventChar[IPAddressLengthMax + 1];
+      EtherEvent.IPtoa(event, eventChar);
+      return queue(target, port, eventType, (const char*)eventChar, payload);
+    }
 
     //convert payload
     template <typename target_t>
@@ -119,7 +126,7 @@ class EtherEventQueueClass {
     }
     template <typename target_t, typename event_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const event_t event, const uint16_t payload) {
-      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(uint payload)"));
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(unsigned int payload)"));
       char payloadChar[uint16_tLengthMax + 1];
       utoa(payload, payloadChar, 10);
       return queue(target, port, eventType, event, payloadChar);
@@ -133,7 +140,7 @@ class EtherEventQueueClass {
     }
     template <typename target_t, typename event_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const event_t event, const uint32_t payload) {
-      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(ulong payload)"));
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(unsigned long payload)"));
       char payloadChar[uint32_tLengthMax + 1];
       ultoa(payload, payloadChar, 10);
       return queue(target, port, eventType, event, payloadChar);
@@ -154,6 +161,13 @@ class EtherEventQueueClass {
         payloadChar[counter] = payload[counter];  //I could probably just use c_str() instead but then I have to deal with the pointer
       }
       payloadChar[stringLength] = 0;
+      return queue(target, port, eventType, event, payloadChar);
+    }
+    template <typename target_t, typename event_t>
+    byte queue(const target_t &target, const unsigned int port, const byte eventType, event_t event, const IPAddress &payload) {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(String payload)"));
+      char payloadChar[IPAddressLengthMax + 1];
+      EtherEvent.IPtoa(payload, payloadChar);
       return queue(target, port, eventType, event, payloadChar);
     }
 
@@ -260,6 +274,7 @@ class EtherEventQueueClass {
     static const byte int16_tLengthMax = 1 + uint16_tLengthMax;  //sign + 5 digits
     static const byte uint32_tLengthMax = 10;  //10 digits
     static const byte int32_tLengthMax = 1 + uint32_tLengthMax;  //sign + 10 digits
+    static const byte IPAddressLengthMax = 3 + 1 + 3 + 1 + 3 + 1 + 3;  //4 x octet + 3 x dot
 
     static const byte nodeStateTimedOut = 0;
     static const byte nodeStateActive = 1;

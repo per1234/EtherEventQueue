@@ -101,9 +101,9 @@ For demonstration of library usage see the example sketches and EventGhost tree.
             EtherEventQueue.eventTypeOverrideTimeout - Similar to eventTypeOnce but the event will be sent to nodes even if they are timed out.
   - Type: byte
 - Parameter: **event** - string to send as the event
-  - Type: char array/int8_t/byte/int/unsigned int/long/unsigned long/__FlashStringHelper(F() macro)/String
+  - Type: char array, int8_t, byte, int, unsigned int, long, unsigned long, __FlashStringHelper(F() macro), String, IPAddress
 - Parameter: **payload** - payload to send with the event. The payload is not optional when the event is of type __FlashStringHelper(F() macro).
-  - Type: char array/int8_t/byte/int/unsigned int/long/unsigned long/__FlashStringHelper(F() macro)/String
+  - Type: char array, int8_t, byte, int, unsigned int, long, unsigned long, __FlashStringHelper(F() macro), String, IPAddress
 - Returns: `false` = failure, `true` = successfully queued, EtherEventQueue.queueSuccessOverflow == successfully queued w/ queue overflow
   - Type: byte
 
@@ -226,6 +226,7 @@ For demonstration of library usage see the example sketches and EventGhost tree.
 <a id="troubleshooting"></a>
 #### Troubleshooting
 - Debug output: Set `#define ETHEREVENTQUEUE_DEBUG true` in **EtherEventQueue.h** to get debug output in the serial monitor, this will slow down communication so only enable debug output when needed.
+- Note that when EtherEvent receives an event containing `.` it will cause the standard prefix to disappear from that event. This is a problem with EventGhost and not EtherEvent.
 
 
 <a id="process"></a>
