@@ -2,6 +2,9 @@
 #ifndef EtherEventQueue_h
 #define EtherEventQueue_h
 #include <Arduino.h>
+#ifndef ARDUINO_ARCH_AVR
+#include <avr/dtostrf.h>
+#endif
 #include "EtherEvent.h"
 
 
