@@ -4,8 +4,6 @@ EtherEventQueue
 Outgoing event queue for the EtherEvent [Arduino](http://arduino.cc/) library.
 EtherEvent provides easy to use password authenticated network communication via Ethernet between Arduinos and [EventGhost](http://eventghost.com), or any other program compatible with the EventGhost Network Event Sender and Receiver plugins.
 
-This is a beta release. I have been using it in my home automation system constantly for the last five months but some functions have not been thoroughly tested. Pull requests and issue reports are welcome.
-
 
 #### Required Libraries
 - EtherEvent http://github.com/per1234/EtherEvent
