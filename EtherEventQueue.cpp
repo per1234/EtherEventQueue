@@ -48,7 +48,7 @@ boolean EtherEventQueueClass::begin(const byte nodeDeviceInput, const byte nodeC
 
 
 boolean EtherEventQueueClass::begin(const byte nodeDeviceInput, byte nodeCountInput, byte queueSizeMaxInput, const byte sendEventLengthMaxInput, const byte sendPayloadLengthMaxInput, const byte receivedEventLengthMaxInput, const byte receivedPayloadLengthMaxInput) {
-#if DEBUG == true
+#if ETHEREVENTQUEUE_DEBUG == true
   delay(20);  //There needs to be a delay between the calls to Serial.begin() in sketch setup() and here or garbage will be printed to the serial monitor
 #endif
   Serial.begin(9600);  //for debugging
