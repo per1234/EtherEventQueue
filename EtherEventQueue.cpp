@@ -37,7 +37,7 @@ boolean EtherEventQueueClass::begin() {  //no nodes, default buffer length versi
 }
 
 
-boolean EtherEventQueueClass::begin(const byte queueSizeMaxInput, const byte sendEventLengthMaxInput, const byte sendPayloadLengthMaxInput, const byte receivedEventLengthMaxInput, const byte receivedPayloadLengthMaxInput) {  //no nodes version - the deviceNode is 0
+boolean EtherEventQueueClass::begin(const byte queueSizeMaxInput, const byte sendEventLengthMaxInput, const unsigned int sendPayloadLengthMaxInput, const byte receivedEventLengthMaxInput, const unsigned int receivedPayloadLengthMaxInput) {  //no nodes version - the deviceNode is 0
   return begin(0, 1, queueSizeMaxInput, sendEventLengthMaxInput, sendPayloadLengthMaxInput, receivedEventLengthMaxInput, receivedPayloadLengthMaxInput);
 }
 
@@ -47,7 +47,7 @@ boolean EtherEventQueueClass::begin(const byte nodeDeviceInput, const byte nodeC
 }
 
 
-boolean EtherEventQueueClass::begin(const byte nodeDeviceInput, byte nodeCountInput, byte queueSizeMaxInput, const byte sendEventLengthMaxInput, const byte sendPayloadLengthMaxInput, const byte receivedEventLengthMaxInput, const byte receivedPayloadLengthMaxInput) {
+boolean EtherEventQueueClass::begin(const byte nodeDeviceInput, byte nodeCountInput, byte queueSizeMaxInput, const byte sendEventLengthMaxInput, const unsigned int sendPayloadLengthMaxInput, const byte receivedEventLengthMaxInput, const unsigned int receivedPayloadLengthMaxInput) {
 #if ETHEREVENTQUEUE_DEBUG == true
   delay(20);  //There needs to be a delay between the calls to Serial.begin() in sketch setup() and here or garbage will be printed to the serial monitor
 #endif
@@ -190,7 +190,7 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer, long c
         return 0;  //receive keepalive silently
       }
 
-      const byte payloadLength = EtherEvent.availablePayload();
+      const unsigned int payloadLength = EtherEvent.availablePayload();
       Serial.print(F("EtherEventQueue.availableEvent: EtherEvent.availablePayload()="));
       Serial.println(payloadLength);
       char receivedPayloadRaw[payloadLength];
@@ -210,7 +210,7 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer, long c
       Serial.println(receivedEventIDvalue);
 
       if (payloadLength > eventIDlength + 1) {  //there is a true payload
-        for (byte count = 0; count < payloadLength - eventIDlength; count++) {
+        for (unsigned int count = 0; count < payloadLength - eventIDlength; count++) {
           receivedPayload[count] = receivedPayloadRaw[count + eventIDlength];
         }
         Serial.print(F("EtherEventQueue.availableEvent: receivedPayload="));
@@ -246,9 +246,9 @@ byte EtherEventQueueClass::availableEvent(EthernetServer &ethernetServer, long c
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //availablePayload - returns the number of chars in the payload including the null terminator if there is one
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-byte EtherEventQueueClass::availablePayload() {
+unsigned int EtherEventQueueClass::availablePayload() {
   Serial.print(F("EtherEventQueue.availablePayload: length="));
-  if (const byte length = strlen(receivedPayload)) {  //strlen(receivedPayload)>0
+  if (const unsigned int length = strlen(receivedPayload)) {  //strlen(receivedPayload)>0
     Serial.println(length + 1);
     return length + 1;  //length of the payload + null terminator
   }

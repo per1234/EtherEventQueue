@@ -51,11 +51,11 @@ For demonstration of library usage see the example sketches and EventGhost tree.
 - Parameter(optional): **sendEventLengthMax** - Maximum event length to send. Longer entries will be truncated to this length. The default value is 15.
   - Type: byte
 - Parameter(optional): **sendPayloadLengthMax** - Maximum payload length to send. Longer entries will be truncated to this length. The default value is 80.
-  - Type: byte
+  - Type: unsigned int
 - Parameter(optional): **receiveEventLengthMax** - Maximum event length to receive. Longer entries will be truncated to this length. The default value is 15.
   - Type: byte
 - Parameter(optional): **receivePayloadEventMax** - Maximum payload length to receive. Longer entries will be truncated to this length. The default value is 80.
-  - Type: byte
+  - Type: unsigned int
 - Returns: boolean - `true` = success, `false` = memory allocation failure
 
 `EtherEventQueue.availableEvent(ethernetServer, cookie)` - Returns the number of chars of event including null terminator available to read. availableEvent() will not receive a new event until the last event has been read(via readEvent()) or flushed(via flushReceiver()).
@@ -68,7 +68,7 @@ For demonstration of library usage see the example sketches and EventGhost tree.
 
 `EtherEventQueue.availablePayload()` - Returns the number of chars of payload including null terminator available to read. availableEvent() must be called first.
 - Returns: Number of chars in the payload including the null terminator at the end of the string.
-  - Type: byte
+  - Type: unsigned int
 
 `EtherEventQueue.readEvent(eventBuffer)` - Puts the event in the passed array. availableEvent() must be called first.
 - Parameter: **eventBuffer** - Size a char array according to the result of availableEvent () and pass it to the readEvent  function. After that it will contain the event.

@@ -25,12 +25,12 @@ class EtherEventQueueClass {
     EtherEventQueueClass();
 
     boolean begin();
-    boolean begin(const byte queueSizeMaxInput, const byte sendEventLengthMaxInput, const byte sendPayloadLengthMaxInput, const byte receivedEventLengthMaxInput, const byte receivedPayloadLengthMaxInput);
+    boolean begin(const byte queueSizeMaxInput, const byte sendEventLengthMaxInput, const unsigned int sendPayloadLengthMaxInput, const byte receivedEventLengthMaxInput, const unsigned int receivedPayloadLengthMaxInput);
     boolean begin(const byte nodeDeviceInput, const byte nodeCountInput);
-    boolean begin(const byte nodeDeviceInput, byte nodeCountInput, byte queueSizeMaxInput, const byte sendEventLengthMaxInput, const byte sendPayloadLengthMaxInput, const byte receivedEventLengthMaxInput, const byte receivedPayloadLengthMaxInput);
+    boolean begin(const byte nodeDeviceInput, byte nodeCountInput, byte queueSizeMaxInput, const byte sendEventLengthMaxInput, const unsigned int sendPayloadLengthMaxInput, const byte receivedEventLengthMaxInput, const unsigned int receivedPayloadLengthMaxInput);
 
     byte availableEvent(EthernetServer &ethernetServer, long cookieInput = false);
-    byte availablePayload();
+    unsigned int availablePayload();
     void readEvent(char eventBuffer[]);
     void readPayload(char payloadBuffer[]);
 
@@ -310,7 +310,7 @@ class EtherEventQueueClass {
     byte receivedEventLengthMax;
     byte receivedEventIDvalue;
     char* receivedEvent;  //buffer to hold the received event
-    byte receivedPayloadLengthMax;
+    unsigned int receivedPayloadLengthMax;
     char* receivedPayload;  //buffer to hold the received payload
     byte receivedEventLength;
     boolean receiveNodesOnlyState;  //restrict event receiving to nodes only
@@ -322,7 +322,7 @@ class EtherEventQueueClass {
     byte sendEventLengthMax;
     char** eventQueue;
     byte* eventIDqueue;  //unique identifier for the message
-    byte sendPayloadLengthMax;
+    unsigned int sendPayloadLengthMax;
     char** payloadQueue;
     byte* eventTypeQueue;
 
