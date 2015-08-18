@@ -15,7 +15,7 @@ EtherEvent provides easy to use password authenticated network communication via
 
 <a id="installation"></a>
 #### Installation
-- 64KB is the minimum recommended flash memory capacity for use of this library.
+- 64kB is the minimum recommended flash memory capacity for use of this library with authentication. With authentication disabled it will work with 32kB
 - Download the most recent version of EtherEventQueue here: https://github.com/per1234/EtherEventQueue/archive/master.zip
 - Using Arduino IDE 1.0.x:
   - Sketch > Import Library... > Add Library... > select the downloaded file > Open
@@ -40,6 +40,8 @@ Sometimes when your device tries to send an event the target might not be availa
 <a id="usage"></a>
 #### Usage
 For demonstration of library usage see the example sketches and EventGhost tree.
+
+`#define ETHEREVENT_NO_AUTHENTICATION` - Add this line above the `#include "EtherEventQueue.h"` and `#include "EtherEvent.h"` lines in your sketch to disable password authentication. Requires [my version of the TCPEvents plugin](https://github.com/per1234/TCPEvents) with the password fields left blank in the configurations for communication with EventGhost. With authentication disabled the MD5 library is not required, no need to set the password, memory usage is decreased significantly, and event transmission speed is increased. See the NoAuthentication example file for demonstration.
 
 `EtherEventQueue.begin([deviceID, nodeCount][, queueSizeMax, sendEventLengthMax, sendPayloadLengthMax, receiveEventLengthMax, receivePayloadEventMax])` - Initialize EtherEventQueue.
 - Parameter(optional): **deviceID** - The node number of the device. The default value is 0.

@@ -29,7 +29,126 @@ class EtherEventQueueClass {
     boolean begin(const byte nodeDeviceInput, const byte nodeCountInput);
     boolean begin(const byte nodeDeviceInput, byte nodeCountInput, byte queueSizeMaxInput, const byte sendEventLengthMaxInput, const unsigned int sendPayloadLengthMaxInput, const byte receivedEventLengthMaxInput, const unsigned int receivedPayloadLengthMaxInput);
 
-    byte availableEvent(EthernetServer &ethernetServer, long cookieInput = false);
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //availableEvent - Check for new incoming events, process and buffer them and return the length of the event string. This function was moved to the header file so that the authentication disable system would work
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#ifndef ETHEREVENT_NO_AUTHENTICATION
+    byte availableEvent(EthernetServer &ethernetServer, long cookieInput = false) {
+#else
+    byte availableEvent(EthernetServer &ethernetServer) {
+#endif
+      if (receivedEventLength == 0) {  //there is no event buffered
+        if (internalEventQueueCount > 0) {
+          for (int8_t queueStepCount = queueSize - 1; queueStepCount >= 0; queueStepCount--) {  //internal event system: step through the queue from the newest to oldest
+            if (IPqueue[queueStepCount][0] == nodeIP[nodeDevice][0] && IPqueue[queueStepCount][1] == nodeIP[nodeDevice][1] && IPqueue[queueStepCount][2] == nodeIP[nodeDevice][2] && IPqueue[queueStepCount][3] == nodeIP[nodeDevice][3]) {  //internal event
+              strcpy(receivedEvent, eventQueue[queueStepCount]);
+              ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.availableEvent: internal event="));
+              ETHEREVENTQUEUE_SERIAL.println(receivedEvent);
+              strcpy(receivedPayload, payloadQueue[queueStepCount]);
+              ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.availableEvent: internal event payload="));
+              ETHEREVENTQUEUE_SERIAL.println(receivedPayload);
+              remove(queueStepCount);  //remove the event from the queue
+              queueNewCount--;  //queueHandler doesn't handle internal events so they will always be new events
+              return strlen(receivedEvent);
+            }
+          }
+        }
+
+#ifndef ETHEREVENT_NO_AUTHENTICATION
+        if (const byte availableBytesEvent = EtherEvent.availableEvent(ethernetServer, cookieInput)) {  //there is a new event
+#else
+        if (const byte availableBytesEvent = EtherEvent.availableEvent(ethernetServer)) {  //there is a new event
+#endif
+          ETHEREVENTQUEUE_SERIAL.println(F("---------------------------"));
+          ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.availableEvent: EtherEvent.availableEvent()="));
+          ETHEREVENTQUEUE_SERIAL.println(availableBytesEvent);
+#ifdef ethernetclientwithremoteIP_h  //this function is only available if the modified Ethernet library is installed
+          ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.availableEvent: remoteIP="));
+          ETHEREVENTQUEUE_SERIAL.println(EtherEvent.senderIP());
+#endif
+
+          nodeTimestamp[nodeDevice] = millis();  //set the device timestamp(using the nodeDevice because that part of the array is never used otherwise)
+#ifdef ethernetclientwithremoteIP_h  //this function is only available if the modified Ethernet library is installed
+          //update timestamp of the event sender
+          const int8_t senderNode = getNode(EtherEvent.senderIP());  //get the node of the senderIP
+          if (senderNode >= 0) {  //receivedIP is a node(-1 indicates no node match)
+            nodeTimestamp[senderNode] = nodeTimestamp[nodeDevice];  //set the individual timestamp, any communication is considered to be a received keepalive - the nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() twice for efficiency
+            sendKeepaliveTimestamp[senderNode] = nodeTimestamp[nodeDevice] - sendKeepaliveResendDelay;  //Treat successful receive of any event as a sent keepalive so delay the send of the next keepalive. -sendKeepaliveResendDelay is so that sendKeepalive() will be able to queue the eventKeepalive according to "millis() - nodeTimestamp[node] > nodeTimeoutDuration - sendKeepaliveMargin" without being blocked by the "millis() - sendKeepaliveTimestamp[node] > sendKeepaliveResendDelay", it will not cause immediate queue of eventKeepalive because nodeTimestamp[targetNode] has just been set. The nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() again
+            if (nodeState[senderNode] == nodeStateUnknown) {
+              nodeState[senderNode] = nodeStateActive;  //set the node state to active
+            }
+          }
+          else if (receiveNodesOnlyState == 1) {  //the event was not received from a node and it is configured to receive events from node IPs only
+            ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.availableEvent: unauthorized IP"));
+            EtherEvent.flushReceiver();  //event has not been read yet so have to flush
+            return 0;
+          }
+#endif
+
+          EtherEvent.readEvent(receivedEvent);  //put the event in the buffer
+          ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.availableEvent: event="));
+          ETHEREVENTQUEUE_SERIAL.println(receivedEvent);
+
+          if (eventKeepalive != NULL && strcmp(receivedEvent, eventKeepalive) == 0) {  //keepalive received
+            ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.availableEvent: keepalive received"));
+            flushReceiver();  //the event has been read so EtherEventQueue has to be flushed
+            return 0;  //receive keepalive silently
+          }
+
+          const unsigned int payloadLength = EtherEvent.availablePayload();
+          ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.availableEvent: EtherEvent.availablePayload()="));
+          ETHEREVENTQUEUE_SERIAL.println(payloadLength);
+          char receivedPayloadRaw[payloadLength];
+          EtherEvent.readPayload(receivedPayloadRaw);  //read the payload to the buffer
+          ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.availableEvent: rawPayload="));
+          ETHEREVENTQUEUE_SERIAL.println(receivedPayloadRaw);
+
+          //break the payload down into parts and convert the eventID to byte, the true payload stays as a char array
+          //the first part of the raw payload is the eventID
+          char receivedEventIDchar[eventIDlength + 1];
+          for (byte count = 0; count < eventIDlength; count++) {
+            receivedEventIDchar[count] = receivedPayloadRaw[count];
+          }
+          receivedEventIDchar[eventIDlength] = 0;  //add the null terminator because there is not one after the id in the string
+          receivedEventIDvalue = atoi(receivedEventIDchar);
+          ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.availableEvent: eventID="));
+          ETHEREVENTQUEUE_SERIAL.println(receivedEventIDvalue);
+
+          if (payloadLength > eventIDlength + 1) {  //there is a true payload
+            for (unsigned int count = 0; count < payloadLength - eventIDlength; count++) {
+              receivedPayload[count] = receivedPayloadRaw[count + eventIDlength];
+            }
+            ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.availableEvent: receivedPayload="));
+            ETHEREVENTQUEUE_SERIAL.println(receivedPayload);
+          }
+          else {  //no true payload
+            receivedPayload[0] = 0;  //clear the payload buffer
+          }
+
+          if (eventAck != NULL && strcmp(receivedEvent, eventAck) == 0) {  //ack handler
+            ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.availableEvent: ack received"));
+            const byte receivedPayloadInt = atoi(receivedPayload);  //convert to a byte
+            for (byte count = 0; count < queueSize; count++) {  //step through the currently occupied section of the eventIDqueue[]
+              if (receivedPayloadInt == eventIDqueue[count] && eventTypeQueue[count] == eventTypeConfirm) {  //the ack is for the eventID of this item in the queue and the resend flag indicates it is expecting an ack(non-ack events are not removed because obviously they haven't been sent yet if they're still in the queue so the ack can't possibly be for them)
+                ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.availableEvent: ack eventID match"));
+                remove(count);  //remove the message from the queue
+                if (queueNewCount > queueSize) {  //sanity check - if the ack incorrectly has the eventID of a new queue item then the queueNewCount value will be greater than the number of new queue items
+                  queueNewCount = queueSize;
+                }
+              }
+            }
+            flushReceiver();  //event and payload have been read so only have to flush EtherEventQueue
+            return 0;  //receive ack silently
+          }
+
+          receivedEventLength = availableBytesEvent;  //there is a new event
+        }
+      }
+      return receivedEventLength;
+    }
+
+
     unsigned int availablePayload();
     void readEvent(char eventBuffer[]);
     void readPayload(char payloadBuffer[]);
@@ -200,7 +319,103 @@ class EtherEventQueueClass {
     }
 
 
-    boolean queueHandler(EthernetClient &ethernetClient);
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //queueHandler - Sends out the messages in the queue. This function was moved to the header file so that the authentication disable system would work
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    boolean queueHandler(EthernetClient &ethernetClient) {
+      if (queueSize > internalEventQueueCount && (queueNewCount > 0 || millis() - queueSendTimestamp > resendDelay)) {  //there are events in the queue that are non-internal events and it is time(if there are new queue items then send immediately or if resend wait for the resendDelay)
+        ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.queueHandler: queueSize="));
+        ETHEREVENTQUEUE_SERIAL.println(queueSize);
+        ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.queueHandler: queueNewCount="));
+        ETHEREVENTQUEUE_SERIAL.println(queueNewCount);
+        byte queueSlotSend = 0;  //This is used to store the slot. Initialized to 0 to fix "may be uninitialized" compiler warning.
+        int8_t targetNode;
+        for (byte counter = 0; counter < queueSize; counter++) {  //the maximum number of iterations is the queueSize
+          if (queueNewCount == 0) {  //time to send the next one in the queue
+            //find the next largest priority level value
+            if (queuePriorityLevel == queueSize - 1 || queueIndex[queuePriorityLevel + 1] == -1) {  //the last sent item was already at the largest priority level value so send the queue item with smallest priority level value. The first statment(queuePriorityLevel == queueSize - 1) handles reaching the end of a full queue, the second statement(queueIndex[queuePriorityLevel + 1] == -1) handles reaching the empty portion of a partially filled queue
+              queuePriorityLevel = 0;  //start from the least recently queued item
+            }
+            else {
+              queuePriorityLevel++;  //go on to the next most recently queued item
+            }
+            queueSlotSend = queueIndex[queuePriorityLevel];
+            queueSendTimestamp = millis();  //reset the timestamp to delay the next queue resend
+          }
+          else {  //send the oldest new item in the queue
+            queueSlotSend = queueIndex[queueSize - queueNewCount];  //find the (queueNewCount)th largest priority level value
+            queueNewCount--;
+          }
+          ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.queueHandler: queueSlotSend="));
+          ETHEREVENTQUEUE_SERIAL.println(queueSlotSend);
+          targetNode = getNode(IPqueue[queueSlotSend]);  //get the node of the target IP
+          ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.queueHandler: targetNode="));
+          ETHEREVENTQUEUE_SERIAL.println(targetNode);
+          ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.queueHandler: nodeDevice="));
+          ETHEREVENTQUEUE_SERIAL.println(nodeDevice);
+          if (targetNode == nodeDevice) {  //ignore internal events, they are sent in availableEvent()
+            ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queueHandler: nodeDevice=targetNode"));
+            continue;  //move on to the next queue step
+          }
+          if (targetNode < 0) {  //-1 indicates no node match
+            ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queueHandler: non-node targetIP"));
+            break;  //non-nodes never timeout
+          }
+
+          if (millis() - nodeTimestamp[targetNode] < nodeTimeoutDuration || eventTypeQueue[queueSlotSend] == eventTypeOverrideTimeout) { //non-timed out node or eventTypeOverrideTimeout
+            break;  //continue with the message send
+          }
+          ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.queueHandler: targetNode timed out for queue#="));
+          ETHEREVENTQUEUE_SERIAL.println(queueSlotSend);
+          remove(queueSlotSend);  //dump messages for dead nodes from the queue
+          if (queueSize == 0) {  //no events left to send
+            return true;
+          }
+        }
+
+        //set up the raw payload
+        char payload[strlen(payloadQueue[queueSlotSend]) + eventIDlength + 1];
+        itoa(eventIDqueue[queueSlotSend], payload, 10);  //put the message ID on the start of the payload
+        strcat(payload, payloadQueue[queueSlotSend]);  //add the true payload to the payload string
+
+        ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.queueHandler: targetIP="));
+        ETHEREVENTQUEUE_SERIAL.println(IPAddress(IPqueue[queueSlotSend]));
+        ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.queueHandler: event="));
+        ETHEREVENTQUEUE_SERIAL.println(eventQueue[queueSlotSend]);
+        ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.queueHandler: payload="));
+        ETHEREVENTQUEUE_SERIAL.println(payload);
+
+        if (EtherEvent.send(ethernetClient, (const byte*)IPqueue[queueSlotSend], portQueue[queueSlotSend], (const char*)eventQueue[queueSlotSend], payload) > 0) {
+          ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queueHandler: send successful"));
+          nodeTimestamp[nodeDevice] = millis();  //set the device timestamp(using the nodeDevice because that part of the array is never used otherwise)
+          //update timestamp of the target node
+          targetNode = getNode(IPqueue[queueSlotSend]);  //get the node of the senderIP
+          if (targetNode >= 0) {  //the target IP is a node(-1 indicates no node match)
+            nodeTimestamp[targetNode] = nodeTimestamp[nodeDevice];  //set the individual timestamp, any communication is considered to be a received keepalive - the nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() twice for efficiency
+            sendKeepaliveTimestamp[targetNode] = nodeTimestamp[nodeDevice] - sendKeepaliveResendDelay;  //Treat successful send of any event as a sent keepalive so delay the send of the next keepalive. -sendKeepaliveResendDelay is so that sendKeepalive() will be able to queue the eventKeepalive according to "millis() - nodeTimestamp[node] > nodeTimeoutDuration - sendKeepaliveMargin" without being blocked by the "millis() - sendKeepaliveTimestamp[node] > sendKeepaliveResendDelay", it will not cause immediate queue of eventKeepalive because nodeTimestamp[targetNode] has just been set. The nodeTimestamp for the device has just been set so I am using that variable so I don't have to call millis() again
+            if (nodeState[targetNode] == nodeStateUnknown) {
+              nodeState[targetNode] = nodeStateActive;  //set the node state to active
+            }
+          }
+
+          if (eventTypeQueue[queueSlotSend] != eventTypeConfirm) {  //the flag indicates not to wait for an ack
+            ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queueHandler: eventType != eventTypeConfirm, event removed from queue"));
+            remove(queueSlotSend);  //remove the message from the queue immediately
+          }
+          return true;  //indicate send success
+        }
+        else {  //send failed
+          ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queueHandler: send failed"));
+          if (eventTypeQueue[queueSlotSend] == eventTypeOnce || eventTypeQueue[queueSlotSend] == eventTypeOverrideTimeout) {  //the flag indicates not to resend even after failure
+            remove(queueSlotSend);  //remove keepalives even when send was not successful. This is because the keepalives are sent even to timed out nodes so they shouldn't be queued.
+          }
+          return false;  //indicate send failed
+        }
+      }
+      return true;  //indicate no send required
+    }
+
+
     void flushQueue();
     int8_t checkTimeout();
     int8_t checkTimein();
@@ -303,6 +518,8 @@ class EtherEventQueueClass {
     static const byte nodeStateTimedOut = 0;
     static const byte nodeStateActive = 1;
     static const byte nodeStateUnknown = 2;
+
+    static const byte eventIDlength = 2;
 
     //private global variables
     byte nodeDevice;
