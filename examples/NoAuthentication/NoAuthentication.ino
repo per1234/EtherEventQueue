@@ -11,11 +11,9 @@
 #include "EtherEventQueue.h"
 
 //configuration parameters - modify these values to your desired settings
-#define DHCP false  //true==use DHCP to assign an IP address to the device, this will significantly increase memory usage. false==use static IP address.
+const boolean useDHCP = false;  //true==use DHCP to assign an IP address to the device, this will significantly increase memory usage. false==use static IP address.
 byte MACaddress[] = {0, 1, 2, 3, 4, 4};  //this can be anything you like, but must be unique on your network
-#if DHCP == false
 const IPAddress deviceIP = IPAddress(192, 168, 69, 104);  //IP address to use for the device. This can be any valid address on the network as long as it is unique. If you are using DHCP then this doesn't need to be configured.
-#endif
 const unsigned int port = 1024;  //TCP port to receive events
 
 const unsigned int queueEventInterval = 4000;  //(ms)Delay between queueing the test events.
@@ -30,11 +28,12 @@ unsigned long sendTimeStamp;  //used by the example to periodically send an even
 
 void setup() {
   Serial.begin(9600);  //the received event and other information will be displayed in your serial monitor while the sketch is running
-#if DHCP == true
-  Ethernet.begin(MACaddress);  //let the network assign an IP address
-#else
-  Ethernet.begin(MACaddress, deviceIP);  //use static IP address
-#endif
+  if (useDHCP == true) {
+    Ethernet.begin(MACaddress);  //let the network assign an IP address
+  }
+  else {
+    Ethernet.begin(MACaddress, deviceIP);  //use static IP address
+  }
   ethernetServer.begin();  //begin the server that will be used to receive events
   if (EtherEventQueue.begin() == false) {  //initialize EtherEventQueue
     Serial.print(F("ERROR: Buffer size exceeds available memory, use smaller values."));
@@ -73,6 +72,10 @@ void loop() {
     else {
       Serial.println(F("Event queue failed"));
     }
+  }
+
+  if (useDHCP == true) {
+    Ethernet.maintain();  //request renewal of DHCP lease if expired
   }
 }
 
