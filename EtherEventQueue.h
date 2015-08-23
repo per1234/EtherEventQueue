@@ -10,6 +10,9 @@
 
 #define ETHEREVENTQUEUE_DEBUG false  //(false == serial debug output off,  true == serial debug output on)The serial debug output will increase memory usage and communication latency so only enable when needed.
 #define ETHEREVENTQUEUE_SERIAL if(ETHEREVENTQUEUE_DEBUG)Serial  //I have to use a different name for Serial in this file otherwise the debug statement control also affects any other file that includes this file.
+#if ETHEREVENTQUEUE_DEBUG == true
+#pragma message "EtherEventQueue debug output enabled"
+#endif  //ETHEREVENTQUEUE_DEBUG == true
 
 
 class EtherEventQueueClass {
