@@ -64,7 +64,7 @@ void setup() {
   }
   EtherEventQueue.setResendDelay(resendDelay);
   EtherEventQueue.setNodeTimeoutDuration(nodeTimeoutDuration);
-  EtherEventQueue.setEventKeepalive(F("yo"), 2);
+  EtherEventQueue.setEventKeepalive(F("yo"));
 
   EtherEventQueue.setNode(targetNode, targetNodeIP);  //create node 1
 
@@ -108,7 +108,7 @@ void loop() {
     else {
       Serial.println(F("IP address is not a node"));
     }
-#endif
+#endif  //ethernetclientwithremoteIP_h
   }
 
   if (millis() - sendTimeStamp > queueEventInterval) {  //periodically send event

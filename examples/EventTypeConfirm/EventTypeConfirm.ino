@@ -10,7 +10,6 @@
 #include "EtherEvent.h"
 #include "EtherEventQueue.h"
 
-//#include "Flash.h"  //Uncomment this line if you are using the Flash library.
 
 //configuration parameters - modify these values to your desired settings
 const boolean useDHCP = false;  //true==use DHCP to assign an IP address to the device, this will significantly increase memory usage. false==use static IP address.
@@ -57,7 +56,7 @@ void setup() {
   }
   EtherEventQueue.setResendDelay(resendDelay);
   EtherEventQueue.setNodeTimeoutDuration(nodeTimeoutDuration);
-  EtherEventQueue.setEventAck(F("ack"), 3);
+  EtherEventQueue.setEventAck(F("ack"));
 
   EtherEvent.setTimeout(etherEventTimeout);  //set timeout duration
   W5100.setRetransmissionTime(W5x00timeout);  //set W5x00 timeout duration
@@ -87,7 +86,7 @@ void loop() {
 #ifdef ethernetclientwithremoteIP_h  //this function is only available if the modified Ethernet library is installed
     Serial.print(F("Received from IP: "));
     Serial.println(EtherEvent.senderIP());
-#endif
+#endif  //ethernetclientwithremoteIP_h
   }
 
   if (millis() - sendTimeStamp > queueEventInterval) {  //periodically send event
