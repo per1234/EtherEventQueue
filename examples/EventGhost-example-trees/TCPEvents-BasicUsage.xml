@@ -1,20 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<EventGhost Version="1700" Guid="{35B0B1DB-6981-4282-8ADE-81281E8854F7}" Time="1440558198.63">
+<EventGhost Version="1700" Guid="{E5C5799A-64C0-432C-8400-0A0112293A2C}" Time="1440312656.03">
     <Autostart Name="Autostart" Expanded="True">
         <Action Name="Demonstrates use of the TCPEvents EventGhost plugin.">
             EventGhost.Comment()
         </Action>
-        <Action Name="For use with the EtherEventQueue NoAuthentication example sketch.">
-            EventGhost.Comment()
-        </Action>
-        <Action Name="Requires the modified TCPEvents plugin: https://github.com/per1234/TCPEvents">
+        <Action Name="For use with the EtherEventQueue example sketches.">
             EventGhost.Comment()
         </Action>
         <Action Name="Configure the TCP Events Plugin with your network settings:">
             EventGhost.Comment()
         </Action>
         <Plugin Identifier="TCPEvents" Guid="{198090B7-0574-4F91-B2E7-1AF5BB37E2DE}" File="TCPEvents">
-            gAIoTQAEWAAAAABxAFgDAAAAVENQcQGIdHECLg==
+            gAIoTQAEWAgAAABwYXNzd29yZHEAWAMAAABUQ1BxAYh0cQIu
         </Plugin>
     </Autostart>
     <Macro Name="Send test event" Expanded="True">

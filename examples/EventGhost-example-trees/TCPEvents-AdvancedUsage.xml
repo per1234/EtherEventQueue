@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<EventGhost Version="1694" Guid="{8BB0144C-AD70-4665-B152-73112733BA7C}" Time="1432452547.55">
+<EventGhost Version="1700" Guid="{087296D9-184B-4F89-A1BE-3ADADA146EA8}" Time="1440313256.44">
     <Autostart Name="Autostart" Expanded="True">
-        <Action Name="Demonstrates use of the TCPEvents EventGhost plugin.">
+        <Action Name="Demonstrates advaced usage of the TCPEvents EventGhost plugin.">
             EventGhost.Comment()
         </Action>
-        <Action Name="For use with the EtherEventQueue EventTypeConfirm example sketch.">
+        <Action Name="For use with the EtherEventQueue example sketches.">
             EventGhost.Comment()
         </Action>
         <Action Name="Configure the TCP Events Plugin with your network settings:">
@@ -16,23 +16,26 @@
     </Autostart>
     <Macro Name="Send test event" Expanded="True">
         <Event Name="TCP.test" />
-        <Action Name="This macro will send the confirmation event every time the event TCP.test is received.">
+        <Action Name="This macro will send a test event every time the event TCP.test is received.">
             EventGhost.Comment()
         </Action>
         <Action>
-            EventGhost.PythonCommand(u'targetIP=eg.event.payload[0]')
+            EventGhost.PythonCommand(u'targetIP = "192.168.69.104"')
         </Action>
         <Action>
-            EventGhost.PythonCommand(u'event="ack"')
+            EventGhost.PythonCommand(u'eventPrefix = "test"')
         </Action>
         <Action>
-            EventGhost.PythonCommand(u'payload=eg.event.payload[1][:2]')
+            EventGhost.PythonCommand(u'eventSuffix = "event"')
+        </Action>
+        <Action>
+            EventGhost.PythonCommand(u'payload = "test payload"')
         </Action>
         <Action>
             EventGhost.PythonCommand(u'eventID=42')
         </Action>
         <Action>
-            TCPEvents.SendEvent(u'{eg.globals.targetIP}', 1024, u'password', u'', u'{"payload " + str(eg.globals.eventID) + str(eg.globals.payload) + "\\n" + str(eg.globals.event)}', u'', None)
+            TCPEvents.SendEvent(u'{eg.globals.targetIP}', 1024, u'password', u'{eg.globals.eventPrefix}', u'{eg.globals.eventSuffix}', u'str(eg.globals.eventID) + eg.globals.payload', None)
         </Action>
     </Macro>
 </EventGhost>
