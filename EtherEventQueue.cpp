@@ -1,5 +1,4 @@
-// EtherEventQueue - outgoing event queue for the EtherEvent authenticated network communication Arduino library: http://github.com/per1234/EtherEvent
-#include "EtherEvent.h"
+// EtherEventQueue - outgoing event queue for the EtherEvent authenticated network communication Arduino library: http://github.com/per1234/EtherEventQueue
 #define ETHEREVENT_NO_AUTHENTICATION  //this is to prevent EtherEvent.h from including MD5.h(not needed in this file even with authentication enabled
 #include "EtherEventQueue.h"
 
@@ -53,6 +52,7 @@ boolean EtherEventQueueClass::begin(const byte nodeDeviceInput, byte nodeCountIn
 #endif
   Serial.begin(9600);  //for debugging
   Serial.println(F("\n\n\nEtherEventQueue.begin"));
+
   nodeDevice = nodeDeviceInput;
   nodeCountInput = max(nodeDevice + 1, nodeCountInput);  //the nodeCount has to be enough to hold the device node number
   for (byte counter = 0; counter < nodeCount; counter++) {  //free previously allocated array items - this has to be done for arrays only because realloc doesn't work with the array items
@@ -430,7 +430,7 @@ void EtherEventQueueClass::receiveNodesOnly(const boolean receiveNodesOnlyValue)
   Serial.print(F("EtherEventQueue.receiveNodesOnly: new state="));
   Serial.println(receiveNodesOnlyState);
 }
-#endif
+#endif  //ethernetclientwithremoteIP_h
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////

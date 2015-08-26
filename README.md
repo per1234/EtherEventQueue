@@ -65,11 +65,11 @@ For demonstration of library usage see the example sketches and EventGhost tree.
   - Type: EthernetServer
 - Parameter(optional): **cookie** - Cookie value to use in the authentication process. This can be used to provide a truly random cookie for enhanced security. If this parameter is not specified then a pseudorandom cookie will be generated with the random() function.
   - Type: long
-- Returns: Number of chars in the event including the null terminator at the end of the string.
+- Returns: Buffer size required to receive the event. This is the length of the received event and the null terminator.
   - Type: byte
 
 `EtherEventQueue.availablePayload()` - Returns the number of chars of payload including null terminator available to read. availableEvent() must be called first.
-- Returns: Number of chars in the payload including the null terminator at the end of the string.
+- Returns: Buffer size required to receive the payload. This is the length of the received payload and the null terminator.
   - Type: unsigned int
 
 `EtherEventQueue.readEvent(eventBuffer)` - Puts the event in the passed array. availableEvent() must be called first.

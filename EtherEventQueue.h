@@ -1,10 +1,13 @@
-// EtherEventQueue - outgoing event queue for the EtherEvent authenticated network communication Arduino library: http://github.com/per1234/EtherEvent
+// EtherEventQueue - outgoing event queue for the EtherEvent authenticated network communication Arduino library: http://github.com/per1234/EtherEventQueue
 #ifndef EtherEventQueue_h
 #define EtherEventQueue_h
+
 #include <Arduino.h>
+
 #ifndef ARDUINO_ARCH_AVR
 #include <avr/dtostrf.h>
 #endif
+
 #include "EtherEvent.h"
 
 
@@ -60,16 +63,16 @@ class EtherEventQueueClass {
 
 #ifndef ETHEREVENT_NO_AUTHENTICATION
         if (const byte availableBytesEvent = EtherEvent.availableEvent(ethernetServer, cookieInput)) {  //there is a new event
-#else
+#else  //ETHEREVENT_NO_AUTHENTICATION
         if (const byte availableBytesEvent = EtherEvent.availableEvent(ethernetServer)) {  //there is a new event
-#endif
+#endif  //ETHEREVENT_NO_AUTHENTICATION
           ETHEREVENTQUEUE_SERIAL.println(F("---------------------------"));
           ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.availableEvent: EtherEvent.availableEvent()="));
           ETHEREVENTQUEUE_SERIAL.println(availableBytesEvent);
 #ifdef ethernetclientwithremoteIP_h  //this function is only available if the modified Ethernet library is installed
           ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.availableEvent: remoteIP="));
           ETHEREVENTQUEUE_SERIAL.println(EtherEvent.senderIP());
-#endif
+#endif  //ethernetclientwithremoteIP_h
 
           nodeTimestamp[nodeDevice] = millis();  //set the device timestamp(using the nodeDevice because that part of the array is never used otherwise)
 #ifdef ethernetclientwithremoteIP_h  //this function is only available if the modified Ethernet library is installed
@@ -87,7 +90,7 @@ class EtherEventQueueClass {
             EtherEvent.flushReceiver();  //event has not been read yet so have to flush
             return 0;
           }
-#endif
+#endif  //ethernetclientwithremoteIP_h
 
           EtherEvent.readEvent(receivedEvent);  //put the event in the buffer
           ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.availableEvent: event="));
@@ -162,6 +165,7 @@ class EtherEventQueueClass {
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //queue
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     byte queue(const byte targetIP[], const unsigned int port, const byte eventType, const char event[], const char payload[] = "");  //convert IPAddress to 4 byte array
     byte queue(const byte targetNode, const unsigned int port, const byte eventType, const char event[], const char payload[] = "");  //convert node number to 4 byte array
     byte queue(const IPAddress &targetIPAddress, const unsigned int port, const byte eventType,  const char event[], const char payload[] = "");  //main queue prototype
