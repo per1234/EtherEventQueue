@@ -22,8 +22,8 @@ const unsigned int sendPort = 1024;  //The port to send the test events to. This
 
 
 EthernetServer ethernetServer(port);  //TCP port to receive on
-EthernetClient ethernetClient;  //create the client object for ethernet communication
-unsigned long sendTimeStamp;  //used by the example to periodically send an event
+EthernetClient ethernetClient;  //create the client object for Ethernet communication
+unsigned long sendTimestamp;  //used by the example to periodically send an event
 
 
 void setup() {
@@ -63,8 +63,8 @@ void loop() {
     Serial.println(payload);
   }
 
-  if (millis() - sendTimeStamp > queueEventInterval) {  //periodically send event
-    sendTimeStamp = millis();  //reset the timestamp for the next event send
+  if (millis() - sendTimestamp > queueEventInterval) {  //periodically send event
+    sendTimestamp = millis();  //reset the timestamp for the next event send
     Serial.println(F("\nAttempting event queue"));
     if (EtherEventQueue.queue(sendIP, port, EtherEventQueue.eventTypeRepeat, "test", "test payload")) {  //queue an event to be sent, EtherEventQueue will continue to attempt to send the event until it is successfully sent or the event overflows from the queue.
       Serial.println(F("Event queue successful"));

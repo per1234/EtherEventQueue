@@ -28,7 +28,7 @@ const byte maxReceivedPayloadLength = 25;  //Maximum payload length to receive. 
 const unsigned int resendDelay = 30000;  //(ms)Delay before resending repeat or confirm type queued events.
 const unsigned long nodeTimeoutDuration = 240000;  //(ms)If no event has been received from a node in greater than this duration then it is considered timed out.
 
-const byte etherEventTimeout = 20;  //(ms)The max time to wait for ethernet communication.
+const byte etherEventTimeout = 20;  //(ms)The max time to wait for Ethernet communication.
 const unsigned int W5x00timeout = 400;  //(0.1ms)used to set the timeout for the W5x00 module.
 const byte W5x00retransmissionCount = 1;  //Retransmission count. 1 is the minimum value.
 
@@ -45,8 +45,8 @@ const unsigned int keepaliveResendDelay = 15000;
 
 
 EthernetServer ethernetServer(port);  //TCP port to receive on
-EthernetClient ethernetClient;  //create the client object for ethernet communication
-unsigned long sendTimeStamp;  //used by the example to periodically send an event
+EthernetClient ethernetClient;  //create the client object for Ethernet communication
+unsigned long sendTimestamp;  //used by the example to periodically send an event
 
 
 void setup() {
@@ -111,7 +111,7 @@ void loop() {
 #endif  //ethernetclientwithremoteIP_h
   }
 
-  if (millis() - sendTimeStamp > queueEventInterval) {  //periodically send event
+  if (millis() - sendTimestamp > queueEventInterval) {  //periodically send event
     Serial.println(F("\nAttempting event queue"));
 
     Serial.print(F("Target node: "));
@@ -134,7 +134,7 @@ void loop() {
     else {
       Serial.println(F("Event queue failed"));
     }
-    sendTimeStamp = millis();  //reset the timestamp for the next event send
+    sendTimestamp = millis();  //reset the timestamp for the next event send
   }
 
   int8_t timedOutNode = EtherEventQueue.checkTimeout();

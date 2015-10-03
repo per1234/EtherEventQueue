@@ -18,7 +18,7 @@ const IPAddress deviceIP = IPAddress(192, 168, 69, 104);  //IP address to use fo
 const char password[] = "password";  //EtherEvent password. This must match the password set in EventGhost.
 const unsigned int port = 1024;  //TCP port to receive events.
 
-const byte etherEventTimeout = 20;  //(ms)The max time to wait for ethernet communication.
+const byte etherEventTimeout = 20;  //(ms)The max time to wait for Ethernet communication.
 const unsigned int W5x00timeout = 400;  //(0.1ms)used to set the timeout for the W5x00 module.
 const byte W5x00retransmissionCount = 1;  //Retransmission count. 1 is the minimum value.
 
@@ -35,8 +35,8 @@ const unsigned int keepaliveResendDelay = 15000;
 
 
 EthernetServer ethernetServer(port);  //TCP port to receive on
-EthernetClient ethernetClient;  //create the client object for ethernet communication
-unsigned long sendTimeStamp;  //used by the example to periodically send an event
+EthernetClient ethernetClient;  //create the client object for Ethernet communication
+unsigned long sendTimestamp;  //used by the example to periodically send an event
 
 
 void setup() {
