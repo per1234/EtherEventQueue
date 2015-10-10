@@ -392,7 +392,7 @@ class EtherEventQueueClass {
         ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.queueHandler: payload="));
         ETHEREVENTQUEUE_SERIAL.println(payload);
 
-        if (EtherEvent.send(ethernetClient, (const byte*)IPqueue[queueSlotSend], portQueue[queueSlotSend], (const char*)eventQueue[queueSlotSend], payload) > 0) {
+        if (EtherEvent.send(ethernetClient, (const byte*)IPqueue[queueSlotSend], portQueue[queueSlotSend], (const char*)eventQueue[queueSlotSend], (const char*)payload) > 0) {
           ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queueHandler: send successful"));
           nodeTimestamp[nodeDevice] = millis();  //set the device timestamp(using the nodeDevice because that part of the array is never used otherwise)
           //update timestamp of the target node

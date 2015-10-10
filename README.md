@@ -43,6 +43,8 @@ For demonstration of library usage see the example sketches and EventGhost tree.
 
 `#define ETHEREVENT_NO_AUTHENTICATION` - Add this line above the `#include "EtherEventQueue.h"` and `#include "EtherEvent.h"` lines in your sketch to disable password authentication. Requires [my version of the TCPEvents plugin](https://github.com/per1234/TCPEvents) with the password fields left blank in the configurations for communication with EventGhost. With authentication disabled the MD5 library is not required, no need to set the password, memory usage is decreased significantly, and event transmission speed is increased. See the NoAuthentication example file for demonstration.
 
+`#define ETHEREVENT_FAST_SEND` - Increase sending speed at the expense of increased memory use. Add this line above the `#include "EtherEventQueue.h"` and `#include "EtherEvent.h"` lines in your sketch. This significantly increases the speed of sending __FlashStringHelper(F() macro) events/payloads but also increases the sketch size and SRAM usage during the send process. ETHEREVENT_FAST_SEND also increases the speed of sending some other event/payload types.
+
 `EtherEventQueue.begin([deviceID, nodeCount][, queueSizeMax, sendEventLengthMax, sendPayloadLengthMax, receiveEventLengthMax, receivePayloadEventMax])` - Initialize EtherEventQueue.
 - Parameter(optional): **deviceID** - The node number of the device. The default value is 0.
   - Type: byte

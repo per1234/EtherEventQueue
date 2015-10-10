@@ -1,5 +1,6 @@
 // EtherEventQueue - outgoing event queue for the EtherEvent authenticated network communication Arduino library: http://github.com/per1234/EtherEventQueue
 #define ETHEREVENT_NO_AUTHENTICATION  //this is to prevent EtherEvent.h from including MD5.h(not needed in this file even with authentication enabled
+#define ETHEREVENT_FAST_SEND
 #include "EtherEventQueue.h"
 
 #define Serial if(ETHEREVENTQUEUE_DEBUG)Serial  //DEBUG is defined in EtherEventQueue.h
