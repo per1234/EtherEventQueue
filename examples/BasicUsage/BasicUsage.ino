@@ -5,9 +5,9 @@
 //These libraries are required by EtherEventQueue:
 #include <SPI.h>
 #include <Ethernet.h>
-#include "MD5.h"
-#include "EtherEvent.h"
-#include "EtherEventQueue.h"
+#include <MD5.h>
+#include <EtherEvent.h>
+#include <EtherEventQueue.h>
 
 
 //configuration parameters - modify these values to your desired settings

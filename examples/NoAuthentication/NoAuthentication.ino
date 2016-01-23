@@ -7,8 +7,8 @@
 #include <SPI.h>
 #include <Ethernet.h>
 #define ETHEREVENT_NO_AUTHENTICATION
-#include "EtherEvent.h"
-#include "EtherEventQueue.h"
+#include <EtherEvent.h>
+#include <EtherEventQueue.h>
 
 //configuration parameters - modify these values to your desired settings
 const boolean useDHCP = false;  //true==use DHCP to assign an IP address to the device, this will significantly increase memory usage. false==use static IP address.

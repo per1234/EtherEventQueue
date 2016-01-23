@@ -8,7 +8,7 @@
 #include <avr/dtostrf.h>
 #endif
 
-#include "EtherEvent.h"
+#include <EtherEvent.h>
 
 
 #define ETHEREVENTQUEUE_DEBUG false  //(false == serial debug output off,  true == serial debug output on)The serial debug output will increase memory usage and communication latency so only enable when needed.
