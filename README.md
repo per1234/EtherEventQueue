@@ -41,6 +41,9 @@ Sometimes when your device tries to send an event the target might not be availa
 #### Usage
 For demonstration of library usage see the example sketches at **File > Examples > EtherEventQueue** and EventGhost tree in **examples\EventGhost-example-trees**.
 
+##### `#include <EtherEventQueue.h>`
+Allow access to the functions of the EtherEventQueue library.
+
 ##### `#define ETHEREVENT_NO_AUTHENTICATION`
 Add this line above the `#include <EtherEventQueue.h>` and `#include <EtherEvent.h>` lines in your sketch to disable password authentication. Requires [my version of the TCPEvents plugin](https://github.com/per1234/TCPEvents) with the password fields left blank in the configurations for communication with EventGhost. With authentication disabled the MD5 library is not required, no need to set the password, memory usage is decreased significantly, and event transmission speed is increased. See the NoAuthentication example for a demonstration.
 
