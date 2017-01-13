@@ -292,3 +292,7 @@ An overview of the event queue process:
   - If the event is from a node then the device and node timestamps are updated.
   - If incoming event is an ACK then remove the message the ACK refers to from the queue.
 
+
+#### Contributing
+Pull requests or issue reports are welcome! Please see the [contribution rules](https://github.com/per1234/EtherEventQueue/blob/master/CONTRIBUTING.md) for instructions.
+
