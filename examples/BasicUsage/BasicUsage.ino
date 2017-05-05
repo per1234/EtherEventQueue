@@ -5,7 +5,9 @@
 //These libraries are required by EtherEventQueue:
 #include <SPI.h>
 #include <Ethernet.h>
+#ifndef ESP8266  //ArduinoMD5 library is not required for ESP8266
 #include <MD5.h>
+#endif  //ESP8266
 #include <EtherEvent.h>
 #include <EtherEventQueue.h>
 

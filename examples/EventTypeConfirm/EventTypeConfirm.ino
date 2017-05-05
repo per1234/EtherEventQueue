@@ -8,7 +8,9 @@
 #ifndef __ARDUINO_X86__  //the x86 Ethernet libraries don't have w5100.h
 #include <utility/w5100.h>  //Used for setting the W5x00 retransmission time and count.
 #endif //__ARDUINO_X86__
+#ifndef ESP8266  //ArduinoMD5 library is not required for ESP8266
 #include <MD5.h>
+#endif  //ESP8266
 #include <EtherEvent.h>
 #include <EtherEventQueue.h>
 

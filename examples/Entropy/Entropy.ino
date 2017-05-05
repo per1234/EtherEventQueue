@@ -8,7 +8,9 @@
 #include <SPI.h>
 #include <Ethernet.h>
 #include <utility/w5100.h>  //Used for setting the W5x00 retransmission time and count.
+#ifndef ESP8266  //ArduinoMD5 library is not required for ESP8266
 #include <MD5.h>
+#endif  //ESP8266
 #include <EtherEvent.h>
 #include <EtherEventQueue.h>
 #include <Entropy.h>
