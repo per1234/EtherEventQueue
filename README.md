@@ -112,7 +112,7 @@ Send an event and payload
 - Parameter: **eventType**
   - Values:
     - `EtherEventQueue.eventTypeOnce` - Make one attempt at sending the event and then remove it from the queue.
-    - `EtherEventQueue.eventTypeResend` - Resend until successful send, then remove from queue.
+    - `EtherEventQueue.eventTypeRepeat` - Resend until successful send, then remove from queue.
     - `EtherEventQueue.eventTypeConfirm` - Resend a message until the ACK is received, the target IP times out, or the event overflows from the queue. The ACK is the eventAck with the eventID of the event to confirm for a payload. Received ACKs are handled internally by EtherEventQueue and will not be passed on. The confirmation event must be set via `EtherEventQueue.setEventAck()` before this event type can be used.
     - `EtherEventQueue.eventTypeOverrideTimeout` - Similar to eventTypeOnce but the event will be sent to nodes even if they are timed out.
   - Type: byte
@@ -147,13 +147,13 @@ Check if the event queue has overflowed since the last time `EtherEventQueue.che
 
 ##### `EtherEventQueue.setResendDelay(resendDelay)`
 Set the event resend delay.
-- Parameter: **resendDelay** - (ms)The delay before resending `EtherEventQueue.eventTypeResend` or `EtherEventQueue.eventTypeConfirm` type queued events.
+- Parameter: **resendDelay** - (ms)The delay before resending `EtherEventQueue.eventTypeRepeat` or `EtherEventQueue.eventTypeConfirm` type queued events.
   - Type: unsigned long
 - Returns: none
 
 ##### `EtherEventQueue.getResendDelay()`
 Returns the value of the queued event resend delay.
-- Returns: resendDelay - (ms)The delay before resending `EtherEventQueue.eventTypeResend` or `EtherEventQueue.eventTypeConfirm` type queued events.
+- Returns: resendDelay - (ms)The delay before resending `EtherEventQueue.eventTypeRepeat` or `EtherEventQueue.eventTypeConfirm` type queued events.
   - Type: unsigned long
 
 ##### `EtherEventQueue.setNode(nodeNumber, nodeIP)`
@@ -282,7 +282,7 @@ An overview of the event queue process:
   - Events addressed to non-nodes are always queued unless non-node sending is disabled(`EtherEventQueue.sendNodesOnly(true)`).
 - `EtherEventQueue.queueHandler()` - Send event from queue.
   - Send newly queued event FIFO(first in, first out).
-  - If there are no newly queued events then resend `EtherEventQueue.eventTypeResend` type events that were previously not successfully sent or `EtherEventQueue.eventTypeConfirm` type events that have not been ACKed yet FIFO.
+  - If there are no newly queued events then resend `EtherEventQueue.eventTypeRepeat` type events that were previously not successfully sent or `EtherEventQueue.eventTypeConfirm` type events that have not been ACKed yet FIFO.
   - Events other than keepalive to timed out nodes are discarded.
   - If the send is successful then remove events from the queue that have are `EtherEventQueue.eventTypeOnce` or `EtherEventQueue.eventTypeRepeat`.
   - If the send is not successful then remove events from the queue that are `EtherEventQueue.eventTypeOnce`.
