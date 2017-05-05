@@ -118,7 +118,7 @@ Send an event and payload
   - Type: byte
 - Parameter: **event** - string to send as the event
   - Type: char array, int8_t, byte, int, unsigned int, long, unsigned long, __FlashStringHelper(`F()` macro), String, IPAddress, float, double
-- Parameter: **payload** - payload to send with the event. The payload is not optional when the event is of type __FlashStringHelper(`F()` macro).
+- Parameter: **payload** - payload to send with the event.
   - Type: char array, int8_t, byte, int, unsigned int, long, unsigned long, __FlashStringHelper(`F()` macro), String, IPAddress, float, double
 - Returns: `false` = failure, `true` = successfully queued, `EtherEventQueue.queueSuccessOverflow` = successfully queued w/ queue overflow
   - Type: byte
