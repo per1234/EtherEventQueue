@@ -1,5 +1,6 @@
 // Example sketch demonstrating use of the Entropy library with EtherEventQueue.
 // Requires Entropy truly random numbers library: http://sites.google.com/site/astudyofentropy/file-cabinet
+// The Entropy library is compatible with AVR based boards (such as Uno, Mega, Leonardo, etc), Due, and Teensy
 // Periodically queues a test event, sends queued events, receives events and prints them to the serial monitor.
 // Use with the EventGhost-example-trees.
 
