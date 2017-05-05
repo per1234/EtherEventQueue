@@ -1,0 +1,83 @@
+# This file is used to configure the Travis CI tests of this library
+
+language: bash
+sudo: required
+
+
+env:
+  global:
+    # The Arduino IDE will be installed at APPLICATION_FOLDER/arduino
+    - APPLICATION_FOLDER="${HOME}/arduino-ide"
+    - SKETCHBOOK_FOLDER="${HOME}/arduino-sketchbook"
+
+
+  matrix:
+    - BOARD_NAME="arduino:avr:mega:cpu=atmega2560" PACKAGE_NAME="arduino:avr" PACKAGE_URL="" IDE_RANGE_START="1.6.0" IDE_RANGE_END="1.6.12"
+    - BOARD_NAME="arduino:avr:mega:cpu=atmega2560" PACKAGE_NAME="arduino:avr" PACKAGE_URL="" IDE_RANGE_START="1.6.13" IDE_RANGE_END="newest"
+    - BOARD_NAME="arduino:sam:arduino_due_x_dbg" PACKAGE_NAME="arduino:sam" PACKAGE_URL="" IDE_RANGE_START="newest" IDE_RANGE_START="newest"
+    - BOARD_NAME="arduino:samd:arduino_zero_edbg" PACKAGE_NAME="arduino:samd" PACKAGE_URL="" IDE_RANGE_START="newest" IDE_RANGE_START="newest"
+    - BOARD_NAME="Intel:arc32:arduino_101" PACKAGE_NAME="Intel:arc32" PACKAGE_URL="" IDE_RANGE_START="newest" IDE_RANGE_START="newest"
+    - BOARD_NAME="Intel:i586:izmir_fg" PACKAGE_NAME="Intel:i586" PACKAGE_URL="" IDE_RANGE_START="newest" IDE_RANGE_START="newest"
+    - BOARD_NAME="Intel:i686:izmir_ec" PACKAGE_NAME="Intel:i686" PACKAGE_URL="" IDE_RANGE_START="newest" IDE_RANGE_START="newest"
+    - BOARD_NAME="esp8266:esp8266:d1_mini:CpuFrequency=80,UploadSpeed=921600,FlashSize=4M3M" PACKAGE_NAME="esp8266:esp8266" PACKAGE_URL="http://arduino.esp8266.com/stable/package_esp8266com_index.json" IDE_RANGE_START="newest" IDE_RANGE_START="newest"
+
+
+before_install:
+  - git clone https://github.com/per1234/arduino-ci-script.git "${HOME}/scripts"
+  - source "${HOME}/scripts/arduino-ci-script.sh"
+
+  # These functions can be used to get verbose output for debugging the script
+  # set_script_verbosity can be set to values from 0 - 2 (verbosity off - maximum verbosity)
+  #- set_script_verbosity 1
+  # Setting set_verbose_output_during_compilation to true is the same as File > Preferences > Show verbose output during > compilation (check) in the Arduino IDE
+  #- set_verbose_output_during_compilation "true"
+
+  # Check for library issues that don't affect compilation
+  - set_library_testing "true"
+
+  - set_application_folder "$APPLICATION_FOLDER"
+  - set_sketchbook_folder "$SKETCHBOOK_FOLDER"
+
+  - install_ide "$IDE_RANGE_START" "$IDE_RANGE_END"
+
+  # Install hardware packages
+  # install_package fails if the most recent version of $PACKAGE_NAME is already installed, which would cause the build for Mega 2560 to fail if the newest installed IDE version doesn't have an up-to-date AVR Boards version.
+  - if [ "$PACKAGE_NAME" != "arduino:avr" ]; then install_package "$PACKAGE_NAME" "$PACKAGE_URL"; fi
+
+  # Install the library from the repository
+  - install_library
+
+  # Install library dependencies
+  - install_library "https://github.com/tzikis/ArduinoMD5/archive/master.zip"
+  - install_library "https://sites.google.com/site/astudyofentropy/file-cabinet/Entropy-v1.0.2.zip"
+  #- install_library "https://github.com/per1234/EtherEvent.git"
+  - install_library "https://github.com/per1234/EtherEvent.git" "development"
+
+    # Helper script for the Travis CI configuration
+  - source "${TRAVIS_BUILD_DIR}/tools/Travis-CI/build-sketch.sh"
+
+
+script:
+  # build_sketch arguments: sketch name, fqbn, allow failure, IDE version/list/range
+  - etherevent_build_sketch "${SKETCHBOOK_FOLDER}/libraries/EtherEventQueue/examples/AdvancedUsage/AdvancedUsage.ino" "$BOARD_NAME" "false" "oldest" "newest"
+  - etherevent_build_sketch "${SKETCHBOOK_FOLDER}/libraries/EtherEventQueue/examples/BasicUsage/BasicUsage.ino" "$BOARD_NAME" "false" "oldest" "newest"
+  - etherevent_build_sketch "${SKETCHBOOK_FOLDER}/libraries/EtherEventQueue/examples/EventTypeConfirm/EventTypeConfirm.ino" "$BOARD_NAME" "false" "oldest" "newest"
+  - etherevent_build_sketch "${SKETCHBOOK_FOLDER}/libraries/EtherEventQueue/examples/Keepalive/Keepalive.ino" "$BOARD_NAME" "false" "oldest" "newest"
+  - etherevent_build_sketch "${SKETCHBOOK_FOLDER}/libraries/EtherEventQueue/examples/NoAuthentication/NoAuthentication.ino" "$BOARD_NAME" "false" "oldest" "newest"
+  - etherevent_build_sketch "${SKETCHBOOK_FOLDER}/libraries/EtherEventQueue/examples/Nodes/Nodes.ino" "$BOARD_NAME" "false" "oldest" "newest"
+  - etherevent_build_sketch "${SKETCHBOOK_FOLDER}/libraries/EtherEventQueue/tests" "$BOARD_NAME" "false" "oldest" "newest"
+
+
+after_script:
+  # Commit a report of the job results to the CI-reports repository
+  - USER_NAME="$(echo "$TRAVIS_REPO_SLUG" | cut -d'/' -f 1)"
+  - REPOSITORY_NAME="$(echo "$TRAVIS_REPO_SLUG" | cut -d'/' -f 2)"
+  - publish_report_to_repository "$REPORT_GITHUB_TOKEN" "https://github.com/${USER_NAME}/CI-reports.git" "$REPOSITORY_NAME" "build_$(printf "%05d\n" "${TRAVIS_BUILD_NUMBER}")" "false"
+  # Print a tab separated report of all sketch verification results to the log
+  - display_report
+
+
+notifications:
+  email:
+    on_success: always
+    on_failure: always
