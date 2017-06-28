@@ -210,15 +210,17 @@ byte EtherEventQueueClass::queue(const byte targetNode, const unsigned int port,
   return queue((const byte*)nodeIP[targetNode], port, eventType, (const char*)event, payload);
 }
 
+
 byte EtherEventQueueClass::queue(byte targetIP[], const unsigned int port, const byte eventType, const char event[], const char payload[]) {
   Serial.println(F("EtherEventQueue.queue(convert non-const byte array target to const byte array)"));
   return queue((const byte*)targetIP, port, eventType, event, payload);
 }
 
+
 //main queue() function
 byte EtherEventQueueClass::queue(const byte targetIP[], const unsigned int port, const byte eventType, const char event[], const char payload[]) {
   Serial.println(F("EtherEventQueue.queue(main)"));
-  if ((eventType != eventTypeOnce && eventType != eventTypeRepeat && eventType != eventTypeConfirm && eventType != eventTypeOverrideTimeout) || (eventType == eventTypeConfirm && eventAck == NULL)) { //eventType sanity check
+  if ((eventType != eventTypeOnce && eventType != eventTypeRepeat && eventType != eventTypeConfirm && eventType != eventTypeOverrideTimeout) || (eventType == eventTypeConfirm && eventAck == NULL)) {  //eventType sanity check
     Serial.println(F("EtherEventQueue.queue: invalid eventType"));
     return false;
   }
@@ -787,4 +789,3 @@ void EtherEventQueueClass::FSHtoa(const __FlashStringHelper* FlashString, char c
 
 
 EtherEventQueueClass EtherEventQueue;  //This sets up a single global instance of the library so the class doesn't need to be declared in the user sketch and multiple instances are not necessary in this case.
-

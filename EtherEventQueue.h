@@ -177,16 +177,22 @@ class EtherEventQueueClass {
       ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(char event)"));
       return queue(target, port, eventType, (const char*)event, payload);
     }
+
+
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const int8_t event, const char payload[] = "") {
       ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(int8_t event)"));
       return queue(target, port, eventType, (int)event, payload);  //Convert event to int. Needed to fix ambiguous overload warning.
     }
+
+
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const byte event, const char payload[] = "") {
       ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(byte event)"));
       return queue(target, port, eventType, (unsigned int)event, payload);  //Convert event to int. Needed to fix ambiguous overload warning.
     }
+
+
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const int event, const char payload[] = "") {
       ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(int event)"));
@@ -198,6 +204,8 @@ class EtherEventQueueClass {
 #endif  //__ARDUINO_X86__
       return queue(target, port, eventType, (const char*)eventChar, payload);
     }
+
+
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const unsigned int event, const char payload[] = "") {
       ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(unsigned int event)"));
@@ -209,6 +217,8 @@ class EtherEventQueueClass {
 #endif  //__ARDUINO_X86__
       return queue(target, port, eventType, (const char*)eventChar, payload);
     }
+
+
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const long event, const char payload[] = "") {
       ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(long event)"));
@@ -220,6 +230,8 @@ class EtherEventQueueClass {
 #endif  //__ARDUINO_X86__
       return queue(target, port, eventType, (const char*)eventChar, payload);
     }
+
+
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const unsigned long event, const char payload[] = "") {
       ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(unsigned long event)"));
@@ -231,6 +243,8 @@ class EtherEventQueueClass {
 #endif  //__ARDUINO_X86__
       return queue(target, port, eventType, (const char*)eventChar, payload);
     }
+
+
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const __FlashStringHelper* event, const char payload[] = "") {
       ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(F() event)"));
@@ -238,6 +252,8 @@ class EtherEventQueueClass {
       FSHtoa(event, eventChar, sendEventLengthMax);
       return queue(target, port, eventType, (const char*)eventChar, payload);
     }
+
+
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const String &event, const char payload[] = "") {
       ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(String event)"));
@@ -249,6 +265,8 @@ class EtherEventQueueClass {
       eventChar[stringLength] = 0;
       return queue(target, port, eventType, (const char*)eventChar, payload);
     }
+
+
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const IPAddress &event, const char payload[] = "") {
       ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(IPAddress event)"));
@@ -256,6 +274,8 @@ class EtherEventQueueClass {
       EtherEvent.IPtoa(event, eventChar);
       return queue(target, port, eventType, (const char*)eventChar, payload);
     }
+
+
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const double event, const char payload[] = "") {
       ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(double event)"));
@@ -267,11 +287,14 @@ class EtherEventQueueClass {
 #endif  //__ARDUINO_X86__
       return queue(target, port, eventType, (const char*)eventChar, payload);
     }
+
+
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const float event, const char payload[] = "") {
       ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(float event)"));
       return queue(target, port, eventType, (double)event, payload);  //needed to fix ambiguous compiler warning
     }
+
 
     //convert payload
     template <typename target_t, typename event_t>
@@ -279,16 +302,22 @@ class EtherEventQueueClass {
       ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(char payload)"));
       return queue(target, port, eventType, event, (const char*)payload);
     }
+
+
     template <typename target_t, typename event_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const event_t event, const int8_t payload) {
       ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(char payload)"));
       return queue(target, port, eventType, event, (int)payload);
     }
+
+
     template <typename target_t, typename event_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const event_t event, const byte payload) {
       ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(char payload)"));
       return queue(target, port, eventType, event, (unsigned int)payload);
     }
+
+
     template <typename target_t, typename event_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const event_t event, const int payload) {
       ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(int payload)"));
@@ -300,6 +329,8 @@ class EtherEventQueueClass {
 #endif  //__ARDUINO_X86__
       return queue(target, port, eventType, event, (const char*)payloadChar);
     }
+
+
     template <typename target_t, typename event_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const event_t event, const unsigned int payload) {
       ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(unsigned int payload)"));
@@ -311,6 +342,8 @@ class EtherEventQueueClass {
 #endif  //__ARDUINO_X86__
       return queue(target, port, eventType, event, payloadChar);
     }
+
+
     template <typename target_t, typename event_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const event_t event, const long payload) {
       ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(long payload)"));
@@ -322,6 +355,8 @@ class EtherEventQueueClass {
 #endif  //__ARDUINO_X86__
       return queue(target, port, eventType, event, (const char*)payloadChar);
     }
+
+
     template <typename target_t, typename event_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const event_t event, const unsigned long payload) {
       ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(unsigned long payload)"));
@@ -333,6 +368,8 @@ class EtherEventQueueClass {
 #endif  //__ARDUINO_X86__
       return queue(target, port, eventType, event, (const char*)payloadChar);
     }
+
+
     template <typename target_t, typename event_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, event_t event, const __FlashStringHelper* payload) {
       ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(F() payload)"));
@@ -340,6 +377,8 @@ class EtherEventQueueClass {
       FSHtoa(payload, payloadChar, sendPayloadLengthMax);
       return queue(target, port, eventType, event, (const char*)payloadChar);
     }
+
+
     template <typename target_t, typename event_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, event_t event, const String &payload) {
       ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(String payload)"));
@@ -351,6 +390,8 @@ class EtherEventQueueClass {
       payloadChar[stringLength] = 0;
       return queue(target, port, eventType, event, (const char*)payloadChar);
     }
+
+
     template <typename target_t, typename event_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, event_t event, const IPAddress &payload) {
       ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(String payload)"));
@@ -358,6 +399,8 @@ class EtherEventQueueClass {
       EtherEvent.IPtoa(payload, payloadChar);
       return queue(target, port, eventType, event, (const char*)payloadChar);
     }
+
+
     template <typename target_t, typename event_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, event_t event, const double payload) {
       ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(double payload)"));
@@ -414,7 +457,7 @@ class EtherEventQueueClass {
             break;  //non-nodes never timeout
           }
 
-          if (millis() - nodeTimestamp[targetNode] < nodeTimeoutDuration || eventTypeQueue[queueSlotSend] == eventTypeOverrideTimeout) { //non-timed out node or eventTypeOverrideTimeout
+          if (millis() - nodeTimestamp[targetNode] < nodeTimeoutDuration || eventTypeQueue[queueSlotSend] == eventTypeOverrideTimeout) {  //non-timed out node or eventTypeOverrideTimeout
             break;  //continue with the message send
           }
           ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.queueHandler: targetNode timed out for queue#="));
@@ -657,6 +700,8 @@ class EtherEventQueueClass {
     boolean nodeIsSet(const byte nodeNumber);
     void FSHtoa(const __FlashStringHelper* FlashString, char charBuffer[], byte maxLength);
 };
-extern EtherEventQueueClass EtherEventQueue;  //declare the class so it doesn't have to be done in the sketch
-#endif
 
+
+extern EtherEventQueueClass EtherEventQueue;  //declare the class so it doesn't have to be done in the sketch
+
+#endif
