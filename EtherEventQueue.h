@@ -257,13 +257,18 @@ class EtherEventQueueClass {
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const String &event, const char payload[] = "") {
       ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(String event)"));
+#ifdef __ARDUINO_X86__
+      //x86 boards don't have c_str()
       byte stringLength = event.length();
       char eventChar[stringLength + 1];
       for (byte counter = 0; counter < stringLength; counter++) {
-        eventChar[counter] = event[counter];  //I could probably just use c_str() instead but then I have to deal with the pointer
+        eventChar[counter] = event[counter];
       }
       eventChar[stringLength] = 0;
       return queue(target, port, eventType, (const char*)eventChar, payload);
+#else  //__ARDUINO_X86__
+      return queue(target, port, eventType, (const char*)event.c_str(), payload);
+#endif  //__ARDUINO_X86__
     }
 
 
@@ -382,13 +387,18 @@ class EtherEventQueueClass {
     template <typename target_t, typename event_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, event_t event, const String &payload) {
       ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(String payload)"));
+#ifdef __ARDUINO_X86__
+      //x86 boards don't have c_str()
       byte stringLength = payload.length();
       char payloadChar[stringLength + 1];
       for (byte counter = 0; counter < stringLength; counter++) {
-        payloadChar[counter] = payload[counter];  //I could probably just use c_str() instead but then I have to deal with the pointer
+        payloadChar[counter] = payload[counter];
       }
       payloadChar[stringLength] = 0;
       return queue(target, port, eventType, event, (const char*)payloadChar);
+#else  //__ARDUINO_X86__
+      return queue(target, port, eventType, event, (const char*)payload.c_str());
+#endif  //__ARDUINO_X86__
     }
 
 
