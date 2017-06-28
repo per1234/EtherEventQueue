@@ -772,20 +772,4 @@ boolean EtherEventQueueClass::nodeIsSet(const byte nodeNumber) {
 }
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//FSHtoa - convert __FlashStringHelper to char and put it in the passed buffer
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void EtherEventQueueClass::FSHtoa(const __FlashStringHelper* FlashString, char charBuffer[], byte maxLength) {
-  PGM_P FlashString_P = reinterpret_cast<PGM_P>(FlashString);
-  for (byte arrayPosition = 0; arrayPosition < maxLength; arrayPosition++) {
-    unsigned char character = pgm_read_byte(FlashString_P++);
-    charBuffer[arrayPosition] = character;
-    if (character == 0) {
-      return;
-    }
-  }
-  charBuffer[maxLength] = 0;
-}
-
-
 EtherEventQueueClass EtherEventQueue;  //This sets up a single global instance of the library so the class doesn't need to be declared in the user sketch and multiple instances are not necessary in this case.

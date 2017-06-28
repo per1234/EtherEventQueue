@@ -248,8 +248,9 @@ class EtherEventQueueClass {
     template <typename target_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, const __FlashStringHelper* event, const char payload[] = "") {
       ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(F() event)"));
-      char eventChar[sendEventLengthMax + 1];
-      FSHtoa(event, eventChar, sendEventLengthMax);
+      const byte eventLength = EtherEvent.FSHlength(event);
+      char eventChar[eventLength + 1];
+      memcpy_P(eventChar, event, eventLength + 1);  //+1 for the null terminator
       return queue(target, port, eventType, (const char*)eventChar, payload);
     }
 
@@ -378,8 +379,9 @@ class EtherEventQueueClass {
     template <typename target_t, typename event_t>
     byte queue(const target_t &target, const unsigned int port, const byte eventType, event_t event, const __FlashStringHelper* payload) {
       ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(F() payload)"));
-      char payloadChar[sendPayloadLengthMax + 1];
-      FSHtoa(payload, payloadChar, sendPayloadLengthMax);
+      const unsigned int payloadLength = EtherEvent.FSHlength(payload);
+      char payloadChar[payloadLength + 1];
+      memcpy_P(payloadChar, payload, payloadLength + 1);  //+1 for the null terminator
       return queue(target, port, eventType, event, (const char*)payloadChar);
     }
 
@@ -708,7 +710,6 @@ class EtherEventQueueClass {
 
 
     boolean nodeIsSet(const byte nodeNumber);
-    void FSHtoa(const __FlashStringHelper* FlashString, char charBuffer[], byte maxLength);
 };
 
 
