@@ -3,7 +3,7 @@
 #define ETHEREVENT_FAST_SEND
 #include "EtherEventQueue.h"
 
-#define Serial if(ETHEREVENTQUEUE_DEBUG)Serial  //DEBUG is defined in EtherEventQueue.h
+#define Serial if(ETHEREVENTQUEUE_DEBUG)Serial  //ETHEREVENTQUEUE_DEBUG is defined in EtherEventQueue.h
 
 const unsigned long nodeTimeoutDurationDefault = 270000;  //(ms)the node is timed out if it has been longer than this duration since the last event was received from it
 const unsigned long sendKeepaliveMarginDefault = 30000;
