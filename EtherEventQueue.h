@@ -62,9 +62,9 @@ class EtherEventQueueClass {
         }
 
 #ifndef ETHEREVENT_NO_AUTHENTICATION
-        if (const byte availableBytesEvent = EtherEvent.availableEvent(ethernetServer, cookieInput)) {  //there is a new event
+        if (const int availableBytesEvent = EtherEvent.availableEvent(ethernetServer, cookieInput) > 0) {  //there is a new event
 #else  //ETHEREVENT_NO_AUTHENTICATION
-        if (const byte availableBytesEvent = EtherEvent.availableEvent(ethernetServer)) {  //there is a new event
+        if (const int availableBytesEvent = EtherEvent.availableEvent(ethernetServer) > 0) {  //there is a new event
 #endif  //ETHEREVENT_NO_AUTHENTICATION
           ETHEREVENTQUEUE_SERIAL.println(F("---------------------------"));
           ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.availableEvent: EtherEvent.availableEvent()="));
