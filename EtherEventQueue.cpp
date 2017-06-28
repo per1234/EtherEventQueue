@@ -210,6 +210,10 @@ byte EtherEventQueueClass::queue(const byte targetNode, const unsigned int port,
   return queue((const byte*)nodeIP[targetNode], port, eventType, (const char*)event, payload);
 }
 
+byte EtherEventQueueClass::queue(byte targetIP[], const unsigned int port, const byte eventType, const char event[], const char payload[]) {
+  Serial.println(F("EtherEventQueue.queue(convert non-const byte array target to const byte array)"));
+  return queue((const byte*)targetIP, port, eventType, event, payload);
+}
 
 //main queue() function
 byte EtherEventQueueClass::queue(const byte targetIP[], const unsigned int port, const byte eventType, const char event[], const char payload[]) {
