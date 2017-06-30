@@ -599,20 +599,20 @@ class EtherEventQueueClass {
     void setSendKeepaliveResendDelay(const unsigned long sendKeepaliveResendDelayInput);
     unsigned long getSendKeepaliveResendDelay();
     boolean setEventKeepalive(const char eventKeepaliveInput[]);
-    boolean setEventKeepalive(const int16_t eventKeepaliveInput);
-    boolean setEventKeepalive(const uint16_t eventKeepaliveInput);
-    boolean setEventKeepalive(const int32_t eventKeepaliveInput);
-    boolean setEventKeepalive(const uint32_t eventKeepaliveInput);
+    boolean setEventKeepalive(const int eventKeepaliveInput);
+    boolean setEventKeepalive(const unsigned int eventKeepaliveInput);
+    boolean setEventKeepalive(const long eventKeepaliveInput);
+    boolean setEventKeepalive(const unsigned long eventKeepaliveInput);
     boolean setEventKeepalive(const double eventKeepaliveInput);
     boolean setEventKeepalive(const char eventKeepaliveInput);
     boolean setEventKeepalive(const __FlashStringHelper* eventKeepaliveFSH);
     boolean setEventKeepalive(const String &eventKeepaliveInput);
 
     boolean setEventAck(const char eventAckInput[]);
-    boolean setEventAck(const int16_t eventAckInput);
-    boolean setEventAck(const uint16_t eventAckInput);
-    boolean setEventAck(const int32_t eventAckInput);
-    boolean setEventAck(const uint32_t eventAckInput);
+    boolean setEventAck(const int eventAckInput);
+    boolean setEventAck(const unsigned int eventAckInput);
+    boolean setEventAck(const long eventAckInput);
+    boolean setEventAck(const unsigned long eventAckInput);
     boolean setEventAck(const double eventAckInput);
     boolean setEventAck(const char eventAckInput);
     boolean setEventAck(const __FlashStringHelper* eventAckFSH);

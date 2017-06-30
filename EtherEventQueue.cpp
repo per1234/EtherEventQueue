@@ -558,8 +558,8 @@ boolean EtherEventQueueClass::setEventKeepalive(const char eventKeepaliveInput[]
 }
 
 
-boolean EtherEventQueueClass::setEventKeepalive(const int16_t eventKeepaliveInput) {
-  char eventKeepaliveInputChar[int16_tLengthMax + 1];
+boolean EtherEventQueueClass::setEventKeepalive(const int eventKeepaliveInput) {
+  char eventKeepaliveInputChar[intLengthMax + 1];
 #ifdef __ARDUINO_X86__
   sprintf(eventKeepaliveInputChar, "%i", eventKeepaliveInput);
 #else  //__ARDUINO_X86__
@@ -569,15 +569,15 @@ boolean EtherEventQueueClass::setEventKeepalive(const int16_t eventKeepaliveInpu
 }
 
 
-boolean EtherEventQueueClass::setEventKeepalive(const uint16_t eventKeepaliveInput) {
-  char eventKeepaliveInputChar[uint16_tLengthMax + 1];
+boolean EtherEventQueueClass::setEventKeepalive(const unsigned int eventKeepaliveInput) {
+  char eventKeepaliveInputChar[unsignedIntLengthMax + 1];
   sprintf_P(eventKeepaliveInputChar, PSTR("%u"), eventKeepaliveInput);
   return setEventKeepalive(eventKeepaliveInputChar);
 }
 
 
-boolean EtherEventQueueClass::setEventKeepalive(const int32_t eventKeepaliveInput) {
-  char eventKeepaliveInputChar[int32_tLengthMax + 1];
+boolean EtherEventQueueClass::setEventKeepalive(const long eventKeepaliveInput) {
+  char eventKeepaliveInputChar[longLengthMax + 1];
 #ifdef __ARDUINO_X86__
   sprintf (eventKeepaliveInputChar, "%li", eventKeepaliveInput);
 #else  //__ARDUINO_X86__
@@ -587,8 +587,8 @@ boolean EtherEventQueueClass::setEventKeepalive(const int32_t eventKeepaliveInpu
 }
 
 
-boolean EtherEventQueueClass::setEventKeepalive(const uint32_t eventKeepaliveInput) {
-  char eventKeepaliveInputChar[uint32_tLengthMax + 1];
+boolean EtherEventQueueClass::setEventKeepalive(const unsigned long eventKeepaliveInput) {
+  char eventKeepaliveInputChar[unsignedLongLengthMax + 1];
 #ifdef __ARDUINO_X86__
   sprintf (eventKeepaliveInputChar, "%lu", eventKeepaliveInput);
 #else  //__ARDUINO_X86__
@@ -655,8 +655,8 @@ boolean EtherEventQueueClass::setEventAck(const char eventAckInput[]) {
 }
 
 
-boolean EtherEventQueueClass::setEventAck(const int16_t eventAckInput) {
-  char eventAckInputChar[int16_tLengthMax + 1];
+boolean EtherEventQueueClass::setEventAck(const int eventAckInput) {
+  char eventAckInputChar[intLengthMax + 1];
 #ifdef __ARDUINO_X86__
   sprintf(eventAckInputChar, "%i", eventAckInput);
 #else  //__ARDUINO_X86__
@@ -666,15 +666,15 @@ boolean EtherEventQueueClass::setEventAck(const int16_t eventAckInput) {
 }
 
 
-boolean EtherEventQueueClass::setEventAck(const uint16_t eventAckInput) {
-  char eventAckInputChar[uint16_tLengthMax + 1];
+boolean EtherEventQueueClass::setEventAck(const unsigned int eventAckInput) {
+  char eventAckInputChar[unsignedIntLengthMax + 1];
   sprintf_P(eventAckInputChar, PSTR("%u"), eventAckInput);
   return setEventAck(eventAckInputChar);
 }
 
 
-boolean EtherEventQueueClass::setEventAck(const int32_t eventAckInput) {
-  char eventAckInputChar[int32_tLengthMax + 1];
+boolean EtherEventQueueClass::setEventAck(const long eventAckInput) {
+  char eventAckInputChar[longLengthMax + 1];
 #ifdef __ARDUINO_X86__
   sprintf (eventAckInputChar, "%li", eventAckInput);
 #else  //__ARDUINO_X86__
@@ -684,8 +684,8 @@ boolean EtherEventQueueClass::setEventAck(const int32_t eventAckInput) {
 }
 
 
-boolean EtherEventQueueClass::setEventAck(const uint32_t eventAckInput) {
-  char eventAckInputChar[uint32_tLengthMax + 1];
+boolean EtherEventQueueClass::setEventAck(const unsigned long eventAckInput) {
+  char eventAckInputChar[unsignedLongLengthMax + 1];
 #ifdef __ARDUINO_X86__
   sprintf (eventAckInputChar, "%lu", eventAckInput);
 #else  //__ARDUINO_X86__
