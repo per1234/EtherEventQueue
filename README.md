@@ -113,9 +113,9 @@ Send an event and payload
     - `EtherEventQueue.eventTypeOverrideTimeout` - Similar to eventTypeOnce but the event will be sent to nodes even if they are timed out.
   - Type: byte
 - Parameter: **event** - string to send as the event
-  - Type: char array, int8_t, byte, int, unsigned int, long, unsigned long, __FlashStringHelper (`F()` macro), String, IPAddress, float, double
+  - Type: char array, char, int8_t, byte, int, unsigned int, long, unsigned long, __FlashStringHelper (`F()` macro), String, IPAddress, float, double
 - Parameter: **payload** - payload to send with the event.
-  - Type: char array, int8_t, byte, int, unsigned int, long, unsigned long, __FlashStringHelper (`F()` macro), String, IPAddress, float, double
+  - Type: char array, char, int8_t, byte, int, unsigned int, long, unsigned long, __FlashStringHelper (`F()` macro), String, IPAddress, float, double
 - Returns: `false` = failure, `true` = successfully queued, `EtherEventQueue.queueSuccessOverflow` = successfully queued w/ queue overflow
   - Type: byte
 
