@@ -46,7 +46,7 @@ Add this line above the `#include <EtherEventQueue.h>` and `#include <EtherEvent
 ##### `#define ETHEREVENT_FAST_SEND`
 Increase sending speed at the expense of increased memory use. Add this line above the `#include <EtherEventQueue.h>` and `#include <EtherEvent.h>` lines in your sketch. This significantly increases the speed of sending __FlashStringHelper (`F()` macro) events/payloads but also increases the sketch size and SRAM usage during the send process. ETHEREVENT_FAST_SEND also increases the speed of sending some other event/payload types.
 
-##### `EtherEventQueue.begin([deviceID, nodeCount][, queueSizeMax, sendEventLengthMax, sendPayloadLengthMax, receiveEventLengthMax, receivePayloadEventMax])`
+##### `EtherEventQueue.begin([deviceID, nodeCount][, queueSizeMax, sendEventLengthMax, sendPayloadLengthMax, receiveEventLengthMax, receivePayloadLengthMax])`
 Initialize EtherEventQueue.
 - Parameter(optional): **deviceID** - The node number of the device. The default value is 0.
   - Type: byte
@@ -60,7 +60,7 @@ Initialize EtherEventQueue.
   - Type: unsigned int
 - Parameter(optional): **receiveEventLengthMax** - Maximum event length to receive. Longer events will be truncated to this length. The default value is 15.
   - Type: byte
-- Parameter(optional): **receivePayloadEventMax** - Maximum payload length to receive. Longer payloads will be truncated to this length. The default value is 80.
+- Parameter(optional): **receivePayloadLengthMax** - Maximum payload length to receive. Longer payloads will be truncated to this length. The default value is 80.
   - Type: unsigned int
 - Returns: boolean - `true` = success, `false` = memory allocation failure
 
