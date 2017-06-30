@@ -603,7 +603,10 @@ class EtherEventQueueClass {
     boolean setEventKeepalive(const uint16_t eventKeepaliveInput);
     boolean setEventKeepalive(const int32_t eventKeepaliveInput);
     boolean setEventKeepalive(const uint32_t eventKeepaliveInput);
+    boolean setEventKeepalive(const double eventKeepaliveInput);
+    boolean setEventKeepalive(const char eventKeepaliveInput);
     boolean setEventKeepalive(const __FlashStringHelper* eventKeepaliveFSH);
+    boolean setEventKeepalive(const String &eventKeepaliveInput);
 
     boolean setEventAck(const char eventAckInput[]);
     boolean setEventAck(const int16_t eventAckInput);

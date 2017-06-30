@@ -598,11 +598,44 @@ boolean EtherEventQueueClass::setEventKeepalive(const uint32_t eventKeepaliveInp
 }
 
 
+boolean EtherEventQueueClass::setEventKeepalive(const double eventKeepalive) {
+  char eventKeepaliveChar[doubleIntegerLengthMax + 1 + queueDoubleDecimalPlaces + 1];  //max integer length + decimal point + decimal places setting + null terminator
+#ifdef __ARDUINO_X86__
+  sprintf (eventKeepaliveChar, "%.*f", queueDoubleDecimalPlaces, eventKeepalive);
+#else  //__ARDUINO_X86__
+  dtostrf(eventKeepalive, queueDoubleDecimalPlaces + 2, queueDoubleDecimalPlaces, eventKeepaliveChar);
+#endif  //__ARDUINO_X86__
+  return setEventKeepalive(eventKeepaliveChar);
+}
+
+
+boolean EtherEventQueueClass::setEventKeepalive(const char eventKeepaliveInput) {
+  char eventKeepaliveInputChar[] = {eventKeepaliveInput, 0};
+  return setEventKeepalive(eventKeepaliveInputChar);
+}
+
+
 boolean EtherEventQueueClass::setEventKeepalive(const __FlashStringHelper* eventKeepaliveFSH) {
   byte stringLength = EtherEvent.FSHlength(eventKeepaliveFSH);
   char eventKeepaliveChar[stringLength + 1];
   memcpy_P(eventKeepaliveChar, eventKeepaliveFSH, stringLength + 1);  //+1 for the null terminator
   return setEventKeepalive(eventKeepaliveChar);
+}
+
+
+boolean EtherEventQueueClass::setEventKeepalive(const String &eventKeepaliveInput) {
+#ifdef __ARDUINO_X86__
+  //x86 boards don't have c_str()
+  const byte stringLength = eventKeepaliveInput.length();
+  char eventKeepaliveInputChar[stringLength + 1];
+  for (byte counter = 0; counter < stringLength; counter++) {
+    eventKeepaliveInputChar[counter] = eventKeepaliveInput[counter];
+  }
+  eventKeepaliveInputChar[stringLength] = 0;
+  return setEventKeepalive(eventKeepaliveInputChar);
+#else  //__ARDUINO_X86__
+  return setEventKeepalive(eventKeepaliveInput.c_str());
+#endif  //__ARDUINO_X86__
 }
 
 

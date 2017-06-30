@@ -252,7 +252,7 @@ Returns the sendKeepaliveResendDelay value.
 ##### `EtherEventQueue.setEventKeepalive(eventKeepalive)`
 Defines the keepalive event.
 - Parameter: **eventKeepaliveInput** - The event that is used as a keepalive.
-  - Type: char array, byte, int, unsigned int, long, unsigned long, __FlashStringHelper (`F()` macro)
+  - Type: char array, byte, int, unsigned int, long, unsigned long, double, float, char, __FlashStringHelper (`F()` macro), String
 - Returns: `true` = success, `false` = memory allocation failure.
   - Type: boolean
 
