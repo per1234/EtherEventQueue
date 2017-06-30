@@ -695,11 +695,44 @@ boolean EtherEventQueueClass::setEventAck(const uint32_t eventAckInput) {
 }
 
 
+boolean EtherEventQueueClass::setEventAck(const double eventAckInput) {
+  char eventAckInputChar[doubleIntegerLengthMax + 1 + queueDoubleDecimalPlaces + 1];  //max integer length + decimal point + decimal places setting + null terminator
+#ifdef __ARDUINO_X86__
+  sprintf (eventAckInputChar, "%.*f", queueDoubleDecimalPlaces, eventAckInput);
+#else  //__ARDUINO_X86__
+  dtostrf(eventAckInput, queueDoubleDecimalPlaces + 2, queueDoubleDecimalPlaces, eventAckInputChar);
+#endif  //__ARDUINO_X86__
+  return setEventAck(eventAckInputChar);
+}
+
+
+boolean EtherEventQueueClass::setEventAck(const char eventAckInput) {
+  char eventAckInputChar[] = {eventAckInput, 0};
+  return setEventAck(eventAckInputChar);
+}
+
+
 boolean EtherEventQueueClass::setEventAck(const __FlashStringHelper* eventAckFSH) {
   byte stringLength = EtherEvent.FSHlength(eventAckFSH);
   char eventAckChar[stringLength + 1];
   memcpy_P(eventAckChar, eventAckFSH, stringLength + 1);  //+1 for the null terminator
   return setEventAck(eventAckChar);
+}
+
+
+boolean EtherEventQueueClass::setEventAck(const String &eventAckInput) {
+#ifdef __ARDUINO_X86__
+  //x86 boards don't have c_str()
+  const byte stringLength = eventAckInput.length();
+  char eventAckInputChar[stringLength + 1];
+  for (byte counter = 0; counter < stringLength; counter++) {
+    eventAckInputChar[counter] = eventAckInput[counter];
+  }
+  eventAckInputChar[stringLength] = 0;
+  return setEventAck(eventAckInputChar);
+#else  //__ARDUINO_X86__
+  return setEventAck(eventAckInput.c_str());
+#endif  //__ARDUINO_X86__
 }
 
 

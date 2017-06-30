@@ -613,7 +613,11 @@ class EtherEventQueueClass {
     boolean setEventAck(const uint16_t eventAckInput);
     boolean setEventAck(const int32_t eventAckInput);
     boolean setEventAck(const uint32_t eventAckInput);
+    boolean setEventAck(const double eventAckInput);
+    boolean setEventAck(const char eventAckInput);
     boolean setEventAck(const __FlashStringHelper* eventAckFSH);
+    boolean setEventAck(const String &eventAckFSH);
+
     void setQueueDoubleDecimalPlaces(byte decimalPlaces);
 
 

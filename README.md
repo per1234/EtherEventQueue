@@ -259,7 +259,7 @@ Defines the keepalive event.
 ##### `EtherEventQueue.setEventAck(eventAck)`
 Defines the event receipt confirmation event for use with eventTypeConfirm type events.
 - Parameter: **eventAckInput** - The event that is used as an ACK.
-  - Type: char array, byte, int, unsigned int, long, unsigned long, __FlashStringHelper (`F()` macro)
+  - Type: char array, byte, int, unsigned int, long, unsigned long, double, float, char, __FlashStringHelper (`F()` macro), String
 - Returns: `true` = success, `false` = memory allocation failure.
   - Type: boolean
 
