@@ -54,7 +54,7 @@ before_install:
   - install_library "https://github.com/per1234/EtherEvent.git" "development"
 
     # Helper script for the Travis CI configuration
-  - source "${TRAVIS_BUILD_DIR}/tools/Travis-CI/build-sketch.sh"
+  - source "${TRAVIS_BUILD_DIR}/extras/tools/Travis-CI/build-sketch.sh"
 
 
 script:
@@ -65,7 +65,7 @@ script:
   - etherevent_build_sketch "${SKETCHBOOK_FOLDER}/libraries/EtherEventQueue/examples/Keepalive/Keepalive.ino" "$BOARD_NAME" "false" "oldest" "newest"
   - etherevent_build_sketch "${SKETCHBOOK_FOLDER}/libraries/EtherEventQueue/examples/NoAuthentication/NoAuthentication.ino" "$BOARD_NAME" "false" "oldest" "newest"
   - etherevent_build_sketch "${SKETCHBOOK_FOLDER}/libraries/EtherEventQueue/examples/Nodes/Nodes.ino" "$BOARD_NAME" "false" "oldest" "newest"
-  - etherevent_build_sketch "${SKETCHBOOK_FOLDER}/libraries/EtherEventQueue/tests" "$BOARD_NAME" "false" "oldest" "newest"
+  - etherevent_build_sketch "${SKETCHBOOK_FOLDER}/libraries/EtherEventQueue/extras/tests" "$BOARD_NAME" "false" "oldest" "newest"
 
 
 after_script:
