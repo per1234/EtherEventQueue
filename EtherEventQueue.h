@@ -28,12 +28,121 @@ class EtherEventQueueClass {
 
     static const byte queueSuccessOverflow = 2;
 
-    EtherEventQueueClass();
 
-    boolean begin();
-    boolean begin(const byte queueSizeMaxInput, const byte sendEventLengthMaxInput, const unsigned int sendPayloadLengthMaxInput, const byte receivedEventLengthMaxInput, const unsigned int receivedPayloadLengthMaxInput);
-    boolean begin(const byte nodeDeviceInput, const byte nodeCountInput);
-    boolean begin(const byte nodeDeviceInput, byte nodeCountInput, byte queueSizeMaxInput, const byte sendEventLengthMaxInput, const unsigned int sendPayloadLengthMaxInput, const byte receivedEventLengthMaxInput, const unsigned int receivedPayloadLengthMaxInput);
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //constructor
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    EtherEventQueueClass() {
+      nodeTimeoutDuration = nodeTimeoutDurationDefault;
+      sendKeepaliveMargin = sendKeepaliveMarginDefault;
+      sendKeepaliveResendDelay = sendKeepaliveResendDelayDefault;
+      resendDelay = resendDelayDefault;
+      queueDoubleDecimalPlaces = queueDoubleDecimalPlacesDefault;
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //begin
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    boolean begin() {  //no nodes, default buffer length version - the deviceNode is 0
+      return begin(0, 1, queueSizeMaxDefault, eventLengthMaxDefault, payloadLengthMaxDefault, eventLengthMaxDefault, payloadLengthMaxDefault);
+    }
+
+
+    boolean begin(const byte queueSizeMaxInput, const byte sendEventLengthMaxInput, const unsigned int sendPayloadLengthMaxInput, const byte receivedEventLengthMaxInput, const unsigned int receivedPayloadLengthMaxInput) {  //no nodes version - the deviceNode is 0
+      return begin(0, 1, queueSizeMaxInput, sendEventLengthMaxInput, sendPayloadLengthMaxInput, receivedEventLengthMaxInput, receivedPayloadLengthMaxInput);
+    }
+
+
+    boolean begin(const byte nodeDeviceInput, const byte nodeCountInput) {  //default buffer length version - the deviceNode is 0
+      return begin(nodeDeviceInput, nodeCountInput, queueSizeMaxDefault, eventLengthMaxDefault, payloadLengthMaxDefault, eventLengthMaxDefault, payloadLengthMaxDefault);
+    }
+
+
+    boolean begin(const byte nodeDeviceInput, byte nodeCountInput, byte queueSizeMaxInput, const byte sendEventLengthMaxInput, const unsigned int sendPayloadLengthMaxInput, const byte receivedEventLengthMaxInput, const unsigned int receivedPayloadLengthMaxInput) {
+#if ETHEREVENTQUEUE_DEBUG == true
+      delay(20);  //There needs to be a delay between the calls to ETHEREVENTQUEUE_SERIAL.begin() in sketch setup() and here or garbage will be printed to the serial monitor
+#endif
+      ETHEREVENTQUEUE_SERIAL.begin(9600);  //for debugging
+      ETHEREVENTQUEUE_SERIAL.println(F("\n\n\nEtherEventQueue.begin"));
+
+      nodeDevice = nodeDeviceInput;
+      nodeCountInput = max(nodeDevice + 1, nodeCountInput);  //the nodeCount has to be enough to hold the device node number
+      for (byte counter = 0; counter < nodeCount; counter++) {  //free previously allocated array items - this has to be done for arrays only because realloc doesn't work with the array items
+        free(nodeIP[counter]);
+      }
+      nodeIP = (byte**)realloc(nodeIP, nodeCountInput * sizeof(byte*));  //have to use 4 byte arrays for the IP addresses instead of IPAddress because I can't get IPAddress to work with malloc
+      for (byte nodeCounter = 0; nodeCounter < nodeCountInput; nodeCounter++) {
+        nodeIP[nodeCounter] = (byte*)malloc(4 * sizeof(byte));  //4 bytes/IP address
+        //zero initialize the IP Address - this will indicate that the node has not yet been configured
+        for (byte counter = 0; counter < 4; counter++) {
+          nodeIP[nodeCounter][counter] = 0;
+        }
+      }
+
+      nodeState = (byte*)realloc(nodeState, nodeCountInput * sizeof(byte));
+      nodeTimestamp = (unsigned long*)realloc(nodeTimestamp, nodeCountInput * sizeof(unsigned long));
+      sendKeepaliveTimestamp = (unsigned long*)realloc(sendKeepaliveTimestamp, nodeCountInput * sizeof(unsigned long));
+      nodeCount = max(nodeDevice + 1, nodeCountInput);  //set this after the buffers have been realloced so that the old value can be used for free()ing the array items
+
+      setNode(nodeDeviceInput, Ethernet.localIP());  //configure the device node
+
+      //buffer sizing - these are dynamically allocated so that the sized can be set via the API
+      //size send event queue buffers
+      queueSizeMaxInput = min(queueSizeMaxInput, 90);  //the current system uses a 2 digit messageID so the range is 10-99, this restricts the queueSizeMax <= 90
+
+      queueIndex = (int8_t*)realloc(queueIndex, queueSizeMaxInput * sizeof(int8_t));
+      for (byte counter = 0; counter < queueSizeMaxInput; counter++) {
+        queueIndex[counter] = -1;  //set all queueIndex priority levels empty
+      }
+
+      for (byte counter = 0; counter < queueSizeMax; counter++) {  //free previously allocated array items - this has to be done for arrays only because realloc doesn't work with the array items
+        free(IPqueue[counter]);
+      }
+      IPqueue = (byte**)realloc(IPqueue, queueSizeMaxInput * sizeof(byte*));  //have to use 4 byte arrays for the IP addresses instead of IPAddress because I can't get IPAddress to work with malloc
+      for (byte counter = 0; counter < queueSizeMaxInput; counter++) {
+        IPqueue[counter] = (byte*)malloc(4 * sizeof(byte));  //4 bytes/IP address
+      }
+
+      portQueue = (unsigned int*)realloc(portQueue, queueSizeMaxInput * sizeof(unsigned int));
+
+      for (byte counter = 0; counter < queueSizeMax; counter++) {
+        free(eventQueue[counter]);
+      }
+      eventQueue = (char**)realloc(eventQueue, queueSizeMaxInput * sizeof(char*));
+      sendEventLengthMax = sendEventLengthMaxInput;
+      for (byte counter = 0; counter < queueSizeMaxInput; counter++) {
+        eventQueue[counter] = (char*)malloc((sendEventLengthMax + 1) * sizeof(char));
+      }
+
+      eventIDqueue = (byte*)realloc(eventIDqueue, queueSizeMaxInput * sizeof(byte));
+
+      for (byte counter = 0; counter < queueSizeMax; counter++) {
+        free(payloadQueue[counter]);
+      }
+      payloadQueue = (char**)realloc(payloadQueue, queueSizeMaxInput * sizeof(char*));
+      sendPayloadLengthMax = sendPayloadLengthMaxInput;
+      for (byte counter = 0; counter < queueSizeMaxInput; counter++) {
+        payloadQueue[counter] = (char*)malloc((sendPayloadLengthMax + 1) * sizeof(char));
+      }
+
+      eventTypeQueue = (byte*)realloc(eventTypeQueue, queueSizeMaxInput * sizeof(byte));
+
+      queueSizeMax = queueSizeMaxInput;  //save the new queueSizeMax, this is done at the end of begin() because it needs to remember the previous value for freeing the array items
+
+      //size received event buffers
+      receivedEventLengthMax = receivedEventLengthMaxInput;
+      receivedEvent = (char*)realloc(receivedEvent, (receivedEventLengthMax + 1) * sizeof(char));
+      receivedEvent[0] = 0;  //clear buffer - realloc does not zero initialize so the buffer could contain anything
+      receivedPayloadLengthMax = receivedPayloadLengthMaxInput;
+      receivedPayload = (char*)realloc(receivedPayload, (receivedPayloadLengthMax + 1) * sizeof(char));
+      receivedPayload[0] = 0;  //clear buffer - realloc does not zero initialize so the buffer could contain anything
+      if (IPqueue == NULL || portQueue == NULL || eventQueue == NULL || eventIDqueue == NULL || payloadQueue == NULL || eventTypeQueue == NULL || receivedEvent == NULL || receivedPayload == NULL || EtherEvent.begin(receivedEventLengthMax, eventIDlength + receivedPayloadLengthMax) == false) {
+        ETHEREVENTQUEUE_SERIAL.println(F("memory allocation failed"));
+        return false;
+      }
+      return true;
+    }
 
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -155,21 +264,87 @@ class EtherEventQueueClass {
     }
 
 
-    unsigned int availablePayload();
-    void readEvent(char eventBuffer[]);
-    void readPayload(char payloadBuffer[]);
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //availablePayload - returns the number of chars in the payload including the null terminator if there is one
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    unsigned int availablePayload() {
+      ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.availablePayload: length="));
+      if (const unsigned int length = strlen(receivedPayload)) {  //strlen(receivedPayload)>0
+        ETHEREVENTQUEUE_SERIAL.println(length + 1);
+        return length + 1;  //length of the payload + null terminator
+      }
+      ETHEREVENTQUEUE_SERIAL.println(0);
+      return 0;
+    }
 
-    byte receivedEventID();
-    void flushReceiver();
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //queue
+    //readEvent - places the event into the passed buffer
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    void readEvent(char eventBuffer[]) {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.readEvent"));
+      strcpy(eventBuffer, receivedEvent);
+      receivedEventLength = 0;  //enable availableEvent() to receive new events
+    }
 
-    byte queue(const byte targetIP[], const unsigned int port, const byte eventType, const char event[], const char payload[] = "");  //convert IPAddress to 4 byte array
-    byte queue(const byte targetNode, const unsigned int port, const byte eventType, const char event[], const char payload[] = "");  //convert node number to 4 byte array
-    byte queue(byte targetIP[], const unsigned int port, const byte eventType, const char event[], const char payload[] = "");  //convert non-const targetIP to const
-    byte queue(const IPAddress &targetIPAddress, const unsigned int port, const byte eventType,  const char event[], const char payload[] = "");  //main queue prototype
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //readPayload - places the payload into the passed buffer
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    void readPayload(char payloadBuffer[]) {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.readPayload"));
+      strcpy(payloadBuffer, receivedPayload);
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //receivedEventID
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    byte receivedEventID() {
+      return receivedEventIDvalue;
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //flushReceiver - dump the last message received so another one can be received
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    void flushReceiver() {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.flushReceiver"));
+      receivedEvent[0] = 0;  //reset the event buffer
+      receivedPayload[0] = 0;  //reset the payload buffer
+      receivedEventLength = 0;  //enable availableEvent() to receive new events
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //queue - add the relayed outgoing message to the send queue. Returns: 0==fail, 1==success, 2==success w/ queue overflow
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //convert IPAddress to 4 byte array
+    byte queue(const IPAddress &targetIPAddress, const unsigned int port, const byte eventType, const char event[], const char payload[] = "") {
+      ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.queue(convert IPAddress): targetIPAddress="));
+      ETHEREVENTQUEUE_SERIAL.println(targetIPAddress);
+      byte targetIP[4];  //create buffer
+      IPcopy(targetIP, targetIPAddress);  //convert
+      return queue((const byte*)targetIP, port, eventType, (const char*)event, payload);
+    }
+
+
+    //convert node to 4 byte array
+    byte queue(const byte targetNode, const unsigned int port, const byte eventType, const char event[], const char payload[] = "") {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(convert node)"));
+      if (targetNode >= nodeCount || !nodeIsSet(targetNode)) {  //sanity check
+        ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(convert node): invalid node number"));
+        return false;
+      }
+      return queue((const byte*)nodeIP[targetNode], port, eventType, (const char*)event, payload);
+    }
+
+
+    byte queue(byte targetIP[], const unsigned int port, const byte eventType, const char event[], const char payload[] = "") {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(convert non-const byte array target to const byte array)"));
+      return queue((const byte*)targetIP, port, eventType, event, payload);
+    }
+
 
     //convert event
     template <typename target_t>
@@ -426,6 +601,94 @@ class EtherEventQueueClass {
     }
 
 
+    //main queue() function
+    byte queue(const byte targetIP[], const unsigned int port, const byte eventType, const char event[], const char payload[] = "") {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue(main)"));
+      if ((eventType != eventTypeOnce && eventType != eventTypeRepeat && eventType != eventTypeConfirm && eventType != eventTypeOverrideTimeout) || (eventType == eventTypeConfirm && eventAck == NULL)) {  //eventType sanity check
+        ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue: invalid eventType"));
+        return false;
+      }
+      const int targetNode = getNode(targetIP);
+      if (targetNode < 0) {  //target is not a node
+        if (sendNodesOnlyState == 1) {
+          ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue: not a node"));
+          return false;
+        }
+      }
+      //target is a node
+      else  if (targetNode == nodeDevice) {  //send events to self regardless of timeout state
+        ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue: self send"));
+        internalEventQueueCount++;
+      }
+      else if (millis() - nodeTimestamp[targetNode] > nodeTimeoutDuration && eventType != eventTypeOverrideTimeout) {  //is a node, not self, is timed out, and is not eventTypeOverrideTimeout
+        ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue: timed out node"));
+        return false;  //don't queue events to timed out nodes
+      }
+
+      byte success = true;  //set default success value to indicate event successfully queued in return
+
+      ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.queue: queueSize="));
+      ETHEREVENTQUEUE_SERIAL.println(queueSize);
+
+      byte queueSlot;
+      if (queueSize == queueSizeMax) {  //queue overflowed
+        ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.queue: Queue Overflowed"));
+        queueSlot = queueIndex[queueSize - 1];
+        remove(queueSlot);
+        success = queueSuccessOverflow;  //indicate overflow in the return
+        queueOverflowFlag = true;  //set the overflow flag for use in checkQueueOverflow()
+      }
+      else {  //there are empty queue slots
+        //find an empty queue slot
+        //the queueIndex is a list of the filled queue slots in order of least to most recently queued, a value of -1 in a queueSlot position indicates that the position is empty(and therefore all higher positions)
+        //the queuePriorityLevel is the queueIndex position of the next event to send
+        for (queueSlot = 0; queueSlot < queueSizeMax; queueSlot++) {
+          byte counter = 0;
+          for (counter = 0; counter < queueSizeMax; counter++) {
+            if (queueIndex[counter] == queueSlot || queueIndex[counter] == -1) {  //the queue slot is filled or not found in the index
+              break;
+            }
+          }
+          if (queueIndex[counter] == -1) {  //the queue slot is empty
+            break;
+          }
+        }
+      }
+
+      //add the new message to the queue
+      queueSize++;
+      queueIndex[queueSize - 1] = queueSlot;
+      IPcopy(IPqueue[queueSlot], targetIP);
+      portQueue[queueSlot] = port;
+      strncpy(eventQueue[queueSlot], event, sendEventLengthMax);
+      eventQueue[queueSlot][sendEventLengthMax] = 0;  //add null terminator in case event is longer than sendPayloadLengthMax
+      eventIDqueue[queueSlot] = eventIDfind();
+      strncpy(payloadQueue[queueSlot], payload, sendPayloadLengthMax);
+      payloadQueue[queueSlot][sendPayloadLengthMax] = 0;  //add null terminator in case payload is longer than sendPayloadLengthMax
+      eventTypeQueue[queueSlot] = eventType;
+
+      queueNewCount++;
+
+      ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.queue: done, queueSlot="));
+      ETHEREVENTQUEUE_SERIAL.println(queueSlot);
+      ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.queue: queueNewCount="));
+      ETHEREVENTQUEUE_SERIAL.println(queueNewCount);
+      ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.queue: IP="));
+      ETHEREVENTQUEUE_SERIAL.println(IPAddress(IPqueue[queueSlot]));
+      ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.queue: port="));
+      ETHEREVENTQUEUE_SERIAL.println(portQueue[queueSlot]);
+      ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.queue: event="));
+      ETHEREVENTQUEUE_SERIAL.println(eventQueue[queueSlot]);
+      ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.queue: payload="));
+      ETHEREVENTQUEUE_SERIAL.println(payloadQueue[queueSlot]);
+      ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.queue: eventID="));
+      ETHEREVENTQUEUE_SERIAL.println(eventIDqueue[queueSlot]);
+      ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.queue: eventType="));
+      ETHEREVENTQUEUE_SERIAL.println(eventTypeQueue[queueSlot]);
+      return success;
+    }
+
+
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //queueHandler - Sends out the messages in the queue. This function was moved to the header file so that the authentication disable system would work
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -527,10 +790,75 @@ class EtherEventQueueClass {
     }
 
 
-    void flushQueue();
-    int8_t checkTimeout();
-    int8_t checkTimein();
-    int8_t checkState(const byte node);
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //flushQueue - removes all events from the queue
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    void flushQueue() {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.flushQueue"));
+      queueSize = 0;
+      queueNewCount = 0;
+      internalEventQueueCount = 0;
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //checkTimeout - checks all the nodes until it finds a _NEWLY_ timed out node and returns it and then updates the nodeState value for that node. If no nodes are newly timed out then this function returns -1.  Note that this works differently than checkState()
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    int8_t checkTimeout() {
+      for (byte node = 0; node < nodeCount; node++) {
+        if (!nodeIsSet(node)) {  //node has not been set
+          continue;
+        }
+        if (nodeState[node] == nodeStateActive && millis() - nodeTimestamp[node] > nodeTimeoutDuration) {  //previous state not timed out, and is currently timed out
+          ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.checkTimeout: timed out node="));
+          ETHEREVENTQUEUE_SERIAL.println(node);
+          nodeState[node] = nodeStateTimedOut;  //set the node state to inactive
+          return node;
+        }
+      }
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.checkTimeout: no newly timed out nodes"));
+      return -1;
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //checkTimein - checks all the authorized IPs until it finds a _NEWLY_ timed in node and returns it and then updates the nodeState value for that node. If no nodes are newly timed in then this function returns -1.  Note that this works differently than checkState()
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    int8_t checkTimein() {
+      for (byte node = 0; node < nodeCount; node++) {
+        if (!nodeIsSet(node)) {  //node has not been set
+          continue;
+        }
+        if (nodeState[node] == nodeStateTimedOut && millis() - nodeTimestamp[node] < nodeTimeoutDuration) {  //node is newly timed in(since the last time the function was run)
+          ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.checkTimein: timed in node="));
+          ETHEREVENTQUEUE_SERIAL.println(node);
+          nodeState[node] = nodeStateActive;  //set the node state to active
+          return node;
+        }
+      }
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.checkTimein: no newly timed in nodes"));
+      return -1;
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //checkState - checks if the given node is timed out. Note that this doesn't update the nodeState like checkTimeout()/checkTimein().
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    int8_t checkState(const byte node) {
+      ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.checkTimeoutNode: nodeState for node "));
+      ETHEREVENTQUEUE_SERIAL.print(node);
+      ETHEREVENTQUEUE_SERIAL.print(F("="));
+      if (node > nodeCount - 1) {  //sanity check
+        ETHEREVENTQUEUE_SERIAL.println(F("invalid node number"));
+        return -1;
+      }
+      if (millis() - nodeTimestamp[node] > nodeTimeoutDuration) {  //node is not this device, not already timed out, and is timed out
+        ETHEREVENTQUEUE_SERIAL.println(F("timed out"));
+        return false;
+      }
+      ETHEREVENTQUEUE_SERIAL.println(F("not timed out"));
+      return true;
+    }
 
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -558,15 +886,78 @@ class EtherEventQueueClass {
     }
 
 
-    boolean checkQueueOverflow();
-    void setResendDelay(const unsigned long resendDelayValue);
-    unsigned long getResendDelay();
-    void setNodeTimeoutDuration(const unsigned long nodeTimeoutDurationValue);
-    unsigned long getNodeTimeoutDuration();
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //checkQueueOverflow
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    boolean checkQueueOverflow() {
+      ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.checkQueueOverflow: queueOverflowFlag="));
+      ETHEREVENTQUEUE_SERIAL.println(queueOverflowFlag);
+      const byte queueOverflowFlagValue = queueOverflowFlag;  //save the value before resetting it
+      queueOverflowFlag = false;  //reset the flag
+      return queueOverflowFlagValue;
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //setResendDelay
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    void setResendDelay(const unsigned long resendDelayValue) {
+      ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.setResendDelay: resendDelay="));
+      ETHEREVENTQUEUE_SERIAL.println(resendDelayValue);
+      resendDelay = resendDelayValue;
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //getResendDelay
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    unsigned long getResendDelay() {
+      ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.getResendDelay: resendDelay="));
+      ETHEREVENTQUEUE_SERIAL.println(resendDelay);
+      return resendDelay;
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //setNodeTimeoutDuration
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    void setNodeTimeoutDuration(const unsigned long nodeTimeoutDurationValue) {
+      ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.setNodeTimeoutDuration: nodeTimeoutDuration="));
+      ETHEREVENTQUEUE_SERIAL.println(nodeTimeoutDurationValue);
+      nodeTimeoutDuration = nodeTimeoutDurationValue;
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //getNodeTimeoutDuration
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    unsigned long getNodeTimeoutDuration() {
+      ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.getNodeTimeoutDuration: nodeTimeoutDuration="));
+      ETHEREVENTQUEUE_SERIAL.println(nodeTimeoutDuration);
+      return nodeTimeoutDuration;
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //receiveNodesOnly
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef ethernetclientwithremoteIP_h
-    void receiveNodesOnly(const boolean receiveNodesOnlyValue = true);
-#endif
-    void sendNodesOnly(const boolean sendNodesOnlyValue = true);
+    void receiveNodesOnly(const boolean receiveNodesOnlyValue = true) {
+      receiveNodesOnlyState = receiveNodesOnlyValue;
+      ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.receiveNodesOnly: new state="));
+      ETHEREVENTQUEUE_SERIAL.println(receiveNodesOnlyState);
+    }
+#endif  //ethernetclientwithremoteIP_h
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //sendNodesOnly
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    void sendNodesOnly(const boolean sendNodesOnlyValue = true) {
+      sendNodesOnlyState = sendNodesOnlyValue;
+      ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.receiveNodesOnly: new state="));
+      ETHEREVENTQUEUE_SERIAL.println(sendNodesOnlyState);
+    }
 
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -590,35 +981,299 @@ class EtherEventQueueClass {
       return true;
     }
 
-    void removeNode(const byte nodeNumber);
 
-    IPAddress getIP(const byte nodeNumber);
-    void sendKeepalive(const unsigned int port);
-    unsigned long getSendKeepaliveMargin();
-    void setSendKeepaliveMargin(const unsigned long sendKeepaliveMarginInput);
-    void setSendKeepaliveResendDelay(const unsigned long sendKeepaliveResendDelayInput);
-    unsigned long getSendKeepaliveResendDelay();
-    boolean setEventKeepalive(const char eventKeepaliveInput[]);
-    boolean setEventKeepalive(const int eventKeepaliveInput);
-    boolean setEventKeepalive(const unsigned int eventKeepaliveInput);
-    boolean setEventKeepalive(const long eventKeepaliveInput);
-    boolean setEventKeepalive(const unsigned long eventKeepaliveInput);
-    boolean setEventKeepalive(const double eventKeepaliveInput);
-    boolean setEventKeepalive(const char eventKeepaliveInput);
-    boolean setEventKeepalive(const __FlashStringHelper* eventKeepaliveFSH);
-    boolean setEventKeepalive(const String &eventKeepaliveInput);
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //removeNode
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    void removeNode(const byte nodeNumber) {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.removeNode"));
+      if (nodeNumber >= nodeCount) {  //sanity check
+        ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.removeNode: invalid node number"));
+      }
+      else {
+        for (byte counter = 0; counter < 4; counter++) {
+          nodeIP[nodeNumber][counter] = 0;
+        }
+      }
+    }
 
-    boolean setEventAck(const char eventAckInput[]);
-    boolean setEventAck(const int eventAckInput);
-    boolean setEventAck(const unsigned int eventAckInput);
-    boolean setEventAck(const long eventAckInput);
-    boolean setEventAck(const unsigned long eventAckInput);
-    boolean setEventAck(const double eventAckInput);
-    boolean setEventAck(const char eventAckInput);
-    boolean setEventAck(const __FlashStringHelper* eventAckFSH);
-    boolean setEventAck(const String &eventAckFSH);
 
-    void setQueueDoubleDecimalPlaces(byte decimalPlaces);
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //getIP
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    IPAddress getIP(const byte nodeNumber) {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.getIP"));
+      if (nodeNumber >= nodeCount) {  //sanity check
+        ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.getIP: invalid node number"));
+        return IPAddress(0, 0, 0, 0);
+      }
+      else {
+        return IPAddress(nodeIP[nodeNumber][0], nodeIP[nodeNumber][1], nodeIP[nodeNumber][2], nodeIP[nodeNumber][3]);
+      }
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //setSendKeepaliveMargin
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    void setSendKeepaliveMargin(const unsigned long sendKeepaliveMarginInput) {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.setSendKeepaliveMargin"));
+      sendKeepaliveMargin = min(sendKeepaliveMarginInput, nodeTimeoutDuration);  //sendKeepaliveMargin can't be greater than nodeTimeoutDuration
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //getSendKeepaliveMargin
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    unsigned long getSendKeepaliveMargin() {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.getSendKeepaliveMargin"));
+      return sendKeepaliveMargin;
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //setSendKeepaliveResendDelay
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    void setSendKeepaliveResendDelay(const unsigned long sendKeepaliveResendDelayInput) {
+      ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.setSendKeepaliveResendDelay: sendKeepaliveResendDelayInput="));
+      ETHEREVENTQUEUE_SERIAL.println(sendKeepaliveResendDelayInput);
+      sendKeepaliveResendDelay = sendKeepaliveResendDelayInput;
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //getSendKeepaliveResendDelay
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    unsigned long getSendKeepaliveResendDelay() {
+      ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.getSendKeepaliveResendDelay, sendKeepaliveResendDelay="));
+      ETHEREVENTQUEUE_SERIAL.println(sendKeepaliveResendDelay);
+      return sendKeepaliveResendDelay;
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //setEventKeepalive
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    boolean setEventKeepalive(const char eventKeepaliveInput[]) {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.setEventKeepalive"));
+      const byte eventKeepaliveLength = strlen(eventKeepaliveInput);
+      eventKeepalive = (char*)realloc(eventKeepalive, (eventKeepaliveLength + 1) * sizeof(*eventKeepalive));  //allocate memory
+      if (eventKeepalive == NULL) {
+        ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.setEventKeepalive: memory allocation failed"));
+        return false;
+      }
+      strcpy(eventKeepalive, eventKeepaliveInput);  //store the event
+      return true;
+    }
+
+
+    boolean setEventKeepalive(const int eventKeepaliveInput) {
+      char eventKeepaliveInputChar[intLengthMax + 1];
+#ifdef __ARDUINO_X86__
+      sprintf(eventKeepaliveInputChar, "%i", eventKeepaliveInput);
+#else  //__ARDUINO_X86__
+      itoa(eventKeepaliveInput, eventKeepaliveInputChar, 10);
+#endif  //__ARDUINO_X86__
+      return setEventKeepalive(eventKeepaliveInputChar);
+    }
+
+
+    boolean setEventKeepalive(const unsigned int eventKeepaliveInput) {
+      char eventKeepaliveInputChar[unsignedIntLengthMax + 1];
+      sprintf_P(eventKeepaliveInputChar, PSTR("%u"), eventKeepaliveInput);
+      return setEventKeepalive(eventKeepaliveInputChar);
+    }
+
+
+    boolean setEventKeepalive(const long eventKeepaliveInput) {
+      char eventKeepaliveInputChar[longLengthMax + 1];
+#ifdef __ARDUINO_X86__
+      sprintf (eventKeepaliveInputChar, "%li", eventKeepaliveInput);
+#else  //__ARDUINO_X86__
+      ltoa(eventKeepaliveInput, eventKeepaliveInputChar, 10);
+#endif  //__ARDUINO_X86__
+      return setEventKeepalive(eventKeepaliveInputChar);
+    }
+
+
+    boolean setEventKeepalive(const unsigned long eventKeepaliveInput) {
+      char eventKeepaliveInputChar[unsignedLongLengthMax + 1];
+#ifdef __ARDUINO_X86__
+      sprintf (eventKeepaliveInputChar, "%lu", eventKeepaliveInput);
+#else  //__ARDUINO_X86__
+      ultoa(eventKeepaliveInput, eventKeepaliveInputChar, 10);
+#endif  //__ARDUINO_X86__
+      return setEventKeepalive(eventKeepaliveInputChar);
+    }
+
+
+    boolean setEventKeepalive(const double eventKeepalive) {
+      char eventKeepaliveChar[doubleIntegerLengthMax + 1 + queueDoubleDecimalPlaces + 1];  //max integer length + decimal point + decimal places setting + null terminator
+#ifdef __ARDUINO_X86__
+      sprintf (eventKeepaliveChar, "%.*f", queueDoubleDecimalPlaces, eventKeepalive);
+#else  //__ARDUINO_X86__
+      dtostrf(eventKeepalive, queueDoubleDecimalPlaces + 2, queueDoubleDecimalPlaces, eventKeepaliveChar);
+#endif  //__ARDUINO_X86__
+      return setEventKeepalive(eventKeepaliveChar);
+    }
+
+
+    boolean setEventKeepalive(const char eventKeepaliveInput) {
+      char eventKeepaliveInputChar[] = {eventKeepaliveInput, 0};
+      return setEventKeepalive(eventKeepaliveInputChar);
+    }
+
+
+    boolean setEventKeepalive(const __FlashStringHelper* eventKeepaliveFSH) {
+      byte stringLength = EtherEvent.FSHlength(eventKeepaliveFSH);
+      char eventKeepaliveChar[stringLength + 1];
+      memcpy_P(eventKeepaliveChar, eventKeepaliveFSH, stringLength + 1);  //+1 for the null terminator
+      return setEventKeepalive(eventKeepaliveChar);
+    }
+
+
+    boolean setEventKeepalive(const String &eventKeepaliveInput) {
+#ifdef __ARDUINO_X86__
+      //x86 boards don't have c_str()
+      const byte stringLength = eventKeepaliveInput.length();
+      char eventKeepaliveInputChar[stringLength + 1];
+      for (byte counter = 0; counter < stringLength; counter++) {
+        eventKeepaliveInputChar[counter] = eventKeepaliveInput[counter];
+      }
+      eventKeepaliveInputChar[stringLength] = 0;
+      return setEventKeepalive(eventKeepaliveInputChar);
+#else  //__ARDUINO_X86__
+      return setEventKeepalive(eventKeepaliveInput.c_str());
+#endif  //__ARDUINO_X86__
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //sendKeepalive
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    void sendKeepalive(const unsigned int port) {
+      if (eventKeepalive == NULL) {
+        ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.sendKeepalive: eventKeepalive not set"));
+        return;
+      }
+      for (byte node = 0; node < nodeCount; node++) {
+        if (node == nodeDevice || !nodeIsSet(node)) {  //device node or node has not been set
+          continue;
+        }
+        if (millis() - nodeTimestamp[node] > nodeTimeoutDuration - sendKeepaliveMargin && millis() - sendKeepaliveTimestamp[node] > sendKeepaliveResendDelay) {  //node is newly timed out(since the last time the function was run)
+          ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.sendKeepalive: sending to node="));
+          ETHEREVENTQUEUE_SERIAL.println(node);
+          queue(node, port, eventTypeOverrideTimeout, eventKeepalive);
+          sendKeepaliveTimestamp[node] = millis();
+        }
+      }
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.sendKeepalive: no keepalive sent"));
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //setEventAck
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    boolean setEventAck(const char eventAckInput[]) {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.setEventAck"));
+      const byte eventAckLength = strlen(eventAckInput);
+      eventAck = (char*)realloc(eventAck, (eventAckLength + 1) * sizeof(*eventAck));  //allocate memory
+      if (eventAck == NULL) {
+        ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.setEventAck: memory allocation failed"));
+        return false;
+      }
+      strcpy(eventAck, eventAckInput);  //store the event
+      return true;
+    }
+
+
+    boolean setEventAck(const int eventAckInput) {
+      char eventAckInputChar[intLengthMax + 1];
+#ifdef __ARDUINO_X86__
+      sprintf(eventAckInputChar, "%i", eventAckInput);
+#else  //__ARDUINO_X86__
+      itoa(eventAckInput, eventAckInputChar, 10);
+#endif  //__ARDUINO_X86__
+      return setEventAck(eventAckInputChar);
+    }
+
+
+    boolean setEventAck(const unsigned int eventAckInput) {
+      char eventAckInputChar[unsignedIntLengthMax + 1];
+      sprintf_P(eventAckInputChar, PSTR("%u"), eventAckInput);
+      return setEventAck(eventAckInputChar);
+    }
+
+
+    boolean setEventAck(const long eventAckInput) {
+      char eventAckInputChar[longLengthMax + 1];
+#ifdef __ARDUINO_X86__
+      sprintf (eventAckInputChar, "%li", eventAckInput);
+#else  //__ARDUINO_X86__
+      ltoa(eventAckInput, eventAckInputChar, 10);
+#endif  //__ARDUINO_X86__
+      return setEventAck(eventAckInputChar);
+    }
+
+
+    boolean setEventAck(const unsigned long eventAckInput) {
+      char eventAckInputChar[unsignedLongLengthMax + 1];
+#ifdef __ARDUINO_X86__
+      sprintf (eventAckInputChar, "%lu", eventAckInput);
+#else  //__ARDUINO_X86__
+      ultoa(eventAckInput, eventAckInputChar, 10);
+#endif  //__ARDUINO_X86__
+      return setEventAck(eventAckInputChar);
+    }
+
+
+    boolean setEventAck(const double eventAckInput) {
+      char eventAckInputChar[doubleIntegerLengthMax + 1 + queueDoubleDecimalPlaces + 1];  //max integer length + decimal point + decimal places setting + null terminator
+#ifdef __ARDUINO_X86__
+      sprintf (eventAckInputChar, "%.*f", queueDoubleDecimalPlaces, eventAckInput);
+#else  //__ARDUINO_X86__
+      dtostrf(eventAckInput, queueDoubleDecimalPlaces + 2, queueDoubleDecimalPlaces, eventAckInputChar);
+#endif  //__ARDUINO_X86__
+      return setEventAck(eventAckInputChar);
+    }
+
+
+    boolean setEventAck(const char eventAckInput) {
+      char eventAckInputChar[] = {eventAckInput, 0};
+      return setEventAck(eventAckInputChar);
+    }
+
+
+    boolean setEventAck(const __FlashStringHelper* eventAckFSH) {
+      byte stringLength = EtherEvent.FSHlength(eventAckFSH);
+      char eventAckChar[stringLength + 1];
+      memcpy_P(eventAckChar, eventAckFSH, stringLength + 1);  //+1 for the null terminator
+      return setEventAck(eventAckChar);
+    }
+
+
+    boolean setEventAck(const String &eventAckInput) {
+#ifdef __ARDUINO_X86__
+      //x86 boards don't have c_str()
+      const byte stringLength = eventAckInput.length();
+      char eventAckInputChar[stringLength + 1];
+      for (byte counter = 0; counter < stringLength; counter++) {
+        eventAckInputChar[counter] = eventAckInput[counter];
+      }
+      eventAckInputChar[stringLength] = 0;
+      return setEventAck(eventAckInputChar);
+#else  //__ARDUINO_X86__
+      return setEventAck(eventAckInput.c_str());
+#endif  //__ARDUINO_X86__
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //setQueueDoubleDecimalPlaces - set the number of decimal places to queue of double/float event/payload
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    void setQueueDoubleDecimalPlaces(byte decimalPlaces) {
+      queueDoubleDecimalPlaces = decimalPlaces;
+    }
 
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -650,6 +1305,17 @@ class EtherEventQueueClass {
     static const byte nodeStateUnknown = 2;
 
     static const byte eventIDlength = 2;
+
+    static const unsigned long nodeTimeoutDurationDefault = 270000;  //(ms)the node is timed out if it has been longer than this duration since the last event was received from it
+    static const unsigned long sendKeepaliveMarginDefault = 30000;
+    static const unsigned long sendKeepaliveResendDelayDefault = 60000;
+    static const unsigned int resendDelayDefault = 45000;  //(ms)delay between resends of messages
+
+    static const byte queueSizeMaxDefault = 5;
+    static const byte eventLengthMaxDefault = 15;
+    static const byte payloadLengthMaxDefault = 80;
+
+    const byte queueDoubleDecimalPlacesDefault = 3;
 
     //private global variables
     byte nodeDevice;
@@ -697,8 +1363,79 @@ class EtherEventQueueClass {
     byte queueDoubleDecimalPlaces;
 
 
-    byte eventIDfind();
-    void remove(const byte queueStep);
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //eventIDfind - find a free eventID
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    byte eventIDfind() {
+      ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.eventIDfind"));
+      if (queueSize == 0) {  //the queue is empty
+        ETHEREVENTQUEUE_SERIAL.println(F("EtherEventQueue.eventIDfind: eventID=10"));
+        return 10;  //default value if there are no other messages
+      }
+      if (queueSize > 0) {
+        for (byte eventID = 10; eventID <= 99; eventID++) {  //step through all possible eventIDs. They start at 10 so they will always be 2 digit
+          byte eventIDduplicate = 0;
+          for (byte count = 0; count < queueSize; count++) {  //step through the currently occupied section of the eventIDqueue[]
+            if (eventID == eventIDqueue[count]) {  //the eventID is already being used
+              eventIDduplicate = 1;
+            }
+          }
+          if (eventIDduplicate == 0) {  //the eventID was unique
+            ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.eventIDfind: eventID="));
+            ETHEREVENTQUEUE_SERIAL.println(eventID);
+            return eventID;  //skip the rest of the for loop
+          }
+        }
+      }
+      return 0;  //this should never happen but it causes a compiler warning without
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //remove - remove the given item from the queue
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    void remove(const byte removeQueueSlot) {
+      ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.remove: queueSlot="));
+      ETHEREVENTQUEUE_SERIAL.println(removeQueueSlot);
+      if (IPqueue[removeQueueSlot][0] == nodeIP[nodeDevice][0] && IPqueue[removeQueueSlot][1] == nodeIP[nodeDevice][1] && IPqueue[removeQueueSlot][2] == nodeIP[nodeDevice][2] && IPqueue[removeQueueSlot][3] == nodeIP[nodeDevice][3]) {  //the queue item to remove is an internal event
+        if (internalEventQueueCount > 0) {  //sanity check
+          internalEventQueueCount--;
+        }
+      }
+      if (queueSize > 1) {
+        //find the priority level of the queueSlot to be removed
+        byte removeQueueSlotPriorityLevel;
+        for (removeQueueSlotPriorityLevel = 0; removeQueueSlotPriorityLevel < queueSize; removeQueueSlotPriorityLevel++) {
+          if (queueIndex[removeQueueSlotPriorityLevel] == removeQueueSlot) {
+            break;
+          }
+        }
+
+        //move up all queue slots with a larger priority level value than the removed slot
+        queueSize--;
+        byte counter;
+        for (counter = removeQueueSlotPriorityLevel; counter < queueSize; counter++) {
+          queueIndex[counter] = queueIndex[counter + 1];
+        }
+        queueIndex[counter + 1] = -1;  //clear the last slot
+
+        //adjust the removeQueueSlotPriorityLevel to account for the revised queueIndex
+        if (queuePriorityLevel >= removeQueueSlotPriorityLevel) {
+          if (queuePriorityLevel == 0) {
+            queuePriorityLevel = queueSize - 1;
+          }
+          else {
+            queuePriorityLevel--;
+          }
+        }
+      }
+      else {  //there is only one item in the queue so priority level == 0
+        queueSize = 0;  //make sure that the queueSize will never negative overflow
+        queueIndex[0] = -1;  //clear the slot
+      }
+      ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.remove: new queue size="));
+      ETHEREVENTQUEUE_SERIAL.println(queueSize);
+    }
 
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -716,10 +1453,21 @@ class EtherEventQueueClass {
     }
 
 
-    boolean nodeIsSet(const byte nodeNumber);
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //nodeIsSet - check if the node has been set
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    boolean nodeIsSet(const byte nodeNumber) {
+      ETHEREVENTQUEUE_SERIAL.print(F("EtherEventQueue.nodeIsSet: result="));
+      if (nodeIP[nodeNumber][0] == 0 && nodeIP[nodeNumber][1] == 0 && nodeIP[nodeNumber][2] == 0 && nodeIP[nodeNumber][3] == 0) {
+        ETHEREVENTQUEUE_SERIAL.println(F("false"));
+        return false;
+      }
+      ETHEREVENTQUEUE_SERIAL.println(F("true"));
+      return true;
+    }
 };
 
 
-extern EtherEventQueueClass EtherEventQueue;  //declare the class so it doesn't have to be done in the sketch
+static EtherEventQueueClass EtherEventQueue;  //declare the class so it doesn't have to be done in the sketch
 
 #endif
