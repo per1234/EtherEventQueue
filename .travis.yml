@@ -12,8 +12,7 @@ env:
 
 
   matrix:
-    - BOARD_NAME="arduino:avr:mega:cpu=atmega2560" PACKAGE_NAME="arduino:avr" PACKAGE_URL="" IDE_RANGE_START="1.6.0" IDE_RANGE_END="1.6.12"
-    - BOARD_NAME="arduino:avr:mega:cpu=atmega2560" PACKAGE_NAME="arduino:avr" PACKAGE_URL="" IDE_RANGE_START="1.6.13" IDE_RANGE_END="newest"
+    - BOARD_NAME='arduino:avr:mega:cpu=atmega2560' PACKAGE_NAME='arduino:avr' PACKAGE_URL='' IDE_VERSIONS='("1.6.5-r5" "1.6.9" "1.6.13" "1.8.5" "newest")'
     - BOARD_NAME="arduino:sam:arduino_due_x_dbg" PACKAGE_NAME="arduino:sam" PACKAGE_URL="" IDE_RANGE_START="newest" IDE_RANGE_START="newest"
     - BOARD_NAME="arduino:samd:arduino_zero_edbg" PACKAGE_NAME="arduino:samd" PACKAGE_URL="" IDE_RANGE_START="newest" IDE_RANGE_START="newest"
     - BOARD_NAME="Intel:arc32:arduino_101" PACKAGE_NAME="Intel:arc32" PACKAGE_URL="" IDE_RANGE_START="newest" IDE_RANGE_START="newest"
