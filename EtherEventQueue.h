@@ -703,7 +703,7 @@ class EtherEventQueueClass {
         for (byte counter = 0; counter < queueSize; counter++) {  //the maximum number of iterations is the queueSize
           if (queueNewCount == 0) {  //time to send the next one in the queue
             //find the next largest priority level value
-            if (queuePriorityLevel == queueSize - 1 || queueIndex[queuePriorityLevel + 1] == -1) {  //the last sent item was already at the largest priority level value so send the queue item with smallest priority level value. The first statment(queuePriorityLevel == queueSize - 1) handles reaching the end of a full queue, the second statement(queueIndex[queuePriorityLevel + 1] == -1) handles reaching the empty portion of a partially filled queue
+            if (queuePriorityLevel == queueSize - 1 || queueIndex[queuePriorityLevel + 1] == -1) {  //the last sent item was already at the largest priority level value so send the queue item with smallest priority level value. The first statement (queuePriorityLevel == queueSize - 1) handles reaching the end of a full queue, the second statement (queueIndex[queuePriorityLevel + 1] == -1) handles reaching the empty portion of a partially filled queue
               queuePriorityLevel = 0;  //start from the least recently queued item
             }
             else {
