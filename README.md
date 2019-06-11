@@ -290,4 +290,4 @@ An overview of the event queue process:
 
 
 #### Contributing
-Pull requests or issue reports are welcome! Please see the [contribution rules](https://github.com/per1234/EtherEventQueue/blob/master/CONTRIBUTING.md) for instructions.
+Pull requests or issue reports are welcome! Please see the [contribution rules](https://github.com/per1234/EtherEventQueue/blob/master/.github/CONTRIBUTING.md) for instructions.
